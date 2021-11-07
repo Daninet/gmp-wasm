@@ -10,6 +10,8 @@
 #define EMSCRIPTEN_KEEPALIVE;
 #endif
 
+EMSCRIPTEN_KEEPALIVE void* g_malloc (size_t bytes) { return malloc(bytes); }
+EMSCRIPTEN_KEEPALIVE void g_free (void *ptr) { free(ptr); }
 
 /**************** Random number routines.  ****************/
 EMSCRIPTEN_KEEPALIVE void g_randinit_default (gmp_randstate_t p1) { gmp_randinit_default(p1); }
@@ -154,6 +156,7 @@ EMSCRIPTEN_KEEPALIVE void z_set_si (mpz_ptr p1, signed long int p2) { mpz_set_si
 EMSCRIPTEN_KEEPALIVE int z_set_str (mpz_ptr p1, const char * p2, int p3) { return mpz_set_str(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_set_ui (mpz_ptr p1, unsigned long int p2) { mpz_set_ui(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_setbit (mpz_ptr p1, mp_bitcnt_t p2) { mpz_setbit(p1, p2); }
+EMSCRIPTEN_KEEPALIVE int z_sgn (mpz_ptr p1) { return mpz_sgn(p1); }
 EMSCRIPTEN_KEEPALIVE size_t z_size (mpz_srcptr p1) { return mpz_size(p1); }
 EMSCRIPTEN_KEEPALIVE size_t z_sizeinbase (mpz_srcptr p1, int p2) { return mpz_sizeinbase(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_sqrt (mpz_ptr p1, mpz_srcptr p2) { mpz_sqrt(p1, p2); }
