@@ -25,9 +25,9 @@ export async function getGMP(wasmPath: string) {
         Rational: getRationalContext(binding, destroyCallback),
         Float: getFloatContext(binding, destroyCallback),
       };
-      const res = fn(param);
+      const res = fn(param).toString();
       destroyers.forEach(obj => obj());
-      return res.toString();
+      return res;
     },
   };
 }

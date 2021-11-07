@@ -397,7 +397,9 @@ export async function getGMPInterface(wasmPath: string) {
     mpfr_nextabove: (p1: mpfr_ptr): void => { gmp._r_nextabove(p1); },
     mpfr_nextbelow: (p1: mpfr_ptr): void => { gmp._r_nextbelow(p1); },
     mpfr_nexttoward: (p1: mpfr_ptr, p2: mpfr_srcptr): void => { gmp._r_nexttoward(p1, p2); },
-    
+
+    // mpfr_asprintf_simple: (p1: mpfr_ptr, p2: mpfr_rnd_t): c_str_ptr => gmp._r_asprintf_simple(p1, p2),
+
     mpfr_pow: (p1: mpfr_ptr, p2: mpfr_srcptr, p3: mpfr_srcptr, p4: mpfr_rnd_t): c_int => gmp._r_pow(p1, p2, p3, p4),
     mpfr_pow_si: (p1: mpfr_ptr, p2: mpfr_srcptr, p3: c_signed_long_int, p4: mpfr_rnd_t): c_int => gmp._r_pow_si(p1, p2, p3, p4),
     mpfr_pow_ui: (p1: mpfr_ptr, p2: mpfr_srcptr, p3: c_unsigned_long_int, p4: mpfr_rnd_t): c_int => gmp._r_pow_ui(p1, p2, p3, p4),

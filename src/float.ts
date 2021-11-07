@@ -22,15 +22,20 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
     private mpfr_t = 0;
     private roundingMode: mpfr_rnd_t = 0;
   
-    constructor(str: string, roundingMode: FloatRoundingMode) {
+    constructor(precisionBits = 64, roundingMode: FloatRoundingMode = FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) {
       this.mpfr_t = gmp.mpfr_t();
+      gmp.mpfr_init2(this.mpfr_t, precisionBits);
       this.roundingMode = roundingMode as number as mpfr_rnd_t;
+      onSetDestroy?.(() => this.destroy());
+    }
+
+    set(str: string) {
       const encoded = encoder.encode(str);
       const strptr = gmp.malloc(encoded.length + 1);
       gmp.mem.set(encoded, strptr);
-      gmp.mpfr_init_set_str(this.mpfr_t, strptr, 10, this.roundingMode);
+      gmp.mpfr_set_str(this.mpfr_t, strptr, 10, this.roundingMode);
       gmp.free(strptr);
-      onSetDestroy?.(() => this.destroy());
+      return this;
     }
 
     add(val: Float | number) {
@@ -321,12 +326,46 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
     toString() {
       const mpfr_exp_t_ptr = gmp.malloc(4);
       const strptr = gmp.mpfr_get_str(0, mpfr_exp_t_ptr, 10, 0, this.mpfr_t, this.roundingMode);
-      const pointPos = gmp.memView.getInt32(mpfr_exp_t_ptr, true);
+      // const strptr = gmp.mpfr_asprintf_simple(this.mpfr_t, this.roundingMode);
       const endptr = gmp.mem.indexOf(0, strptr);
-      const ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
+      let ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
+      const isNegative = ret.startsWith('-');
+
+      if (!['@NaN@', '@Inf@', '-@Inf@'].includes(ret)) {
+        // decimal point needs to be inserted
+        const pointPos = gmp.memView.getInt32(mpfr_exp_t_ptr, true);
+        const retWithoutSign = isNegative ? ret.slice(1) : ret;
+        const sign = isNegative ? '-' : '';
+        let hasDecimalPoint = false;
+
+        if (pointPos <= 0) {
+          const zeros = [...Array(-pointPos)].fill('0').join('');
+          ret = `${sign}0.${zeros}${retWithoutSign}`;
+          hasDecimalPoint = true;
+        } else if (pointPos < retWithoutSign.length) {
+          ret = `${sign}${retWithoutSign.slice(0, pointPos)}.${retWithoutSign.slice(pointPos)}`;
+          hasDecimalPoint = true;
+        } else {
+          const zeros = [...Array(pointPos - retWithoutSign.length)].fill('0').join('');
+          ret = `${ret}${zeros}`;
+        }
+
+        // trim trailing zeros after decimal point
+        if (hasDecimalPoint) {
+          let pos = ret.length - 1;
+          while (pos >= 0) {
+            if (ret[pos] !== '.' && ret[pos] !== '0') break;
+            pos--;
+          }
+          if (pos !== ret.length -1) {
+            ret = ret.slice(0, pos + 1);
+          }
+        }
+      }
+
       gmp.mpfr_free_str(strptr);
       gmp.free(mpfr_exp_t_ptr);
-      return ret + `point: ${pointPos}`;
+      return ret;
     }
   
     destroy() {

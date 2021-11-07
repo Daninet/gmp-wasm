@@ -3,6 +3,7 @@
 #include <mpc.h>
 #include <stdio.h>
 #include <emscripten.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -349,6 +350,13 @@ EMSCRIPTEN_KEEPALIVE void r_nexttoward (mpfr_ptr p1, mpfr_srcptr p2) { mpfr_next
 // EMSCRIPTEN_KEEPALIVE int r_asprintf (char**, const char*, ...);
 // EMSCRIPTEN_KEEPALIVE int r_sprintf (char*, const char*, ...);
 // EMSCRIPTEN_KEEPALIVE int r_snprintf (char*, size_t, const char*, ...);
+// EMSCRIPTEN_KEEPALIVE char* r_asprintf_simple (mpfr_ptr p1, mpfr_rnd_t p2) {
+//   char *x;
+//   long precisionBits = mpfr_get_prec(p1);
+//   long precisionDigits = ceil((double)precisionBits / 3.3219281);
+//   mpfr_asprintf(&x, "%.*R*f", precisionDigits, p2, p1);
+//   return x;
+// }
 
 EMSCRIPTEN_KEEPALIVE int r_pow (mpfr_ptr p1, mpfr_srcptr p2, mpfr_srcptr p3, mpfr_rnd_t p4) { return mpfr_pow(p1, p2, p3, p4); }
 EMSCRIPTEN_KEEPALIVE int r_pow_si (mpfr_ptr p1, mpfr_srcptr p2, long p3, mpfr_rnd_t p4) { return mpfr_pow_si(p1, p2, p3, p4); }
