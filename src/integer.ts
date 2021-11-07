@@ -140,7 +140,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
       return this;
     }
 
-    nthroot(nth: number) {
+    nthRoot(nth: number) {
       assertUint32(nth);
       gmp.mpz_root(this.mpz_t, this.mpz_t, nth);
       return this;

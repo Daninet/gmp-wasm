@@ -11,7 +11,7 @@ export function getRationalContext(gmp: GMPFunctions, onSetDestroy?: (callback: 
   
     constructor(str: string) {
       this.mpq_t = gmp.mpq_t();
-      // gmp.mpq_init(this.mpq_t);
+      gmp.mpq_init(this.mpq_t);
       const encoded = encoder.encode(str);
       const strptr = gmp.malloc(encoded.length + 1);
       gmp.mem.set(encoded, strptr);

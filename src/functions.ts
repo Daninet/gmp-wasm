@@ -78,6 +78,7 @@ export async function getGMPInterface(wasmPath: string) {
     malloc: (size: c_size_t): c_void_ptr => gmp._g_malloc(size),
     free: (ptr: c_void_ptr): void => gmp._g_free(ptr),
     mem: gmp.HEAP8 as Uint8Array,
+    memView: new DataView(gmp.HEAP8.buffer, gmp.HEAP8.byteOffset, gmp.HEAP8.byteLength),
 
     /**************** Random number routines.  ****************/
     g_randinit_default: (p1: gmp_randstate_t): void => { gmp._g_randinit_default(p1); },
