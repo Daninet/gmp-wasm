@@ -1,8 +1,10 @@
 import { getGMPInterface } from './functions';
 import { getIntegerContext, IntegerType } from './integer';
+import { getRationalContext, RationalType } from './rational';
 
 export interface CalculateType {
   Integer: IntegerType;
+  Rational: RationalType;
 };
 
 export async function getGMP(wasmPath: string) {
@@ -11,11 +13,13 @@ export async function getGMP(wasmPath: string) {
   return {
     binding,
     Integer: getIntegerContext(binding),
+    Rational: getRationalContext(binding),
     calculate: (fn: (gmp: CalculateType) => IntegerType) => {
       const destroyers: (() => void)[] = [];
-      const Integer = getIntegerContext(binding, (callback => destroyers.push(callback)));
+      const destroyCallback = callback => destroyers.push(callback);
       const param: CalculateType = {
-        Integer,
+        Integer: getIntegerContext(binding, destroyCallback),
+        Rational: getRationalContext(binding, destroyCallback),
       };
       const res = fn(param);
       destroyers.forEach(obj => obj());

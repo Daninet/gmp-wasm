@@ -284,6 +284,7 @@ export async function getGMPInterface(wasmPath: string) {
     mpq_set_str: (p1: mpq_ptr, p2: c_str_ptr, p3: c_int): c_int => gmp._q_set_str(p1, p2, p3),
     mpq_set_ui: (p1: mpq_ptr, p2: c_unsigned_long_int, p3: c_unsigned_long_int): void => { gmp._q_set_ui(p1, p2, p3); },
     mpq_set_z: (p1: mpq_ptr, p2: mpz_srcptr): void => { gmp._q_set_z(p1, p2); },
+    mpq_sgn: (p1: mpq_ptr): c_int => gmp._q_sgn(p1),
     mpq_sub: (p1: mpq_ptr, p2: mpq_srcptr, p3: mpq_srcptr): void => { gmp._q_sub(p1, p2, p3); },
     mpq_swap: (p1: mpq_ptr, p2: mpq_ptr): void => { gmp._q_swap(p1, p2); },
     

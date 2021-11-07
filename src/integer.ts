@@ -1,19 +1,8 @@
 import type { GMPFunctions } from './functions';
+import { assertInt32, assertUint32 } from './util';
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
-
-function assertUint32(num: number) {
-  if (!Number.isSafeInteger(num) || num < 0 || num >= Math.pow(2, 32)) {
-    throw new Error('Invalid number specified: uint32_t is required');
-  }
-}
-
-function assertInt32(num: number) {
-  if (!Number.isSafeInteger(num) || num < -Math.pow(2, 31) || num >= Math.pow(2, 31)) {
-    throw new Error('Invalid number specified: int32_t is required');
-  }
-}
 
 export enum DivMode {
   CEIL = 0,

@@ -222,6 +222,7 @@ EMSCRIPTEN_KEEPALIVE void q_set_si (mpq_ptr p1, signed long int p2, unsigned lon
 EMSCRIPTEN_KEEPALIVE int q_set_str (mpq_ptr p1, const char * p2, int p3) { return mpq_set_str(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void q_set_ui (mpq_ptr p1, unsigned long int p2, unsigned long int p3) { mpq_set_ui(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void q_set_z (mpq_ptr p1, mpz_srcptr p2) { mpq_set_z(p1, p2); }
+EMSCRIPTEN_KEEPALIVE int q_sgn (mpq_ptr p1) { return mpq_sgn(p1); }
 EMSCRIPTEN_KEEPALIVE void q_sub (mpq_ptr p1, mpq_srcptr p2, mpq_srcptr p3) { mpq_sub(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void q_swap (mpq_ptr p1, mpq_ptr p2) { mpq_swap(p1, p2); }
 
