@@ -1,5 +1,5 @@
 import { getGMPInterface } from './functions';
-import { getIntegerContext, IntegerType } from './int';
+import { getIntegerContext, IntegerType } from './integer';
 
 export interface CalculateType {
   Integer: IntegerType;
