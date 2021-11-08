@@ -1,8 +1,10 @@
 {
   "name": "gmp-wasm",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.1",
+  "description": "WebAssembly bindings for the GMP, MPFR, MPC libraries",
+  "main": "dist/index.umd.min.js",
+  "module": "dist/index.esm.min.js",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build-gmp": "sh -c ./binding/build-gmp.sh",
     "build-mpfr": "sh -c ./binding/build-mpfr.sh",
@@ -28,11 +30,15 @@
     "large",
     "integer"
   ],
-  "author": "Dani Biró <danibiro93@gmail.com>",
-  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Daninet/gmp-wasm/issues"
+  },
+  "homepage": "https://github.com/Daninet/gmp-wasm#readme",
+  "author": "Dani Biró <danibiro93@gmail.com> (https://danibiro.com)",
+  "license": "LGPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Daninet/ginac-wasm.git"
+    "url": "git+https://github.com/Daninet/gmp-wasm.git"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",

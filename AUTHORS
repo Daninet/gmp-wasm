@@ -1,4 +1,10 @@
-Authors of the WebAssembly port
+Authors of this WebAssembly binding
 ------------
 
 Dani Biró <danibiro93@gmail.com>
+
+------------
+
+
+The authors of the original GMP, MPFR and MPC libraries
+can be found in the source packages distributions of these libraries.

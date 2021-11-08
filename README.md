@@ -1,2 +1,2 @@
 # GMP-WASM
-WebAssembly bindings for the GMP
+WebAssembly bindings for the GMP, MPFR, MPC libraries
