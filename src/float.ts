@@ -323,44 +323,50 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
       return this;
     }
 
+    private insertDecimalPoint(mantissa: string, pointPos: number) {
+      const isNegative = mantissa.startsWith('-');
+
+      const mantissaWithoutSign = isNegative ? mantissa.slice(1) : mantissa;
+      const sign = isNegative ? '-' : '';
+      let hasDecimalPoint = false;
+
+      if (pointPos <= 0) {
+        const zeros = [...Array(-pointPos)].fill('0').join('');
+        mantissa = `${sign}0.${zeros}${mantissaWithoutSign}`;
+        hasDecimalPoint = true;
+      } else if (pointPos < mantissaWithoutSign.length) {
+        mantissa = `${sign}${mantissaWithoutSign.slice(0, pointPos)}.${mantissaWithoutSign.slice(pointPos)}`;
+        hasDecimalPoint = true;
+      } else {
+        const zeros = [...Array(pointPos - mantissaWithoutSign.length)].fill('0').join('');
+        mantissa = `${mantissa}${zeros}`;
+      }
+
+      // trim trailing zeros after decimal point
+      if (hasDecimalPoint) {
+        let pos = mantissa.length - 1;
+        while (pos >= 0) {
+          if (mantissa[pos] !== '.' && mantissa[pos] !== '0') break;
+          pos--;
+        }
+        if (pos !== mantissa.length - 1) {
+          mantissa = mantissa.slice(0, pos + 1);
+        }
+      }
+      return mantissa;
+    }
+
     toString() {
       const mpfr_exp_t_ptr = gmp.malloc(4);
       const strptr = gmp.mpfr_get_str(0, mpfr_exp_t_ptr, 10, 0, this.mpfr_t, this.roundingMode);
       // const strptr = gmp.mpfr_asprintf_simple(this.mpfr_t, this.roundingMode);
       const endptr = gmp.mem.indexOf(0, strptr);
       let ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
-      const isNegative = ret.startsWith('-');
 
       if (!['@NaN@', '@Inf@', '-@Inf@'].includes(ret)) {
         // decimal point needs to be inserted
         const pointPos = gmp.memView.getInt32(mpfr_exp_t_ptr, true);
-        const retWithoutSign = isNegative ? ret.slice(1) : ret;
-        const sign = isNegative ? '-' : '';
-        let hasDecimalPoint = false;
-
-        if (pointPos <= 0) {
-          const zeros = [...Array(-pointPos)].fill('0').join('');
-          ret = `${sign}0.${zeros}${retWithoutSign}`;
-          hasDecimalPoint = true;
-        } else if (pointPos < retWithoutSign.length) {
-          ret = `${sign}${retWithoutSign.slice(0, pointPos)}.${retWithoutSign.slice(pointPos)}`;
-          hasDecimalPoint = true;
-        } else {
-          const zeros = [...Array(pointPos - retWithoutSign.length)].fill('0').join('');
-          ret = `${ret}${zeros}`;
-        }
-
-        // trim trailing zeros after decimal point
-        if (hasDecimalPoint) {
-          let pos = ret.length - 1;
-          while (pos >= 0) {
-            if (ret[pos] !== '.' && ret[pos] !== '0') break;
-            pos--;
-          }
-          if (pos !== ret.length -1) {
-            ret = ret.slice(0, pos + 1);
-          }
-        }
+        ret = this.insertDecimalPoint(ret, pointPos);
       }
 
       gmp.mpfr_free_str(strptr);
