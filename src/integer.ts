@@ -16,14 +16,22 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
   class Integer {
     private mpz_t = 0;
   
-    constructor(str: string) {
+    constructor(num: string | number | Integer) {
       this.mpz_t = gmp.mpz_t();
-      // gmp.mpq_init(this.mpz_t);
-      const encoded = encoder.encode(str);
-      const strptr = gmp.malloc(encoded.length + 1);
-      gmp.mem.set(encoded, strptr);
-      gmp.mpz_init_set_str(this.mpz_t, strptr, 10);
-      gmp.free(strptr);
+      if (typeof num === 'string') {
+        const encoded = encoder.encode(num);
+        const strptr = gmp.malloc(encoded.length + 1);
+        gmp.mem.set(encoded, strptr);
+        gmp.mpz_init_set_str(this.mpz_t, strptr, 10);
+        gmp.free(strptr);
+      } else if (typeof num === 'number') {
+        assertInt32(num);
+        gmp.mpz_init_set_si(this.mpz_t, num);
+      } else if (num instanceof Integer) {
+        gmp.mpz_init_set(this.mpz_t, num.mpz_t);
+      } else {
+        throw new Error('Invalid value for the Integer type!');
+      }
       onSetDestroy?.(() => this.destroy());
     }
 
@@ -88,7 +96,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
           gmp.mpz_submul_ui(this.mpz_t, this.mpz_t, val);
         }
       } else {
-        gmp.mpz_addmul(this.mpz_t, this.mpz_t, val.mpz_t);
+        gmp.mpz_submul(this.mpz_t, this.mpz_t, val.mpz_t);
       }
       return this;
     }
@@ -129,9 +137,33 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
       return this;
     }
 
-    pow(val: number) {
-      assertUint32(val);
-      gmp.mpz_pow_ui(this.mpz_t, this.mpz_t, val);
+    pow(exp: Integer | number, mod?: Integer | number) {
+      if (typeof exp === 'number') {
+        assertUint32(exp);
+        if (mod !== undefined) {
+          if (typeof mod === 'number') {
+            assertUint32(mod);
+            gmp.mpz_powm_ui(this.mpz_t, this.mpz_t, exp, new Integer(mod).mpz_t);
+          } else {
+            gmp.mpz_powm_ui(this.mpz_t, this.mpz_t, exp, mod.mpz_t);
+          }
+        } else {
+          gmp.mpz_pow_ui(this.mpz_t, this.mpz_t, exp);
+        }
+      } else {
+        if (mod !== undefined) {
+          if (typeof mod === 'number') {
+            assertUint32(mod);
+            gmp.mpz_powm(this.mpz_t, this.mpz_t, exp.mpz_t, new Integer(mod).mpz_t);
+          } else {
+            gmp.mpz_powm(this.mpz_t, this.mpz_t, exp.mpz_t, mod.mpz_t);
+          }
+        } else {
+          const expNum = exp.toNumber();
+          assertUint32(expNum);
+          gmp.mpz_pow_ui(this.mpz_t, this.mpz_t, expNum);
+        }
+      }
       return this;
     }
 
@@ -146,7 +178,25 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
       return this;
     }
 
-    isPrime(reps: number) {
+    factorial() {
+      if (gmp.mpz_fits_ulong_p(this.mpz_t) === 0) {
+        throw new Error('Out of bounds!');
+      }
+      const value = gmp.mpz_get_ui(this.mpz_t);
+      gmp.mpz_fac_ui(this.mpz_t, value);
+      return this;
+    }
+
+    doubleFactorial() {
+      if (gmp.mpz_fits_ulong_p(this.mpz_t) === 0) {
+        throw new Error('Out of bounds!');
+      }
+      const value = gmp.mpz_get_ui(this.mpz_t);
+      gmp.mpz_2fac_ui(this.mpz_t, value);
+      return this;
+    }
+
+    isPrime(reps: number = 20) {
       assertUint32(reps);
       const ret = gmp.mpz_probab_prime_p(this.mpz_t, reps);
       if (ret === 0) return false; // definitely non-prime
@@ -179,18 +229,33 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
       return this;
     }
 
-    and(val: Integer) {
-      gmp.mpz_and(this.mpz_t, this.mpz_t, val.mpz_t);
+    and(val: Integer | number) {
+      if (typeof val === 'number') {
+        assertUint32(val);
+        gmp.mpz_and(this.mpz_t, this.mpz_t, new Integer(val).mpz_t);
+      } else {
+        gmp.mpz_and(this.mpz_t, this.mpz_t, val.mpz_t);
+      }
       return this;
     }
 
-    or(val: Integer) {
-      gmp.mpz_ior(this.mpz_t, this.mpz_t, val.mpz_t);
+    or(val: Integer | number) {
+      if (typeof val === 'number') {
+        assertUint32(val);
+        gmp.mpz_ior(this.mpz_t, this.mpz_t, new Integer(val).mpz_t);
+      } else {
+        gmp.mpz_ior(this.mpz_t, this.mpz_t, val.mpz_t);
+      }
       return this;
     }
 
-    xor(val: Integer) {
-      gmp.mpz_xor(this.mpz_t, this.mpz_t, val.mpz_t);
+    xor(val: Integer | number) {
+      if (typeof val === 'number') {
+        assertUint32(val);
+        gmp.mpz_xor(this.mpz_t, this.mpz_t, new Integer(val).mpz_t);
+      } else {
+        gmp.mpz_xor(this.mpz_t, this.mpz_t, val.mpz_t);
+      }
       return this;
     }
 
@@ -232,7 +297,10 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
     }
 
     toNumber() {
-      return gmp.mpz_get_d(this.mpz_t);
+      if (gmp.mpz_fits_slong_p(this.mpz_t) === 0) {
+        return gmp.mpz_get_d(this.mpz_t);
+      }
+      return gmp.mpz_get_si(this.mpz_t);
     }
 
     toString() {

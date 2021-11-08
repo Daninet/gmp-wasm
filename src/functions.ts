@@ -68,7 +68,7 @@ export enum mpfr_free_cache_t {
   MPFR_FREE_GLOBAL_CACHE = 2   /* 1 << 1 */
 };
 
-type Awaited<T> = T extends PromiseLike<infer U> ? U : T
+type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 export type GMPFunctions = Awaited<ReturnType<typeof getGMPInterface>>;
 
 export async function getGMPInterface(wasmPath: string) {
