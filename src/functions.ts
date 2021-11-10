@@ -69,7 +69,8 @@ export enum mpfr_free_cache_t {
 };
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
-export type GMPFunctions = Awaited<ReturnType<typeof getGMPInterface>>;
+type GMPFunctionsType = Awaited<ReturnType<typeof getGMPInterface>>;
+export interface GMPFunctions extends GMPFunctionsType {}
 
 export async function getGMPInterface(wasmPath: string) {
   const gmp = await getBinding(wasmPath);

@@ -1,12 +1,21 @@
-import { FloatType, getFloatContext } from './float';
-import { getGMPInterface } from './functions';
-import { getIntegerContext, IntegerType } from './integer';
-import { getRationalContext, RationalType } from './rational';
+import { Float, FloatRoundingMode, getFloatContext } from './float';
+import { getGMPInterface, GMPFunctions } from './functions';
+import { DivMode, getIntegerContext, Integer } from './integer';
+import { getRationalContext, Rational } from './rational';
 
 export interface CalculateType {
-  Integer: IntegerType;
-  Rational: RationalType;
-  Float: FloatType;
+  Integer: ReturnType<typeof getIntegerContext>;
+  Rational: ReturnType<typeof getRationalContext>;
+  Float: ReturnType<typeof getFloatContext>;
+};
+
+export type {
+  Float,
+  Integer,
+  Rational,
+  DivMode,
+  FloatRoundingMode,
+  GMPFunctions,
 };
 
 export async function getGMP(wasmPath: string) {
@@ -17,7 +26,7 @@ export async function getGMP(wasmPath: string) {
     Integer: getIntegerContext(binding),
     Rational: getRationalContext(binding),
     Float: getFloatContext(binding),
-    calculate: (fn: (gmp: CalculateType) => IntegerType) => {
+    calculate: (fn: (gmp: CalculateType) => Integer) => {
       const destroyers: (() => void)[] = [];
       const destroyCallback = callback => destroyers.push(callback);
       const param: CalculateType = {

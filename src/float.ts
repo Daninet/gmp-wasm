@@ -4,7 +4,8 @@ import { assertInt32, assertUint32 } from './util';
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-export type FloatType = ReturnType<typeof getFloatContext>;
+type FloatReturn = ReturnType<ReturnType<typeof getFloatContext>>;
+export interface Float extends FloatReturn {};
 
 // matches mpfr_rnd_t
 export enum FloatRoundingMode {
@@ -18,312 +19,12 @@ export enum FloatRoundingMode {
 };
 
 export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () => void) => void) {
-  class Float {
-    private mpfr_t = 0;
-    private roundingMode: mpfr_rnd_t = 0;
-  
-    constructor(precisionBits = 64, roundingMode: FloatRoundingMode = FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) {
-      this.mpfr_t = gmp.mpfr_t();
-      gmp.mpfr_init2(this.mpfr_t, precisionBits);
-      this.roundingMode = roundingMode as number as mpfr_rnd_t;
-      onSetDestroy?.(() => this.destroy());
-    }
+  const FloatFn = (precisionBits = 64, roundingMode: FloatRoundingMode = FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) => {
+    const mpfr_t = gmp.mpfr_t();
+    const rndMode = roundingMode as number as mpfr_rnd_t;
+    gmp.mpfr_init2(mpfr_t, precisionBits);
 
-    set(str: string) {
-      const encoded = encoder.encode(str);
-      const strptr = gmp.malloc(encoded.length + 1);
-      gmp.mem.set(encoded, strptr);
-      gmp.mpfr_set_str(this.mpfr_t, strptr, 10, this.roundingMode);
-      gmp.free(strptr);
-      return this;
-    }
-
-    add(val: Float | number) {
-      if (typeof val === 'number') {
-        assertInt32(val);
-        gmp.mpfr_add_si(this.mpfr_t, this.mpfr_t, val, this.roundingMode);
-      } else {
-        gmp.mpfr_add(this.mpfr_t, this.mpfr_t, val.mpfr_t, this.roundingMode);
-      }
-      return this;
-    }
-
-    sub(val: Float | number) {
-      if (typeof val === 'number') {
-        assertInt32(val);
-        gmp.mpfr_sub_si(this.mpfr_t, this.mpfr_t, val, this.roundingMode);
-      } else {
-        gmp.mpfr_sub(this.mpfr_t, this.mpfr_t, val.mpfr_t, this.roundingMode);
-      }
-      return this;
-    }
-
-    mul(val: Float | number) {
-      if (typeof val === 'number') {
-        assertInt32(val);
-        gmp.mpfr_mul_si(this.mpfr_t, this.mpfr_t, val, this.roundingMode);
-      } else {
-        gmp.mpfr_mul(this.mpfr_t, this.mpfr_t, val.mpfr_t, this.roundingMode);
-      }
-      return this;
-    }
-
-    div(val: Float | number) {
-      if (typeof val === 'number') {
-        assertInt32(val);
-        gmp.mpfr_div_si(this.mpfr_t, this.mpfr_t, val, this.roundingMode);
-      } else {
-        gmp.mpfr_div(this.mpfr_t, this.mpfr_t, val.mpfr_t, this.roundingMode);
-      }
-      return this;
-    }
-
-    sqrt() {
-      gmp.mpfr_sqrt(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    cbrt() {
-      gmp.mpfr_cbrt(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    nthRoot(nth: number) {
-      assertUint32(nth);
-      gmp.mpfr_rootn_ui(this.mpfr_t, this.mpfr_t, nth, this.roundingMode);
-      return this;
-    }
-
-    neg() {
-      gmp.mpfr_neg(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    abs() {
-      gmp.mpfr_abs(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    // TODO
-    // factorial() {
-    //   gmp.mpfr_fac_ui(this.mpfr_t, this.mpfr_t, this.roundingMode);
-    //   return this;
-    // }
-
-    isZero() {
-      return gmp.mpfr_zero_p(this.mpfr_t) !== 0;
-    }
-
-    isRegular() {
-      return gmp.mpfr_regular_p(this.mpfr_t) !== 0;
-    }
-
-    isNumber() {
-      return gmp.mpfr_number_p(this.mpfr_t) !== 0;
-    }
-
-    isInfinite() {
-      return gmp.mpfr_inf_p(this.mpfr_t) !== 0;
-    }
-
-    isNaN() {
-      return gmp.mpfr_nan_p(this.mpfr_t) !== 0;
-    }
-
-    isEqual(val: Float) {
-      return gmp.mpfr_equal_p(this.mpfr_t, val.mpfr_t) !== 0;
-    }
-
-    lessThan(val: Float) {
-      return gmp.mpfr_less_p(this.mpfr_t, val.mpfr_t) !== 0;
-    }
-
-    lessOrEqual(val: Float) {
-      return gmp.mpfr_lessequal_p(this.mpfr_t, val.mpfr_t) !== 0;
-    }
-
-    greaterThan(val: Float) {
-      return gmp.mpfr_greater_p(this.mpfr_t, val.mpfr_t) !== 0;
-    }
-
-    greaterOrEqual(val: Float) {
-      return gmp.mpfr_greaterequal_p(this.mpfr_t, val.mpfr_t) !== 0;
-    }
-
-    ln() {
-      gmp.mpfr_log(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    log2() {
-      gmp.mpfr_log2(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    log10() {
-      gmp.mpfr_log10(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    exp() {
-      gmp.mpfr_exp(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    exp2() {
-      gmp.mpfr_exp2(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    exp10() {
-      gmp.mpfr_exp10(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    pow(val: Float | number) {
-      if (typeof val === 'number') {
-        assertInt32(val);
-        gmp.mpfr_pow_si(this.mpfr_t, this.mpfr_t, val, this.roundingMode);
-      } else {
-        gmp.mpfr_pow(this.mpfr_t, this.mpfr_t, val.mpfr_t, this.roundingMode);
-      }
-      return this;
-    }
-
-    sin() {
-      gmp.mpfr_sin(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    cos() {
-      gmp.mpfr_cos(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    tan() {
-      gmp.mpfr_tan(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    sec() {
-      gmp.mpfr_sec(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    csc() {
-      gmp.mpfr_csc(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    cot() {
-      gmp.mpfr_cot(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    acos() {
-      gmp.mpfr_acos(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    asin() {
-      gmp.mpfr_asin(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    atan() {
-      gmp.mpfr_atan(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    sinh() {
-      gmp.mpfr_sinh(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    cosh() {
-      gmp.mpfr_cosh(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    tanh() {
-      gmp.mpfr_tanh(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    sech() {
-      gmp.mpfr_sech(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    csch() {
-      gmp.mpfr_csch(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    coth() {
-      gmp.mpfr_coth(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    acosh() {
-      gmp.mpfr_acosh(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    asinh() {
-      gmp.mpfr_asinh(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    atanh() {
-      gmp.mpfr_atanh(this.mpfr_t, this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    Pi() {
-      gmp.mpfr_const_pi(this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    Euler() {
-      gmp.mpfr_const_euler(this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    Catalan() {
-      gmp.mpfr_const_catalan(this.mpfr_t, this.roundingMode);
-      return this;
-    }
-
-    sign() {
-      return gmp.mpq_sgn(this.mpfr_t);
-    }
-
-    toNumber() {
-      return gmp.mpq_get_d(this.mpfr_t);
-    }
-
-    ceil() {
-      gmp.mpfr_ceil(this.mpfr_t, this.mpfr_t);
-      return this;
-    }
-
-    floor() {
-      gmp.mpfr_floor(this.mpfr_t, this.mpfr_t);
-      return this;
-    }
-
-    round() {
-      gmp.mpfr_round(this.mpfr_t, this.mpfr_t);
-      return this;
-    }
-
-    trunc() {
-      gmp.mpfr_trunc(this.mpfr_t, this.mpfr_t);
-      return this;
-    }
-
-    private insertDecimalPoint(mantissa: string, pointPos: number) {
+    const insertDecimalPoint = (mantissa: string, pointPos: number) => {
       const isNegative = mantissa.startsWith('-');
 
       const mantissaWithoutSign = isNegative ? mantissa.slice(1) : mantissa;
@@ -356,29 +57,332 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
       return mantissa;
     }
 
-    toString() {
-      const mpfr_exp_t_ptr = gmp.malloc(4);
-      const strptr = gmp.mpfr_get_str(0, mpfr_exp_t_ptr, 10, 0, this.mpfr_t, this.roundingMode);
-      // const strptr = gmp.mpfr_asprintf_simple(this.mpfr_t, this.roundingMode);
-      const endptr = gmp.mem.indexOf(0, strptr);
-      let ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
+    const ret = {
+      __getMPFR() {
+        return mpfr_t;
+      },
 
-      if (!['@NaN@', '@Inf@', '-@Inf@'].includes(ret)) {
-        // decimal point needs to be inserted
-        const pointPos = gmp.memView.getInt32(mpfr_exp_t_ptr, true);
-        ret = this.insertDecimalPoint(ret, pointPos);
+      set(str: string): Float {
+        const encoded = encoder.encode(str);
+        const strptr = gmp.malloc(encoded.length + 1);
+        gmp.mem.set(encoded, strptr);
+        gmp.mpfr_set_str(mpfr_t, strptr, 10, rndMode);
+        gmp.free(strptr);
+        return ret;
+      },
+
+      add(val: Float | number): Float {
+        if (typeof val === 'number') {
+          assertInt32(val);
+          gmp.mpfr_add_si(mpfr_t, mpfr_t, val, rndMode);
+        } else {
+          gmp.mpfr_add(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+        }
+        return ret;
+      },
+
+      sub(val: Float | number): Float {
+        if (typeof val === 'number') {
+          assertInt32(val);
+          gmp.mpfr_sub_si(mpfr_t, mpfr_t, val, rndMode);
+        } else {
+          gmp.mpfr_sub(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+        }
+        return ret;
+      },
+
+      mul(val: Float | number): Float {
+        if (typeof val === 'number') {
+          assertInt32(val);
+          gmp.mpfr_mul_si(mpfr_t, mpfr_t, val, rndMode);
+        } else {
+          gmp.mpfr_mul(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+        }
+        return ret;
+      },
+
+      div(val: Float | number): Float {
+        if (typeof val === 'number') {
+          assertInt32(val);
+          gmp.mpfr_div_si(mpfr_t, mpfr_t, val, rndMode);
+        } else {
+          gmp.mpfr_div(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+        }
+        return ret;
+      },
+
+      sqrt(): Float {
+        gmp.mpfr_sqrt(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      cbrt(): Float {
+        gmp.mpfr_cbrt(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      nthRoot(nth: number): Float {
+        assertUint32(nth);
+        gmp.mpfr_rootn_ui(mpfr_t, mpfr_t, nth, rndMode);
+        return ret;
+      },
+
+      neg(): Float {
+        gmp.mpfr_neg(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      abs(): Float {
+        gmp.mpfr_abs(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      // TODO
+      // factorial() {
+      //   gmp.mpfr_fac_ui(mpfr_t, mpfr_t, rndMode);
+      //   return ret;
+      // }
+
+      isZero() {
+        return gmp.mpfr_zero_p(mpfr_t) !== 0;
+      },
+
+      isRegular() {
+        return gmp.mpfr_regular_p(mpfr_t) !== 0;
+      },
+
+      isNumber() {
+        return gmp.mpfr_number_p(mpfr_t) !== 0;
+      },
+
+      isInfinite() {
+        return gmp.mpfr_inf_p(mpfr_t) !== 0;
+      },
+
+      isNaN() {
+        return gmp.mpfr_nan_p(mpfr_t) !== 0;
+      },
+
+      isEqual(val: Float) {
+        return gmp.mpfr_equal_p(mpfr_t, val.__getMPFR()) !== 0;
+      },
+
+      lessThan(val: Float) {
+        return gmp.mpfr_less_p(mpfr_t, val.__getMPFR()) !== 0;
+      },
+
+      lessOrEqual(val: Float) {
+        return gmp.mpfr_lessequal_p(mpfr_t, val.__getMPFR()) !== 0;
+      },
+
+      greaterThan(val: Float) {
+        return gmp.mpfr_greater_p(mpfr_t, val.__getMPFR()) !== 0;
+      },
+
+      greaterOrEqual(val: Float) {
+        return gmp.mpfr_greaterequal_p(mpfr_t, val.__getMPFR()) !== 0;
+      },
+
+      ln(): Float {
+        gmp.mpfr_log(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      log2(): Float {
+        gmp.mpfr_log2(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      log10(): Float {
+        gmp.mpfr_log10(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      exp(): Float {
+        gmp.mpfr_exp(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      exp2(): Float {
+        gmp.mpfr_exp2(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      exp10(): Float {
+        gmp.mpfr_exp10(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      pow(val: Float | number): Float {
+        if (typeof val === 'number') {
+          assertInt32(val);
+          gmp.mpfr_pow_si(mpfr_t, mpfr_t, val, rndMode);
+        } else {
+          gmp.mpfr_pow(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+        }
+        return ret;
+      },
+
+      sin(): Float {
+        gmp.mpfr_sin(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      cos(): Float {
+        gmp.mpfr_cos(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      tan(): Float {
+        gmp.mpfr_tan(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      sec(): Float {
+        gmp.mpfr_sec(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      csc(): Float {
+        gmp.mpfr_csc(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      cot(): Float{
+        gmp.mpfr_cot(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      acos(): Float {
+        gmp.mpfr_acos(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      asin(): Float {
+        gmp.mpfr_asin(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      atan(): Float {
+        gmp.mpfr_atan(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      sinh(): Float {
+        gmp.mpfr_sinh(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      cosh(): Float {
+        gmp.mpfr_cosh(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      tanh(): Float {
+        gmp.mpfr_tanh(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      sech(): Float {
+        gmp.mpfr_sech(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      csch(): Float {
+        gmp.mpfr_csch(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      coth(): Float {
+        gmp.mpfr_coth(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      acosh(): Float {
+        gmp.mpfr_acosh(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      asinh(): Float {
+        gmp.mpfr_asinh(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      atanh(): Float {
+        gmp.mpfr_atanh(mpfr_t, mpfr_t, rndMode);
+        return ret;
+      },
+
+      Pi(): Float {
+        gmp.mpfr_const_pi(mpfr_t, rndMode);
+        return ret;
+      },
+
+      Euler(): Float {
+        gmp.mpfr_const_euler(mpfr_t, rndMode);
+        return ret;
+      },
+
+      Catalan(): Float {
+        gmp.mpfr_const_catalan(mpfr_t, rndMode);
+        return ret;
+      },
+
+      sign() {
+        return gmp.mpq_sgn(mpfr_t);
+      },
+
+      toNumber() {
+        return gmp.mpq_get_d(mpfr_t);
+      },
+
+      ceil(): Float {
+        gmp.mpfr_ceil(mpfr_t, mpfr_t);
+        return ret;
+      },
+
+      floor(): Float {
+        gmp.mpfr_floor(mpfr_t, mpfr_t);
+        return ret;
+      },
+
+      round(): Float {
+        gmp.mpfr_round(mpfr_t, mpfr_t);
+        return ret;
+      },
+
+      trunc(): Float {
+        gmp.mpfr_trunc(mpfr_t, mpfr_t);
+        return ret;
+      },
+
+      toString() {
+        const mpfr_exp_t_ptr = gmp.malloc(4);
+        const strptr = gmp.mpfr_get_str(0, mpfr_exp_t_ptr, 10, 0, mpfr_t, rndMode);
+        // const strptr = gmp.mpfr_asprintf_simple(mpfr_t, rndMode);
+        const endptr = gmp.mem.indexOf(0, strptr);
+        let ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
+
+        if (!['@NaN@', '@Inf@', '-@Inf@'].includes(ret)) {
+          // decimal point needs to be inserted
+          const pointPos = gmp.memView.getInt32(mpfr_exp_t_ptr, true);
+          ret = insertDecimalPoint(ret, pointPos);
+        }
+
+        gmp.mpfr_free_str(strptr);
+        gmp.free(mpfr_exp_t_ptr);
+        return ret;
+      },
+    
+      destroy() {
+        gmp.mpfr_clear(mpfr_t);
+        gmp.mpfr_t_free(mpfr_t);
       }
+    };
 
-      gmp.mpfr_free_str(strptr);
-      gmp.free(mpfr_exp_t_ptr);
-      return ret;
-    }
-  
-    destroy() {
-      gmp.mpfr_clear(this.mpfr_t);
-      gmp.mpfr_t_free(this.mpfr_t);
-    }
-  }
+    onSetDestroy?.(() => ret.destroy());
 
-  return Float;
+    return ret;
+  };
+  return FloatFn;
 };

@@ -3,92 +3,96 @@ import type { GMPFunctions } from './functions';
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-export type RationalType = ReturnType<typeof getRationalContext>;
+type RationalReturn = ReturnType<ReturnType<typeof getRationalContext>>;
+export interface Rational extends RationalReturn {};
 
 export function getRationalContext(gmp: GMPFunctions, onSetDestroy?: (callback: () => void) => void) {
-  class Rational {
-    private mpq_t = 0;
+  const RationalFn = (str: string) => {
+    const mpq_t = gmp.mpq_t();
+    gmp.mpq_init(mpq_t);
+    const encoded = encoder.encode(str);
+    const strptr = gmp.malloc(encoded.length + 1);
+    gmp.mem.set(encoded, strptr);
+    gmp.mpq_set_str(mpq_t, strptr, 10);
+    gmp.free(strptr);
+    gmp.mpq_canonicalize(mpq_t);
+
+    const ret = {
+      __getMPQT() {
+        return mpq_t;
+      },
+
+      add(val: Rational): Rational {
+        gmp.mpq_add(mpq_t, mpq_t, val.__getMPQT());
+        return ret;
+      },
   
-    constructor(str: string) {
-      this.mpq_t = gmp.mpq_t();
-      gmp.mpq_init(this.mpq_t);
-      const encoded = encoder.encode(str);
-      const strptr = gmp.malloc(encoded.length + 1);
-      gmp.mem.set(encoded, strptr);
-      gmp.mpq_set_str(this.mpq_t, strptr, 10);
-      gmp.free(strptr);
-      gmp.mpq_canonicalize(this.mpq_t);
-      onSetDestroy?.(() => this.destroy());
-    }
-
-    add(val: Rational) {
-      gmp.mpq_add(this.mpq_t, this.mpq_t, val.mpq_t);
-      return this;
-    }
-
-    sub(val: Rational) {
-      gmp.mpq_sub(this.mpq_t, this.mpq_t, val.mpq_t);
-      return this;
-    }
-
-    mul(val: Rational) {
-      gmp.mpq_mul(this.mpq_t, this.mpq_t, val.mpq_t);
-      return this;
-    }
-
-    neg() {
-      gmp.mpq_neg(this.mpq_t, this.mpq_t);
-      return this;
-    }
-
-    invert() {
-      gmp.mpq_inv(this.mpq_t, this.mpq_t);
-      return this;
-    }
-
-    abs() {
-      gmp.mpq_abs(this.mpq_t, this.mpq_t);
-      return this;
-    }
-
-    div(val: Rational) {
-      gmp.mpq_div(this.mpq_t, this.mpq_t, val.mpq_t);
-      return this;
-    }
-
-    isEqual(val: Rational) {
-      return gmp.mpq_equal(this.mpq_t, val.mpq_t) !== 0;
-    }
-
-    lessThan(val: Rational) {
-      return gmp.mpq_cmp(this.mpq_t, val.mpq_t) < 0;
-    }
-
-    greaterThan(val: Rational) {
-      return gmp.mpq_cmp(this.mpq_t, val.mpq_t) > 0;
-    }
-
-    sign() {
-      return gmp.mpq_sgn(this.mpq_t);
-    }
-
-    toNumber() {
-      return gmp.mpq_get_d(this.mpq_t);
-    }
-
-    toString() {
-      const strptr = gmp.mpq_get_str(0, 10, this.mpq_t);
-      const endptr = gmp.mem.indexOf(0, strptr);
-      const ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
-      gmp.free(strptr);
-      return ret;
-    }
+      sub(val: Rational): Rational {
+        gmp.mpq_sub(mpq_t, mpq_t, val.__getMPQT());
+        return ret;
+      },
   
-    destroy() {
-      gmp.mpq_clear(this.mpq_t);
-      gmp.mpq_t_free(this.mpq_t);
-    }
+      mul(val: Rational): Rational {
+        gmp.mpq_mul(mpq_t, mpq_t, val.__getMPQT());
+        return ret;
+      },
+  
+      neg(): Rational {
+        gmp.mpq_neg(mpq_t, mpq_t);
+        return ret;
+      },
+  
+      invert(): Rational {
+        gmp.mpq_inv(mpq_t, mpq_t);
+        return ret;
+      },
+  
+      abs(): Rational {
+        gmp.mpq_abs(mpq_t, mpq_t);
+        return ret;
+      },
+  
+      div(val: Rational): Rational {
+        gmp.mpq_div(mpq_t, mpq_t, val.__getMPQT());
+        return ret;
+      },
+  
+      isEqual(val: Rational) {
+        return gmp.mpq_equal(mpq_t, val.__getMPQT()) !== 0;
+      },
+  
+      lessThan(val: Rational) {
+        return gmp.mpq_cmp(mpq_t, val.__getMPQT()) < 0;
+      },
+  
+      greaterThan(val: Rational) {
+        return gmp.mpq_cmp(mpq_t, val.__getMPQT()) > 0;
+      },
+  
+      sign() {
+        return gmp.mpq_sgn(mpq_t);
+      },
+  
+      toNumber() {
+        return gmp.mpq_get_d(mpq_t);
+      },
+  
+      toString() {
+        const strptr = gmp.mpq_get_str(0, 10, mpq_t);
+        const endptr = gmp.mem.indexOf(0, strptr);
+        const str = decoder.decode(gmp.mem.subarray(strptr, endptr));
+        gmp.free(strptr);
+        return str;
+      },
+    
+      destroy() {
+        gmp.mpq_clear(mpq_t);
+        gmp.mpq_t_free(mpq_t);
+      },
+    };
+
+    onSetDestroy?.(() => ret.destroy());
+    return ret;
   }
-
-  return Rational;
+  return RationalFn;
 };
