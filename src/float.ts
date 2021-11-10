@@ -4,7 +4,9 @@ import { assertInt32, assertUint32 } from './util';
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-type FloatReturn = ReturnType<ReturnType<typeof getFloatContext>>;
+type FloatFactoryReturn = ReturnType<typeof getFloatContext>;
+export interface FloatFactory extends FloatFactoryReturn {};
+type FloatReturn = ReturnType<FloatFactoryReturn>;
 export interface Float extends FloatReturn {};
 
 // matches mpfr_rnd_t

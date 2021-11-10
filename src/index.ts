@@ -1,12 +1,12 @@
-import { Float, FloatRoundingMode, getFloatContext } from './float';
+import { Float, FloatFactory, FloatRoundingMode, getFloatContext } from './float';
 import { getGMPInterface, GMPFunctions } from './functions';
-import { DivMode, getIntegerContext, Integer } from './integer';
-import { getRationalContext, Rational } from './rational';
+import { DivMode, getIntegerContext, Integer, IntegerFactory } from './integer';
+import { getRationalContext, Rational, RationalFactory } from './rational';
 
 export interface CalculateType {
-  Integer: ReturnType<typeof getIntegerContext>;
-  Rational: ReturnType<typeof getRationalContext>;
-  Float: ReturnType<typeof getFloatContext>;
+  Integer: IntegerFactory;
+  Rational: RationalFactory;
+  Float: FloatFactory;
 };
 
 export type {
@@ -18,7 +18,14 @@ export type {
   GMPFunctions,
 };
 
-export async function getGMP(wasmPath: string) {
+type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
+
+export interface GMPLib extends CalculateType {
+  binding: Awaited<ReturnType<typeof getGMPInterface>>;
+  calculate: (fn: (gmp: CalculateType) => Integer) => void;
+};
+
+export async function getGMP(wasmPath: string): Promise<GMPLib> {
   const binding = await getGMPInterface(wasmPath);
 
   return {

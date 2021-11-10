@@ -4,7 +4,9 @@ import { assertInt32, assertUint32 } from './util';
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-type IntegerReturn = ReturnType<ReturnType<typeof getIntegerContext>>;
+type IntegerFactoryReturn = ReturnType<typeof getIntegerContext>;
+export interface IntegerFactory extends IntegerFactoryReturn {};
+type IntegerReturn = ReturnType<IntegerFactoryReturn>;
 export interface Integer extends IntegerReturn {};
 
 export enum DivMode {

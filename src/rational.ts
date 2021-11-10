@@ -3,7 +3,9 @@ import type { GMPFunctions } from './functions';
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-type RationalReturn = ReturnType<ReturnType<typeof getRationalContext>>;
+type RationalFactoryReturn = ReturnType<typeof getRationalContext>;
+export interface RationalFactory extends RationalFactoryReturn {};
+type RationalReturn = ReturnType<RationalFactoryReturn>;
 export interface Rational extends RationalReturn {};
 
 export function getRationalContext(gmp: GMPFunctions, onSetDestroy?: (callback: () => void) => void) {
