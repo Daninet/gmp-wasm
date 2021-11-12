@@ -1,5 +1,5 @@
 import type { GMPFunctions, mpfr_rnd_t } from './functions';
-import { assertInt32, assertUint32 } from './util';
+import { assertInt32, assertUint32, isInt32 } from './util';
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
@@ -20,63 +20,102 @@ export enum FloatRoundingMode {
   ROUND_TO_NEAREST_AWAY_FROM_ZERO = -1,
 };
 
+const insertDecimalPoint = (mantissa: string, pointPos: number) => {
+  const isNegative = mantissa.startsWith('-');
+
+  const mantissaWithoutSign = isNegative ? mantissa.slice(1) : mantissa;
+  const sign = isNegative ? '-' : '';
+  let hasDecimalPoint = false;
+
+  if (pointPos <= 0) {
+    const zeros = [...Array(-pointPos)].fill('0').join('');
+    mantissa = `${sign}0.${zeros}${mantissaWithoutSign}`;
+    hasDecimalPoint = true;
+  } else if (pointPos < mantissaWithoutSign.length) {
+    mantissa = `${sign}${mantissaWithoutSign.slice(0, pointPos)}.${mantissaWithoutSign.slice(pointPos)}`;
+    hasDecimalPoint = true;
+  } else {
+    const zeros = [...Array(pointPos - mantissaWithoutSign.length)].fill('0').join('');
+    mantissa = `${mantissa}${zeros}`;
+  }
+
+  // trim trailing zeros after decimal point
+  if (hasDecimalPoint) {
+    let pos = mantissa.length - 1;
+    while (pos >= 0) {
+      if (mantissa[pos] !== '.' && mantissa[pos] !== '0') break;
+      pos--;
+    }
+    if (pos !== mantissa.length - 1) {
+      mantissa = mantissa.slice(0, pos + 1);
+    }
+    if (mantissa.length === 0) {
+      mantissa = '0';
+    }
+  }
+  return mantissa;
+}
+
 export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () => void) => void) {
   const FloatFn = (precisionBits = 64, roundingMode: FloatRoundingMode = FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) => {
     const mpfr_t = gmp.mpfr_t();
     const rndMode = roundingMode as number as mpfr_rnd_t;
     gmp.mpfr_init2(mpfr_t, precisionBits);
 
-    const insertDecimalPoint = (mantissa: string, pointPos: number) => {
-      const isNegative = mantissa.startsWith('-');
-
-      const mantissaWithoutSign = isNegative ? mantissa.slice(1) : mantissa;
-      const sign = isNegative ? '-' : '';
-      let hasDecimalPoint = false;
-
-      if (pointPos <= 0) {
-        const zeros = [...Array(-pointPos)].fill('0').join('');
-        mantissa = `${sign}0.${zeros}${mantissaWithoutSign}`;
-        hasDecimalPoint = true;
-      } else if (pointPos < mantissaWithoutSign.length) {
-        mantissa = `${sign}${mantissaWithoutSign.slice(0, pointPos)}.${mantissaWithoutSign.slice(pointPos)}`;
-        hasDecimalPoint = true;
-      } else {
-        const zeros = [...Array(pointPos - mantissaWithoutSign.length)].fill('0').join('');
-        mantissa = `${mantissa}${zeros}`;
-      }
-
-      // trim trailing zeros after decimal point
-      if (hasDecimalPoint) {
-        let pos = mantissa.length - 1;
-        while (pos >= 0) {
-          if (mantissa[pos] !== '.' && mantissa[pos] !== '0') break;
-          pos--;
-        }
-        if (pos !== mantissa.length - 1) {
-          mantissa = mantissa.slice(0, pos + 1);
-        }
-      }
-      return mantissa;
-    }
-
     const ret = {
+      type: 'float',
+
       __getMPFR() {
         return mpfr_t;
       },
 
-      set(str: string): Float {
-        const encoded = encoder.encode(str);
-        const strptr = gmp.malloc(encoded.length + 1);
-        gmp.mem.set(encoded, strptr);
-        gmp.mpfr_set_str(mpfr_t, strptr, 10, rndMode);
-        gmp.free(strptr);
+      set(val: string | number | Float): Float {
+        if (typeof val === 'string') {
+          const encoded = encoder.encode(val);
+          const strptr = gmp.malloc(encoded.length + 1);
+          gmp.mem.set(encoded, strptr);
+          gmp.mpfr_set_str(mpfr_t, strptr, 10, rndMode);
+          gmp.free(strptr);
+        } else if (typeof val === 'number') {
+          if (isInt32(val)) {
+            gmp.mpfr_set_si(mpfr_t, val, rndMode);
+          } else {
+            gmp.mpfr_set_d(mpfr_t, val, rndMode);
+          }
+        } else if (val?.type === 'float') {
+          gmp.mpfr_set(mpfr_t, val.__getMPFR(), rndMode);
+        }
+        return ret;
+      },
+
+      setToPi() {
+        gmp.mpfr_const_pi(mpfr_t, rndMode);
+        return ret;
+      },
+
+      setToEulerConstant() {
+        gmp.mpfr_const_euler(mpfr_t, rndMode);
+        return ret;
+      },
+
+      setToLog2() {
+        gmp.mpfr_const_log2(mpfr_t, rndMode);
+        return ret;
+      },
+
+      setToCatalan() {
+        gmp.mpfr_const_catalan(mpfr_t, rndMode);
+        return ret;
+      },
+
+      setToEulerNumber() {
+        ret.set(FloatFn(precisionBits, roundingMode).set(1).exp());
         return ret;
       },
 
       add(val: Float | number): Float {
         if (typeof val === 'number') {
-          assertInt32(val);
-          gmp.mpfr_add_si(mpfr_t, mpfr_t, val, rndMode);
+          gmp.mpfr_add_d(mpfr_t, mpfr_t, val, rndMode);
         } else {
           gmp.mpfr_add(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
         }
@@ -85,8 +124,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
 
       sub(val: Float | number): Float {
         if (typeof val === 'number') {
-          assertInt32(val);
-          gmp.mpfr_sub_si(mpfr_t, mpfr_t, val, rndMode);
+          gmp.mpfr_sub_d(mpfr_t, mpfr_t, val, rndMode);
         } else {
           gmp.mpfr_sub(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
         }
@@ -95,8 +133,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
 
       mul(val: Float | number): Float {
         if (typeof val === 'number') {
-          assertInt32(val);
-          gmp.mpfr_mul_si(mpfr_t, mpfr_t, val, rndMode);
+          gmp.mpfr_mul_d(mpfr_t, mpfr_t, val, rndMode);
         } else {
           gmp.mpfr_mul(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
         }
@@ -105,8 +142,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
 
       div(val: Float | number): Float {
         if (typeof val === 'number') {
-          assertInt32(val);
-          gmp.mpfr_div_si(mpfr_t, mpfr_t, val, rndMode);
+          gmp.mpfr_div_d(mpfr_t, mpfr_t, val, rndMode);
         } else {
           gmp.mpfr_div(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
         }
@@ -165,23 +201,28 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
         return gmp.mpfr_nan_p(mpfr_t) !== 0;
       },
 
-      isEqual(val: Float) {
+      isEqual(val: Float | number) {
+        val = (typeof val === 'number') ? FloatFn(52).set(val) : val;
         return gmp.mpfr_equal_p(mpfr_t, val.__getMPFR()) !== 0;
       },
 
-      lessThan(val: Float) {
+      lessThan(val: Float | number) {
+        val = typeof val === 'number' ? FloatFn(52).set(val) : val;
         return gmp.mpfr_less_p(mpfr_t, val.__getMPFR()) !== 0;
       },
 
-      lessOrEqual(val: Float) {
+      lessOrEqual(val: Float | number) {
+        val = typeof val === 'number' ? FloatFn(52).set(val) : val;
         return gmp.mpfr_lessequal_p(mpfr_t, val.__getMPFR()) !== 0;
       },
 
-      greaterThan(val: Float) {
+      greaterThan(val: Float | number) {
+        val = typeof val === 'number' ? FloatFn(52).set(val) : val;
         return gmp.mpfr_greater_p(mpfr_t, val.__getMPFR()) !== 0;
       },
 
-      greaterOrEqual(val: Float) {
+      greaterOrEqual(val: Float | number) {
+        val = typeof val === 'number' ? FloatFn(52).set(val) : val;
         return gmp.mpfr_greaterequal_p(mpfr_t, val.__getMPFR()) !== 0;
       },
 
