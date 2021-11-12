@@ -45,7 +45,6 @@ const trimTrailingZeros = (num: string) => {
 };
 
 const insertDecimalPoint = (mantissa: string, pointPos: number) => {
-  console.log(mantissa, pointPos);
   const isNegative = mantissa.startsWith('-');
 
   const mantissaWithoutSign = isNegative ? mantissa.slice(1) : mantissa;
@@ -53,14 +52,14 @@ const insertDecimalPoint = (mantissa: string, pointPos: number) => {
   let hasDecimalPoint = false;
 
   if (pointPos <= 0) {
-    const zeros = [...Array(-pointPos)].fill('0').join('');
+    const zeros = '0'.repeat(-pointPos);
     mantissa = `${sign}0.${zeros}${mantissaWithoutSign}`;
     hasDecimalPoint = true;
   } else if (pointPos < mantissaWithoutSign.length) {
     mantissa = `${sign}${mantissaWithoutSign.slice(0, pointPos)}.${mantissaWithoutSign.slice(pointPos)}`;
     hasDecimalPoint = true;
   } else {
-    const zeros = [...Array(pointPos - mantissaWithoutSign.length)].fill('0').join('');
+    const zeros = '0'.repeat(pointPos - mantissaWithoutSign.length);
     mantissa = `${mantissa}${zeros}`;
   }
 
