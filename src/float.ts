@@ -20,7 +20,32 @@ export enum FloatRoundingMode {
   ROUND_TO_NEAREST_AWAY_FROM_ZERO = -1,
 };
 
+const trimTrailingZeros = (num: string) => {
+  let pos = num.length - 1;
+  while (pos >= 0) {
+    if (num[pos] === '.') {
+      pos--;
+      break;
+    } else if (num[pos] === '0') {
+      pos--;
+    } else {
+      break;
+    }
+  }
+
+  if (pos !== num.length - 1) {
+    return num.slice(0, pos + 1);
+  }
+
+  if (num.length === 0) {
+    return '0';
+  }
+
+  return num;
+};
+
 const insertDecimalPoint = (mantissa: string, pointPos: number) => {
+  console.log(mantissa, pointPos);
   const isNegative = mantissa.startsWith('-');
 
   const mantissaWithoutSign = isNegative ? mantissa.slice(1) : mantissa;
@@ -41,17 +66,7 @@ const insertDecimalPoint = (mantissa: string, pointPos: number) => {
 
   // trim trailing zeros after decimal point
   if (hasDecimalPoint) {
-    let pos = mantissa.length - 1;
-    while (pos >= 0) {
-      if (mantissa[pos] !== '.' && mantissa[pos] !== '0') break;
-      pos--;
-    }
-    if (pos !== mantissa.length - 1) {
-      mantissa = mantissa.slice(0, pos + 1);
-    }
-    if (mantissa.length === 0) {
-      mantissa = '0';
-    }
+    mantissa = trimTrailingZeros(mantissa);
   }
   return mantissa;
 }
