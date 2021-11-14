@@ -79,10 +79,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
 
     const ret = {
       type: 'float',
-
-      __getMPFR() {
-        return mpfr_t;
-      },
+      mpfr_t,
 
       set(val: string | number | Float): Float {
         if (typeof val === 'string') {
@@ -101,7 +98,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
             gmp.mpfr_set_d(mpfr_t, val, rndMode);
           }
         } else if (val?.type === 'float') {
-          gmp.mpfr_set(mpfr_t, val.__getMPFR(), rndMode);
+          gmp.mpfr_set(mpfr_t, val.mpfr_t, rndMode);
         }
         return ret;
       },
@@ -135,7 +132,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
         if (typeof val === 'number') {
           gmp.mpfr_add_d(mpfr_t, mpfr_t, val, rndMode);
         } else {
-          gmp.mpfr_add(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+          gmp.mpfr_add(mpfr_t, mpfr_t, val.mpfr_t, rndMode);
         }
         return ret;
       },
@@ -144,7 +141,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
         if (typeof val === 'number') {
           gmp.mpfr_sub_d(mpfr_t, mpfr_t, val, rndMode);
         } else {
-          gmp.mpfr_sub(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+          gmp.mpfr_sub(mpfr_t, mpfr_t, val.mpfr_t, rndMode);
         }
         return ret;
       },
@@ -157,7 +154,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
             gmp.mpfr_mul_d(mpfr_t, mpfr_t, val, rndMode);
           }
         } else {
-          gmp.mpfr_mul(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+          gmp.mpfr_mul(mpfr_t, mpfr_t, val.mpfr_t, rndMode);
         }
         return ret;
       },
@@ -166,7 +163,7 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
         if (typeof val === 'number') {
           gmp.mpfr_div_d(mpfr_t, mpfr_t, val, rndMode);
         } else {
-          gmp.mpfr_div(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+          gmp.mpfr_div(mpfr_t, mpfr_t, val.mpfr_t, rndMode);
         }
         return ret;
       },
@@ -225,27 +222,27 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
 
       isEqual(val: Float | number) {
         val = (typeof val === 'number') ? FloatFn(52).set(val) : val;
-        return gmp.mpfr_equal_p(mpfr_t, val.__getMPFR()) !== 0;
+        return gmp.mpfr_equal_p(mpfr_t, val.mpfr_t) !== 0;
       },
 
       lessThan(val: Float | number) {
         val = typeof val === 'number' ? FloatFn(52).set(val) : val;
-        return gmp.mpfr_less_p(mpfr_t, val.__getMPFR()) !== 0;
+        return gmp.mpfr_less_p(mpfr_t, val.mpfr_t) !== 0;
       },
 
       lessOrEqual(val: Float | number) {
         val = typeof val === 'number' ? FloatFn(52).set(val) : val;
-        return gmp.mpfr_lessequal_p(mpfr_t, val.__getMPFR()) !== 0;
+        return gmp.mpfr_lessequal_p(mpfr_t, val.mpfr_t) !== 0;
       },
 
       greaterThan(val: Float | number) {
         val = typeof val === 'number' ? FloatFn(52).set(val) : val;
-        return gmp.mpfr_greater_p(mpfr_t, val.__getMPFR()) !== 0;
+        return gmp.mpfr_greater_p(mpfr_t, val.mpfr_t) !== 0;
       },
 
       greaterOrEqual(val: Float | number) {
         val = typeof val === 'number' ? FloatFn(52).set(val) : val;
-        return gmp.mpfr_greaterequal_p(mpfr_t, val.__getMPFR()) !== 0;
+        return gmp.mpfr_greaterequal_p(mpfr_t, val.mpfr_t) !== 0;
       },
 
       ln(): Float {
@@ -283,10 +280,10 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
           if (isInt32(val)) {
             gmp.mpfr_pow_si(mpfr_t, mpfr_t, val, rndMode);
           } else {
-            gmp.mpfr_pow(mpfr_t, mpfr_t, FloatFn().set(val).__getMPFR(), rndMode);
+            gmp.mpfr_pow(mpfr_t, mpfr_t, FloatFn().set(val).mpfr_t, rndMode);
           }
         } else {
-          gmp.mpfr_pow(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
+          gmp.mpfr_pow(mpfr_t, mpfr_t, val.mpfr_t, rndMode);
         }
         return ret;
       },

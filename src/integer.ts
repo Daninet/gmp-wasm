@@ -29,7 +29,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
       assertInt32(num);
       gmp.mpz_init_set_si(mpz_t, num);
     } else if (num?.type === 'integer') {
-      gmp.mpz_init_set(mpz_t, num.__getMPZT());
+      gmp.mpz_init_set(mpz_t, num.mpz_t);
     } else {
       throw new Error('Invalid value for the Integer type!');
     }
@@ -39,16 +39,13 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
         assertInt32(val);
         return gmp.mpz_cmp_si(mpz_t, val);
       } else {
-        return gmp.mpz_cmp(mpz_t, val.__getMPZT());
+        return gmp.mpz_cmp(mpz_t, val.mpz_t);
       }
     }
 
     const ret = {
       type: 'integer',
-
-      __getMPZT() {
-        return mpz_t;
-      },
+      mpz_t,
 
       set(num: string | number | Integer): Integer {
         if (typeof num === 'string') {
@@ -61,7 +58,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
           assertInt32(num);
           gmp.mpz_set_si(mpz_t, num);
         } else if (num?.type === 'integer') {
-          gmp.mpz_set(mpz_t, num.__getMPZT());
+          gmp.mpz_set(mpz_t, num.mpz_t);
         } else {
           throw new Error('Invalid value for the Integer type!');
         }
@@ -77,7 +74,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
             gmp.mpz_add_ui(mpz_t, mpz_t, val);
           }
         } else {
-          gmp.mpz_add(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_add(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -91,7 +88,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
             gmp.mpz_sub_ui(mpz_t, mpz_t, val);
           }
         } else {
-          gmp.mpz_sub(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_sub(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -101,7 +98,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
           assertInt32(val);
           gmp.mpz_mul_si(mpz_t, mpz_t, val);
         } else {
-          gmp.mpz_mul(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_mul(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -115,7 +112,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
             gmp.mpz_addmul_ui(mpz_t, mpz_t, val);
           }
         } else {
-          gmp.mpz_addmul(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_addmul(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -129,7 +126,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
             gmp.mpz_submul_ui(mpz_t, mpz_t, val);
           }
         } else {
-          gmp.mpz_submul(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_submul(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -160,11 +157,11 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
           }
         } else {
           if (mode === DivMode.CEIL) {
-            gmp.mpz_cdiv_q(mpz_t, mpz_t, val.__getMPZT());
+            gmp.mpz_cdiv_q(mpz_t, mpz_t, val.mpz_t);
           } else if (mode === DivMode.FLOOR) {
-            gmp.mpz_fdiv_q(mpz_t, mpz_t, val.__getMPZT());
+            gmp.mpz_fdiv_q(mpz_t, mpz_t, val.mpz_t);
           } else if (mode === DivMode.TRUNCATE) {
-            gmp.mpz_tdiv_q(mpz_t, mpz_t, val.__getMPZT());
+            gmp.mpz_tdiv_q(mpz_t, mpz_t, val.mpz_t);
           }
         }
         return ret;
@@ -176,9 +173,9 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
           if (mod !== undefined) {
             if (typeof mod === 'number') {
               assertUint32(mod);
-              gmp.mpz_powm_ui(mpz_t, mpz_t, exp, IntegerFn(mod).__getMPZT());
+              gmp.mpz_powm_ui(mpz_t, mpz_t, exp, IntegerFn(mod).mpz_t);
             } else {
-              gmp.mpz_powm_ui(mpz_t, mpz_t, exp, mod.__getMPZT());
+              gmp.mpz_powm_ui(mpz_t, mpz_t, exp, mod.mpz_t);
             }
           } else {
             gmp.mpz_pow_ui(mpz_t, mpz_t, exp);
@@ -187,9 +184,9 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
           if (mod !== undefined) {
             if (typeof mod === 'number') {
               assertUint32(mod);
-              gmp.mpz_powm(mpz_t, mpz_t, exp.__getMPZT(), IntegerFn(mod).__getMPZT());
+              gmp.mpz_powm(mpz_t, mpz_t, exp.mpz_t, IntegerFn(mod).mpz_t);
             } else {
-              gmp.mpz_powm(mpz_t, mpz_t, exp.__getMPZT(), mod.__getMPZT());
+              gmp.mpz_powm(mpz_t, mpz_t, exp.mpz_t, mod.mpz_t);
             }
           } else {
             const expNum = exp.toNumber();
@@ -247,7 +244,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
           assertUint32(val);
           gmp.mpz_gcd_ui(mpz_t, mpz_t, val);
         } else {
-          gmp.mpz_gcd(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_gcd(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -257,7 +254,7 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
           assertUint32(val);
           gmp.mpz_lcm_ui(mpz_t, mpz_t, val);
         } else {
-          gmp.mpz_lcm(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_lcm(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -265,9 +262,9 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
       and(val: Integer | number): Integer {
         if (typeof val === 'number') {
           assertUint32(val);
-          gmp.mpz_and(mpz_t, mpz_t, IntegerFn(val).__getMPZT());
+          gmp.mpz_and(mpz_t, mpz_t, IntegerFn(val).mpz_t);
         } else {
-          gmp.mpz_and(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_and(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -275,9 +272,9 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
       or(val: Integer | number): Integer {
         if (typeof val === 'number') {
           assertUint32(val);
-          gmp.mpz_ior(mpz_t, mpz_t, IntegerFn(val).__getMPZT());
+          gmp.mpz_ior(mpz_t, mpz_t, IntegerFn(val).mpz_t);
         } else {
-          gmp.mpz_ior(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_ior(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },
@@ -285,9 +282,9 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
       xor(val: Integer | number): Integer {
         if (typeof val === 'number') {
           assertUint32(val);
-          gmp.mpz_xor(mpz_t, mpz_t, IntegerFn(val).__getMPZT());
+          gmp.mpz_xor(mpz_t, mpz_t, IntegerFn(val).mpz_t);
         } else {
-          gmp.mpz_xor(mpz_t, mpz_t, val.__getMPZT());
+          gmp.mpz_xor(mpz_t, mpz_t, val.mpz_t);
         }
         return ret;
       },

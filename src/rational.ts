@@ -32,40 +32,37 @@ export function getRationalContext(gmp: GMPFunctions, onSetDestroy?: (callback: 
         gmp.mpq_set_si(mpq_t, p1 as number, 1);
       }
     } else if (p1?.type === 'rational') {
-      gmp.mpq_set(mpq_t, p1.__getMPQT());
+      gmp.mpq_set(mpq_t, p1.mpq_t);
     }
     gmp.mpq_canonicalize(mpq_t);
 
     const ret = {
       type: 'rational',
-
-      __getMPQT() {
-        return mpq_t;
-      },
+      mpq_t,
 
       add(val: Rational | number): Rational {
         if (typeof val === 'number') {
-          gmp.mpq_add(mpq_t, mpq_t, RationalFn(val).__getMPQT());
+          gmp.mpq_add(mpq_t, mpq_t, RationalFn(val).mpq_t);
         } else {
-          gmp.mpq_add(mpq_t, mpq_t, val.__getMPQT());
+          gmp.mpq_add(mpq_t, mpq_t, val.mpq_t);
         }
         return ret;
       },
   
       sub(val: Rational | number): Rational {
         if (typeof val === 'number') {
-          gmp.mpq_sub(mpq_t, mpq_t, RationalFn(val).__getMPQT());
+          gmp.mpq_sub(mpq_t, mpq_t, RationalFn(val).mpq_t);
         } else {
-          gmp.mpq_sub(mpq_t, mpq_t, val.__getMPQT());
+          gmp.mpq_sub(mpq_t, mpq_t, val.mpq_t);
         }
         return ret;
       },
   
       mul(val: Rational | number): Rational {
         if (typeof val === 'number') {
-          gmp.mpq_mul(mpq_t, mpq_t, RationalFn(val).__getMPQT());
+          gmp.mpq_mul(mpq_t, mpq_t, RationalFn(val).mpq_t);
         } else {
-          gmp.mpq_mul(mpq_t, mpq_t, val.__getMPQT());
+          gmp.mpq_mul(mpq_t, mpq_t, val.mpq_t);
         }
         return ret;
       },
@@ -87,34 +84,34 @@ export function getRationalContext(gmp: GMPFunctions, onSetDestroy?: (callback: 
   
       div(val: Rational | number): Rational {
         if (typeof val === 'number') {
-          gmp.mpq_div(mpq_t, mpq_t, RationalFn(val).__getMPQT());
+          gmp.mpq_div(mpq_t, mpq_t, RationalFn(val).mpq_t);
         } else {
-          gmp.mpq_div(mpq_t, mpq_t, val.__getMPQT());
+          gmp.mpq_div(mpq_t, mpq_t, val.mpq_t);
         }
         return ret;
       },
   
       isEqual(val: Rational | number) {
         if (typeof val === 'number') {
-          return gmp.mpq_equal(mpq_t, RationalFn(val).__getMPQT()) !== 0;
+          return gmp.mpq_equal(mpq_t, RationalFn(val).mpq_t) !== 0;
         } else {
-          return gmp.mpq_equal(mpq_t, val.__getMPQT()) !== 0;
+          return gmp.mpq_equal(mpq_t, val.mpq_t) !== 0;
         }
       },
   
       lessThan(val: Rational | number) {
         if (typeof val === 'number') {
-          return gmp.mpq_cmp(mpq_t, RationalFn(val).__getMPQT()) < 0;
+          return gmp.mpq_cmp(mpq_t, RationalFn(val).mpq_t) < 0;
         } else {
-          return gmp.mpq_cmp(mpq_t, val.__getMPQT()) < 0;
+          return gmp.mpq_cmp(mpq_t, val.mpq_t) < 0;
         }
       },
   
       greaterThan(val: Rational | number) {
         if (typeof val === 'number') {
-          return gmp.mpq_cmp(mpq_t, RationalFn(val).__getMPQT()) > 0;
+          return gmp.mpq_cmp(mpq_t, RationalFn(val).mpq_t) > 0;
         } else {
-          return gmp.mpq_cmp(mpq_t, val.__getMPQT()) > 0;
+          return gmp.mpq_cmp(mpq_t, val.mpq_t) > 0;
         }
       },
   
