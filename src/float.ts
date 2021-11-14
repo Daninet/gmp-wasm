@@ -1,5 +1,5 @@
 import type { GMPFunctions, mpfr_rnd_t } from './functions';
-import { assertInt32, assertUint32, isInt32 } from './util';
+import { assertUint32, isInt32 } from './util';
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
@@ -18,6 +18,11 @@ export enum FloatRoundingMode {
   ROUND_AWAY_FROM_ZERO = 4,
   ROUND_FAITHFUL = 5,
   ROUND_TO_NEAREST_AWAY_FROM_ZERO = -1,
+};
+
+export interface FloatOptions {
+  precisionBits?: number;
+  roundingMode?: FloatRoundingMode;
 };
 
 const trimTrailingZeros = (num: string) => {
@@ -70,15 +75,16 @@ const insertDecimalPoint = (mantissa: string, pointPos: number) => {
   return mantissa;
 }
 
-export function getFloatContext(gmp: GMPFunctions, precisionBits = 52, roundingMode: FloatRoundingMode = FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) {
+export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
   const mpfr_t_arr: number[] = [];
 
-  const globalRndMode = roundingMode as number as mpfr_rnd_t;
-  assertUint32(precisionBits);
+  const globalRndMode = (options.roundingMode ?? FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) as number as mpfr_rnd_t;
+  const globalPrecisionBits = options.precisionBits ?? 52;
+  assertUint32(globalPrecisionBits);
 
   const FloatPrototype = {
     mpfr_t: 0,
-    precisionBits,
+    precisionBits: globalPrecisionBits,
     rndMode: globalRndMode,
     type: 'float',
 
@@ -448,7 +454,10 @@ export function getFloatContext(gmp: GMPFunctions, precisionBits = 52, roundingM
     }
   };
 
-  const FloatFn = (val?: string | number | Float) => {
+  const FloatFn = (val?: string | number | Float, options?: FloatOptions) => {
+    const rndMode = (options?.roundingMode ?? globalRndMode) as number as mpfr_rnd_t;
+    const precisionBits = options?.precisionBits ?? globalPrecisionBits;
+
     const instance = Object.create(FloatPrototype) as typeof FloatPrototype;
     instance.mpfr_t = gmp.mpfr_t();
     gmp.mpfr_init2(instance.mpfr_t, precisionBits);
@@ -459,19 +468,19 @@ export function getFloatContext(gmp: GMPFunctions, precisionBits = 52, roundingM
       const encoded = encoder.encode(val);
       const strptr = gmp.malloc(encoded.length + 1);
       gmp.mem.set(encoded, strptr);
-      gmp.mpfr_set_str(instance.mpfr_t, strptr, 10, globalRndMode);
+      gmp.mpfr_set_str(instance.mpfr_t, strptr, 10, rndMode);
       gmp.free(strptr);
     } else if (typeof val === 'number') {
       if (isInt32(val)) {
-        gmp.mpfr_set_si(instance.mpfr_t, val, globalRndMode);
+        gmp.mpfr_set_si(instance.mpfr_t, val, rndMode);
         if (Object.is(val, -0)) {
-          gmp.mpfr_neg(instance.mpfr_t, instance.mpfr_t, globalRndMode);
+          gmp.mpfr_neg(instance.mpfr_t, instance.mpfr_t, rndMode);
         }
       } else {
-        gmp.mpfr_set_d(instance.mpfr_t, val, globalRndMode);
+        gmp.mpfr_set_d(instance.mpfr_t, val, rndMode);
       }
     } else if (val?.type === 'float') {
-      gmp.mpfr_set(instance.mpfr_t, val.mpfr_t, globalRndMode);
+      gmp.mpfr_set(instance.mpfr_t, val.mpfr_t, rndMode);
     }
 
     mpfr_t_arr.push(instance.mpfr_t);

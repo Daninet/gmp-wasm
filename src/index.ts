@@ -1,4 +1,4 @@
-import { Float, FloatFactory, FloatRoundingMode, getFloatContext } from './float';
+import { Float, FloatFactory, FloatOptions, FloatRoundingMode, getFloatContext } from './float';
 import { getGMPInterface, GMPFunctions } from './functions';
 import { DivMode, getIntegerContext, Integer, IntegerFactory } from './integer';
 import { getRationalContext, Rational, RationalFactory } from './rational';
@@ -15,6 +15,7 @@ export type {
   Float as FloatType,
   Integer as IntegerType,
   Rational as RationalType,
+  FloatOptions,
 }
 
 export interface CalculateType {
@@ -34,10 +35,7 @@ type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 //   calculate: (fn: (gmp: CalculateType) => Integer) => void;
 // };
 
-export interface CalculateOptions {
-  precisionBits?: number;
-  roundingMode?: FloatRoundingMode;
-};
+export interface CalculateOptions extends FloatOptions {};
 
 export async function getGMP(wasmPath: string) {
   const binding = await getGMPInterface(wasmPath) as Awaited<ReturnType<typeof getGMPInterface>>;
@@ -48,7 +46,7 @@ export async function getGMP(wasmPath: string) {
     calculate: (fn: (gmp: CalculateType) => Integer, options: CalculateOptions = {}): string => {
       const intContext = getIntegerContext(binding);
       const rationalContext = getRationalContext(binding);
-      const floatContext = getFloatContext(binding, options.precisionBits ?? 52, options.roundingMode);
+      const floatContext = getFloatContext(binding, options);
 
       const param: CalculateType = {
         Integer: intContext.Integer,
@@ -68,7 +66,7 @@ export async function getGMP(wasmPath: string) {
     calculateManual: (options: CalculateOptions = {}): CalculateTypeWithDestroy => {
       const intContext = getIntegerContext(binding);
       const rationalContext = getRationalContext(binding);
-      const floatContext = getFloatContext(binding, options.precisionBits ?? 52, options.roundingMode);
+      const floatContext = getFloatContext(binding, options);
 
       return {
         Integer: intContext.Integer,
