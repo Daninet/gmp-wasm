@@ -88,34 +88,6 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
     rndMode: globalRndMode,
     type: 'float',
 
-    setToPi() {
-      const n = FloatFn();
-      gmp.mpfr_const_pi(n.mpfr_t, this.rndMode);
-      return n;
-    },
-
-    setToEulerConstant() {
-      const n = FloatFn();
-      gmp.mpfr_const_euler(n.mpfr_t, this.rndMode);
-      return n;
-    },
-
-    setToLog2() {
-      const n = FloatFn();
-      gmp.mpfr_const_log2(n.mpfr_t, this.rndMode);
-      return n;
-    },
-
-    setToCatalan() {
-      const n = FloatFn();
-      gmp.mpfr_const_catalan(n.mpfr_t, this.rndMode);
-      return n;
-    },
-
-    setToEulerNumber() {
-      return FloatFn(1).exp();
-    },
-
     add(val: Float | number): Float {
       const n = FloatFn();
       if (typeof val === 'number') {
@@ -489,6 +461,35 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
 
   return {
     Float: FloatFn,
+
+    Pi: () => {
+      const n = FloatFn();
+      gmp.mpfr_const_pi(n.mpfr_t, globalRndMode);
+      return n;
+    },
+
+    EulerConstant: () => {
+      const n = FloatFn();
+      gmp.mpfr_const_euler(n.mpfr_t, globalRndMode);
+      return n;
+    },
+
+    EulerNumber: () => {
+      return FloatFn(1).exp();
+    },
+
+    Log2: () => {
+      const n = FloatFn();
+      gmp.mpfr_const_log2(n.mpfr_t, globalRndMode);
+      return n;
+    },
+
+    Catalan: () => {
+      const n = FloatFn();
+      gmp.mpfr_const_catalan(n.mpfr_t, globalRndMode);
+      return n;
+    },
+
     destroy: () => mpfr_t_arr.forEach(mpfr_t => {
       gmp.mpfr_clear(mpfr_t);
       gmp.mpfr_t_free(mpfr_t);

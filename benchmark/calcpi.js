@@ -66,7 +66,7 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
         const endPrecision = g.Float(10).pow(-precision);
         console.time('gmp2');
         while (x.greaterThan(endPrecision)) {
-          x = x.mul(i).div(g.Float(i).add(1).mul(4));
+          x = x.mul(i).div(g.Float(i, { precisionBits: 32 }).add(1).mul(4));
           i += 2;
           pi = pi.add(x.div(i));
         }

@@ -22,6 +22,11 @@ export interface CalculateType {
   Integer: IntegerFactory;
   Rational: RationalFactory;
   Float: FloatFactory;
+  Pi: () => Float;
+  EulerConstant: () => Float;
+  EulerNumber: () => Float;
+  Log2: () => Float;
+  Catalan: () => Float;
 };
 
 export interface CalculateTypeWithDestroy extends CalculateType {
@@ -40,43 +45,46 @@ export interface CalculateOptions extends FloatOptions {};
 export async function getGMP(wasmPath: string) {
   const binding = await getGMPInterface(wasmPath) as Awaited<ReturnType<typeof getGMPInterface>>;
 
+  const createContext = (options: CalculateOptions) => {
+    const intContext = getIntegerContext(binding);
+    const rationalContext = getRationalContext(binding);
+    const floatContext = getFloatContext(binding, options);
+
+    return {
+      types: {
+        Integer: intContext.Integer,
+        Rational: rationalContext.Rational,
+        Float: floatContext.Float,
+        Pi: floatContext.Pi,
+        EulerConstant: floatContext.EulerConstant,
+        EulerNumber: floatContext.EulerNumber,
+        Log2: floatContext.Log2,
+        Catalan: floatContext.Catalan,
+      },
+      destroy: () => {
+        intContext.destroy();
+        rationalContext.destroy();
+        floatContext.destroy();
+      },
+    };
+  };
+
   return {
     binding,
 
     calculate: (fn: (gmp: CalculateType) => Integer, options: CalculateOptions = {}): string => {
-      const intContext = getIntegerContext(binding);
-      const rationalContext = getRationalContext(binding);
-      const floatContext = getFloatContext(binding, options);
-
-      const param: CalculateType = {
-        Integer: intContext.Integer,
-        Rational: rationalContext.Rational,
-        Float: floatContext.Float,
-      };
-
-      const res = fn(param).toString();
-
-      intContext.destroy();
-      rationalContext.destroy();
-      floatContext.destroy();
+      const context = createContext(options);
+      const res = fn(context.types).toString();
+      context.destroy();
 
       return res;
     },
 
     calculateManual: (options: CalculateOptions = {}): CalculateTypeWithDestroy => {
-      const intContext = getIntegerContext(binding);
-      const rationalContext = getRationalContext(binding);
-      const floatContext = getFloatContext(binding, options);
-
+      const context = createContext(options);
       return {
-        Integer: intContext.Integer,
-        Rational: rationalContext.Rational,
-        Float: floatContext.Float,
-        destroy: () => {
-          intContext.destroy();
-          rationalContext.destroy();
-          floatContext.destroy();
-        },
+        ...context.types,
+        destroy: context.destroy,
       };
     }
   };

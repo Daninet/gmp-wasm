@@ -4,10 +4,11 @@ import { CalculateType, getGMP } from '../src';
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 let gmp: Awaited<ReturnType<typeof getGMP>> = null;
 let Float: CalculateType['Float'] = null;
+let context: CalculateType = null;
 
 beforeAll(async () => {
   gmp = await getGMP(require.resolve('../binding/dist/gmp.wasm'));
-  const context = gmp.calculateManual({ precisionBits: 16 });
+  context = gmp.calculateManual({ precisionBits: 16 });
   Float = context.Float;
 });
 
@@ -40,12 +41,12 @@ test('copy constructor', () => {
   compare(c, '2.5');
 });
 
-test('set to constants', () => {
-  compare(Float(0).setToPi(), '3.1416');
-  compare(Float(0).setToLog2(), '0.693146');
-  compare(Float(0).setToCatalan(), '0.91597');
-  compare(Float(0).setToEulerConstant(), '0.577209');
-  compare(Float(0).setToEulerNumber(), '2.71826');
+test('Constants', () => {
+  compare(context.Pi(), '3.1416');
+  compare(context.Log2(), '0.693146');
+  compare(context.Catalan(), '0.91597');
+  compare(context.EulerConstant(), '0.577209');
+  compare(context.EulerNumber(), '2.71826');
 });
 
 test('add()', () => {
@@ -175,7 +176,7 @@ test('greaterOrEqual()', () => {
 });
 
 test('logarithms', () => {
-  compare(Float(1).setToEulerNumber().pow(3).ln(), '3');
+  compare(context.EulerNumber().pow(3).ln(), '3');
   compare(Float(2).pow(5).log2(), '5');
   compare(Float(10).pow(4).log10(), '4');
 });
@@ -196,27 +197,27 @@ test('pow()', () => {
 
 test('sin()', () => {
   compare(Float(0).sin(), '0');
-  compare(Float(0).setToPi().div(6).sin(), '0.5');
-  compare(Float(0).setToPi().div(4).sin(), Float(2).sqrt().div(2).toString());
-  compare(Float(0).setToPi().div(3).sin(), Float(3).sqrt().div(2).toString());
-  compare(Float(0).setToPi().div(2).sin(), '1');
-  compare(Float(0).setToPi().mul(4).sin(), '0.0000356352');
+  compare(context.Pi().div(6).sin(), '0.5');
+  compare(context.Pi().div(4).sin(), Float(2).sqrt().div(2).toString());
+  compare(context.Pi().div(3).sin(), Float(3).sqrt().div(2).toString());
+  compare(context.Pi().div(2).sin(), '1');
+  compare(context.Pi().mul(4).sin(), '0.0000356352');
 });
 
 test('cos()', () => {
   compare(Float(0).cos(), '1');
-  compare(Float(0).setToPi().div(6).cos(), Float(3).sqrt().div(2).toString());
-  compare(Float(0).setToPi().div(4).cos(), Float(2).sqrt().div(2).toString());
-  compare(Float(0).setToPi().div(3).cos(), '0.499992');
-  compare(Float(0).setToPi().div(2).cos(), '-0.0000044544');
-  compare(Float(0).setToPi().mul(4).cos(), '1');
+  compare(context.Pi().div(6).cos(), Float(3).sqrt().div(2).toString());
+  compare(context.Pi().div(4).cos(), Float(2).sqrt().div(2).toString());
+  compare(context.Pi().div(3).cos(), '0.499992');
+  compare(context.Pi().div(2).cos(), '-0.0000044544');
+  compare(context.Pi().mul(4).cos(), '1');
 });
 
 test('tan()', () => {
   compare(Float(0).tan(), '0');
-  compare(Float(0).setToPi().div(6).tan(), '0.577362');
-  compare(Float(0).setToPi().div(4).tan(), '1');
-  compare(Float(0).setToPi().div(3).tan(), '1.73212');
+  compare(context.Pi().div(6).tan(), '0.577362');
+  compare(context.Pi().div(4).tan(), '1');
+  compare(context.Pi().div(3).tan(), '1.73212');
 });
 
 test('special values', () => {
