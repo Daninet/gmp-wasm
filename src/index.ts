@@ -9,7 +9,7 @@ export interface CalculateType {
   Float: FloatFactory;
 };
 
-export type {
+export {
   Float,
   Integer,
   Rational,

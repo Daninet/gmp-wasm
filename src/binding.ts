@@ -8,7 +8,6 @@ export const getBinding = async (wasmPath: string) => {
   }
   const binding = await GMPModule({
     locateFile: function (path) {
-      console.log('locating', path);
       return wasmPath;
     },
   });

@@ -1,0 +1,7 @@
+.vscode
+node_modules
+dist
+coverage
+docs
+.jest-cache
+benchmark

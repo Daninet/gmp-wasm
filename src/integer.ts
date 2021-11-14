@@ -50,6 +50,24 @@ export function getIntegerContext(gmp: GMPFunctions, onSetDestroy?: (callback: (
         return mpz_t;
       },
 
+      set(num: string | number | Integer): Integer {
+        if (typeof num === 'string') {
+          const encoded = encoder.encode(num);
+          const strptr = gmp.malloc(encoded.length + 1);
+          gmp.mem.set(encoded, strptr);
+          gmp.mpz_set_str(mpz_t, strptr, 10);
+          gmp.free(strptr);
+        } else if (typeof num === 'number') {
+          assertInt32(num);
+          gmp.mpz_set_si(mpz_t, num);
+        } else if (num?.type === 'integer') {
+          gmp.mpz_set(mpz_t, num.__getMPZT());
+        } else {
+          throw new Error('Invalid value for the Integer type!');
+        }
+        return ret;
+      },
+
       add(val: Integer | number): Integer {
         if (typeof val === 'number') {
           assertInt32(val);
