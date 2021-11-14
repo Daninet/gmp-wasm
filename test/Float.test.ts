@@ -1,13 +1,14 @@
-import { getGMP } from '../src';
+import { CalculateType, getGMP } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 let gmp: Awaited<ReturnType<typeof getGMP>> = null;
-let Float: (...params: Parameters<ReturnType<typeof gmp.Float>['set']>) => ReturnType<typeof gmp.Float> = null;
+let Float: CalculateType['Float'] = null;
 
 beforeAll(async () => {
   gmp = await getGMP(require.resolve('../binding/dist/gmp.wasm'));
-  Float = (...params: Parameters<ReturnType<typeof gmp.Float>['set']>) => gmp.Float(16).set(...params);
+  const context = gmp.calculateManual({ precisionBits: 16 });
+  Float = context.Float;
 });
 
 const compare = (int: ReturnType<typeof Float>, res: string) => {
@@ -33,9 +34,10 @@ test('parse numbers', () => {
 test('copy constructor', () => {
   const a = Float('0.5');
   const b = Float(a);
-  a.add(2);
-  compare(a, '2.5');
+  const c = a.add(2);
+  compare(a, '0.5');
   compare(b, '0.5');
+  compare(c, '2.5');
 });
 
 test('set to constants', () => {

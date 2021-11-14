@@ -1,12 +1,14 @@
-import { getGMP } from '../src';
+import { CalculateType, getGMP } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 let gmp: Awaited<ReturnType<typeof getGMP>> = null;
-let Rational: typeof gmp.Rational = null;
+let Rational: CalculateType['Rational'] = null;
+
 beforeAll(async () => {
   gmp = await getGMP(require.resolve('../binding/dist/gmp.wasm'));
-  Rational = gmp.Rational;
+  const context = gmp.calculateManual();
+  Rational = context.Rational;
 });
 
 const compare = (int: ReturnType<typeof Rational>, res: string) => {
@@ -36,9 +38,10 @@ test('parse numbers', () => {
 test('copy constructor', () => {
   const a = Rational('2/3');
   const b = Rational(a);
-  a.add(2);
-  compare(a, '8/3');
+  const c = a.add(2);
+  compare(a, '2/3');
   compare(b, '2/3');
+  compare(c, '8/3');
 });
 
 test('add()', () => {

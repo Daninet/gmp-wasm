@@ -1,16 +1,18 @@
 import { DivMode } from '../src/integer';
-import { getGMP } from '../src';
+import { CalculateType, getGMP, IntegerType } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 let gmp: Awaited<ReturnType<typeof getGMP>> = null;
-let Integer: typeof gmp.Integer = null;
+let Integer: CalculateType['Integer'] = null;
+
 beforeAll(async () => {
   gmp = await getGMP(require.resolve('../binding/dist/gmp.wasm'));
-  Integer = gmp.Integer;
+  const context = gmp.calculateManual();
+  Integer = context.Integer;
 });
 
-const compare = (int: ReturnType<typeof Integer>, res: string) => {
+const compare = (int: IntegerType, res: string) => {
   expect(int.toString()).toBe(res);
 }
 
@@ -33,9 +35,10 @@ test('parse numbers', () => {
 test('copy constructor', () => {
   const a = Integer(1);
   const b = Integer(a);
-  a.add(2);
-  compare(a, '3');
+  const c = a.add(2);
+  compare(a, '1');
   compare(b, '1');
+  compare(c, '3');
 });
 
 test('add()', () => {
@@ -61,24 +64,6 @@ test('multiply()', () => {
   compare(Integer(3).mul(-4), '-12');
   compare(Integer(3).mul(Integer(4)), '12');
   compare(Integer(3).mul(Integer(-4)), '-12');
-});
-
-test('addmul()', () => {
-  compare(Integer(3).addmul(4), '15');
-  compare(Integer(3).addmul(0), '3');
-  compare(Integer(3).addmul(-4), '-9');
-  compare(Integer(3).addmul(Integer(4)), '15');
-  compare(Integer(3).addmul(Integer(0)), '3');
-  compare(Integer(3).addmul(Integer(-4)), '-9');
-});
-
-test('submul()', () => {
-  compare(Integer(3).submul(4), '-9');
-  compare(Integer(3).submul(0), '3');
-  compare(Integer(3).submul(-4), '15');
-  compare(Integer(3).submul(Integer(4)), '-9');
-  compare(Integer(3).submul(Integer(0)), '3');
-  compare(Integer(3).submul(Integer(-4)), '15');
 });
 
 test('neg()', () => {

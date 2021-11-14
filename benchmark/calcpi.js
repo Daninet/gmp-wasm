@@ -29,16 +29,13 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
     function GMPBigIntTaylor (precision) {
       // The algorithm from JSBigIntTaylor()
       const res = gmp.calculate(g => {
-        const i = g.Integer(1);
-        const x = g.Integer(3).mul(g.Integer(10).pow(precision + 20));
-        const pi = g.Integer(x);
-        const aux = g.Integer(i);
+        let i = g.Integer(1);
+        let x = g.Integer(3).mul(g.Integer(10).pow(precision + 20));
+        let pi = x;
         while (!x.isEqual(0)) {
-          aux.set(i).add(1).mul(4);
-          x.mul(i).div(aux, DivMode.TRUNCATE);
-          i.add(2);
-          aux.set(x).div(i, DivMode.TRUNCATE);
-          pi.add(aux);
+          x = x.mul(i).div(i.add(1).mul(4), DivMode.TRUNCATE);
+          i = i.add(2);
+          pi = pi.add(x.div(i, DivMode.TRUNCATE));
         }
         return pi;
       });
@@ -64,21 +61,18 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
       const precisionBits = precisionToBits(precision) + 1;
       const res = gmp.calculate(g => {
         let i = 1;
-        const x = g.Float(precisionBits).set(3);
-        const pi = g.Float(precisionBits).set(x);
-        const aux = g.Float(precisionBits).set(i);
-        const endPrecision = g.Float(precisionBits).set(10).pow(-precision);
+        let x = g.Float(3);
+        let pi = g.Float(x);
+        const endPrecision = g.Float(10).pow(-precision);
         console.time('gmp2');
         while (x.greaterThan(endPrecision)) {
-          aux.set(i).add(1).mul(4);
-          x.mul(i).div(aux);
+          x = x.mul(i).div(g.Float(i).add(1).mul(4));
           i += 2;
-          aux.set(x).div(i);
-          pi.add(aux);
+          pi = pi.add(x.div(i));
         }
         console.timeEnd('gmp2');
         return pi;
-      });
+      }, { precisionBits });
       return res.toString();
     },
 
@@ -106,10 +100,10 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
     // },
   
     function GMPAtan1(precision) {
+      const precisionBits = precisionToBits(precision);
       return gmp.calculate(g => {
-        const precisionBits = precisionToBits(precision);
-        return g.Float(precisionBits).set('1').atan().mul(4);
-      });
+        return g.Float('1').atan().mul(4);
+      }, { precisionBits });
     },
 
     // function DecimalJsAsin1over2(precision) {
@@ -119,10 +113,10 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
     // },
 
     function GMPAsin1over2(precision) {
+      const precisionBits = precisionToBits(precision);
       return gmp.calculate(g => {
-        const precisionBits = precisionToBits(precision);
-        return g.Float(precisionBits).set('0.5').asin().mul(6);
-      });
+        return g.Float('0.5').asin().mul(6);
+      }, { precisionBits });
     },
   ];
 
