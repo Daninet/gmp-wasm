@@ -163,11 +163,15 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
       return n;
     },
 
-    // TODO
-    // factorial() {
-    //   gmp.mpfr_fac_ui(mpfr_t, this.mpfr_t, this.rndMode);
-    //   return n;
-    // }
+    factorial() {
+      const n = FloatFn();
+      if (gmp.mpfr_fits_uint_p(this.mpfr_t, this.rndMode) === 0) {
+        throw new Error('Invalid value for factorial()');
+      }
+      const value = gmp.mpfr_get_ui(this.mpfr_t, this.rndMode);
+      gmp.mpfr_fac_ui(n.mpfr_t, value, this.rndMode);
+      return n;
+    },
 
     isZero() {
       return gmp.mpfr_zero_p(this.mpfr_t) !== 0;

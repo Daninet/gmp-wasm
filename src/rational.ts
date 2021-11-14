@@ -1,4 +1,5 @@
 import type { GMPFunctions } from './functions';
+import { Integer } from './integer';
 import { assertInt32 } from './util';
 
 const decoder = new TextDecoder();
@@ -115,32 +116,41 @@ export function getRationalContext(gmp: GMPFunctions) {
     },
   };
 
-  const RationalFn = (p1: string | number | Rational, p2?: string | number) => {
+  const parseParameters = (mpq_t: number, p1: string | number | Rational | Integer, p2?: string | number | Integer) => {
+    if (typeof p1 === 'number' && (p2 === undefined || typeof p2 === 'number')) {
+      assertInt32(p1 as number);
+      if (p2 !== undefined) {
+        assertInt32(p2 as number);
+        gmp.mpq_set_si(mpq_t, p1 as number, Math.abs(p2 as number));
+        if (p2 < 0) {
+          gmp.mpq_neg(mpq_t, mpq_t);
+        }
+      } else {
+        gmp.mpq_set_si(mpq_t, p1 as number, 1);
+      }
+      return;
+    }
+
+    const p1Obj = p1 as Rational | Integer;
+    if (p1Obj?.type === 'rational' && p2 === undefined) {
+      gmp.mpq_set(mpq_t, (p1Obj as Rational).mpq_t);
+      return;
+    }
+
+    const finalString = p2 !== undefined ? `${p1.toString()}/${p2.toString()}` : p1.toString();
+    const encoded = encoder.encode(finalString);
+    const strptr = gmp.malloc(encoded.length + 1);
+    gmp.mem.set(encoded, strptr);
+    gmp.mpq_set_str(mpq_t, strptr, 10);
+    gmp.free(strptr);
+  }
+
+  const RationalFn = (p1: string | number | Rational | Integer, p2?: string | number | Integer) => {
     const instance = Object.create(RationalPrototype) as typeof RationalPrototype;
     instance.mpq_t = gmp.mpq_t();
     gmp.mpq_init(instance.mpq_t);
 
-    if (typeof p1 === 'string' || typeof p2 === 'string') {
-      const finalString = p2 !== undefined ? `${p1.toString()}/${p2.toString()}` : p1.toString();
-      const encoded = encoder.encode(finalString);
-      const strptr = gmp.malloc(encoded.length + 1);
-      gmp.mem.set(encoded, strptr);
-      gmp.mpq_set_str(instance.mpq_t, strptr, 10);
-      gmp.free(strptr);
-    } else if (typeof p1 === 'number' || typeof p2 === 'number') {
-      assertInt32(p1 as number);
-      if (p2 !== undefined) {
-        assertInt32(p2);
-        gmp.mpq_set_si(instance.mpq_t, p1 as number, Math.abs(p2));
-        if (p2 < 0) {
-          gmp.mpq_neg(instance.mpq_t, instance.mpq_t);
-        }
-      } else {
-        gmp.mpq_set_si(instance.mpq_t, p1 as number, 1);
-      }
-    } else if (p1?.type === 'rational') {
-      gmp.mpq_set(instance.mpq_t, p1.mpq_t);
-    }
+    parseParameters(instance.mpq_t, p1, p2);
 
     gmp.mpq_canonicalize(instance.mpq_t);
 
