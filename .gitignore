@@ -1,7 +1,6 @@
 .vscode
 node_modules
 dist
-src/ginac.wasm
 coverage
 docs
 .jest-cache

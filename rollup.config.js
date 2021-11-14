@@ -16,7 +16,7 @@ const LICENSE_CONFIG = {
     commentStyle: 'ignored',
     content: `gmp-wasm (https://www.npmjs.com/package/gmp-wasm)
     (c) Dani Biro
-    @license GPL-2.0`,
+    @license LGPL-3.0`,
   },
 };
 
