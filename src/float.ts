@@ -71,9 +71,10 @@ const insertDecimalPoint = (mantissa: string, pointPos: number) => {
 }
 
 export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () => void) => void) {
-  const FloatFn = (precisionBits = 64, roundingMode: FloatRoundingMode = FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) => {
+  const FloatFn = (precisionBits = 52, roundingMode: FloatRoundingMode = FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) => {
     const mpfr_t = gmp.mpfr_t();
     const rndMode = roundingMode as number as mpfr_rnd_t;
+    assertUint32(precisionBits);
     gmp.mpfr_init2(mpfr_t, precisionBits);
 
     const ret = {
@@ -93,6 +94,9 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
         } else if (typeof val === 'number') {
           if (isInt32(val)) {
             gmp.mpfr_set_si(mpfr_t, val, rndMode);
+            if (Object.is(val, -0)) {
+              gmp.mpfr_neg(mpfr_t, mpfr_t, rndMode);
+            }
           } else {
             gmp.mpfr_set_d(mpfr_t, val, rndMode);
           }
@@ -272,8 +276,11 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
 
       pow(val: Float | number): Float {
         if (typeof val === 'number') {
-          assertInt32(val);
-          gmp.mpfr_pow_si(mpfr_t, mpfr_t, val, rndMode);
+          if (isInt32(val)) {
+            gmp.mpfr_pow_si(mpfr_t, mpfr_t, val, rndMode);
+          } else {
+            gmp.mpfr_pow(mpfr_t, mpfr_t, FloatFn().set(val).__getMPFR(), rndMode);
+          }
         } else {
           gmp.mpfr_pow(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
         }
@@ -370,27 +377,16 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
         return ret;
       },
 
-      Pi(): Float {
-        gmp.mpfr_const_pi(mpfr_t, rndMode);
-        return ret;
-      },
-
-      Euler(): Float {
-        gmp.mpfr_const_euler(mpfr_t, rndMode);
-        return ret;
-      },
-
-      Catalan(): Float {
-        gmp.mpfr_const_catalan(mpfr_t, rndMode);
-        return ret;
-      },
-
       sign() {
-        return gmp.mpq_sgn(mpfr_t);
+        return gmp.mpfr_sgn(mpfr_t);
       },
 
       toNumber() {
-        return gmp.mpq_get_d(mpfr_t);
+        if (ret.isNaN()) return NaN;
+        if (ret.isInfinite()) {
+          return ret.sign() * Infinity;
+        }
+        return gmp.mpfr_get_d(mpfr_t, rndMode);
       },
 
       ceil(): Float {

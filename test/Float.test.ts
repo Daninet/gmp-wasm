@@ -183,3 +183,54 @@ test('exponentials', () => {
   compare(Float(3).exp2(), '8');
   compare(Float(3).exp10(), '1000');
 });
+
+test('pow()', () => {
+  compare(Float(2).pow(0), '1');
+  compare(Float(2).pow(2), '4');
+  compare(Float(2).pow(-2), '0.25');
+  compare(Float(4).pow(0.5), '2');
+  compare(Float(4).pow(Float('0.5')), '2');
+});
+
+test('sin()', () => {
+  compare(Float(0).sin(), '0');
+  compare(Float(0).setToPi().div(6).sin(), '0.5');
+  compare(Float(0).setToPi().div(4).sin(), Float(2).sqrt().div(2).toString());
+  compare(Float(0).setToPi().div(3).sin(), Float(3).sqrt().div(2).toString());
+  compare(Float(0).setToPi().div(2).sin(), '1');
+  compare(Float(0).setToPi().mul(4).sin(), '0.0000356352');
+});
+
+test('cos()', () => {
+  compare(Float(0).cos(), '1');
+  compare(Float(0).setToPi().div(6).cos(), Float(3).sqrt().div(2).toString());
+  compare(Float(0).setToPi().div(4).cos(), Float(2).sqrt().div(2).toString());
+  compare(Float(0).setToPi().div(3).cos(), '0.499992');
+  compare(Float(0).setToPi().div(2).cos(), '-0.0000044544');
+  compare(Float(0).setToPi().mul(4).cos(), '1');
+});
+
+test('tan()', () => {
+  compare(Float(0).tan(), '0');
+  compare(Float(0).setToPi().div(6).tan(), '0.577362');
+  compare(Float(0).setToPi().div(4).tan(), '1');
+  compare(Float(0).setToPi().div(3).tan(), '1.73212');
+});
+
+test('special values', () => {
+  compare(Float(0), '0');
+  compare(Float(-0), '-0');
+  compare(Float('-0'), '-0');
+  compare(Float(0).div(0), '@NaN@');
+  compare(Float(1).div(0), '@Inf@');
+  compare(Float(-1).div(0), '-@Inf@');
+});
+
+test('special values to JS types', () => {
+  expect(Float(0).toNumber()).toBe(0);
+  expect(Float(-0).toNumber()).toBe(-0);
+  expect(Float('-0').toNumber()).toBe(-0);
+  expect(Float(0).div(0).toNumber()).toBe(NaN);
+  expect(Float(1).div(0).toNumber()).toBe(Infinity);
+  expect(Float(-1).div(0).toNumber()).toBe(-Infinity);
+});
