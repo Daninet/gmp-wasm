@@ -27,6 +27,9 @@ jobs:
       - name: Build MPC
         run: npm run build-mpc
 
+      - name: Build src
+        run: npm run build-src
+
       - name: Install JS dependencies
         run: npm ci
 
