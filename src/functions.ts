@@ -98,7 +98,8 @@ export async function getGMPInterface(wasmPath: string) {
     /**************** Formatted input routines.  ****************/
     
     /**************** Integer (i.e. Z) routines.  ****************/
-    
+    mp_bits_per_limb: (): number => gmp._z_limb_size(),
+
     mpz_t: (): mpz_ptr => gmp._z_t(),
     mpz_t_free: (p1: mpz_ptr): void => { gmp._z_t_free(p1); },
     

@@ -30,6 +30,7 @@ EMSCRIPTEN_KEEPALIVE unsigned long g_urandomm_ui (gmp_randstate_t p1, unsigned l
 /**************** Formatted input routines.  ****************/
 
 /**************** Integer (i.e. Z) routines.  ****************/
+EMSCRIPTEN_KEEPALIVE int z_limb_size () { return mp_bits_per_limb; };
 EMSCRIPTEN_KEEPALIVE mpz_ptr z_t () { return (mpz_ptr)malloc(sizeof(mpz_t)); }
 EMSCRIPTEN_KEEPALIVE void z_t_free (mpz_ptr p1) { free(p1); }
 

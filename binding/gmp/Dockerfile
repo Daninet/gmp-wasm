@@ -10,6 +10,8 @@ ENV CFLAGS="-O3 -Oz -flto -fno-rtti -fno-exceptions"
 ENV CXXFLAGS="${CFLAGS} -std=c++11"
 ENV CPPFLAGS="${CFLAGS} -DNO_ASM"
 ENV LDFLAGS="${CFLAGS}"
+ENV ABI="64 32"
 
-RUN emconfigure lib/gmp/configure --host none --prefix /builder/dist --disable-assembly --disable-cxx --enable-alloca=notreentrant
+RUN sed -i 's/abilist=\"standard\"/abilist=\"standard longlong\"\nlimb_longlong=longlong\n/' lib/gmp/configure
+RUN emconfigure lib/gmp/configure --host none --prefix /builder/dist ABI=longlong --disable-assembly --disable-cxx --enable-alloca=notreentrant
 RUN make -j6 install

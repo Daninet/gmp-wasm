@@ -151,7 +151,11 @@ export function getFloatContext(gmp: GMPFunctions, onSetDestroy?: (callback: () 
 
       mul(val: Float | number): Float {
         if (typeof val === 'number') {
-          gmp.mpfr_mul_d(mpfr_t, mpfr_t, val, rndMode);
+          if (isInt32(val)) {
+            gmp.mpfr_mul_si(mpfr_t, mpfr_t, val, rndMode);
+          } else {
+            gmp.mpfr_mul_d(mpfr_t, mpfr_t, val, rndMode);
+          }
         } else {
           gmp.mpfr_mul(mpfr_t, mpfr_t, val.__getMPFR(), rndMode);
         }
