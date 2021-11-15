@@ -1,16 +1,15 @@
 {
   "name": "gmp-wasm",
   "version": "0.0.1",
-  "description": "WebAssembly bindings for the GMP, MPFR, MPC libraries",
+  "description": "WebAssembly bindings for the GMP and MPFR libraries",
   "main": "dist/index.umd.min.js",
   "module": "dist/index.esm.min.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build-gmp": "sh -c ./binding/build-gmp.sh",
     "build-mpfr": "sh -c ./binding/build-mpfr.sh",
-    "build-mpc": "sh -c ./binding/build-mpc.sh",
     "build-src": "sh -c ./binding/build-src.sh",
-    "build-bindings": "npm run build-gmp && npm run build-mpfr && npm run build-mpc && npm run build-src",
+    "build-bindings": "npm run build-gmp && npm run build-mpfr && npm run build-src",
     "build-rollup": "rollup -c",
     "build-types": "tsc ./src/index --outDir ./dist/types --downlevelIteration --declaration --emitDeclarationOnly --allowSyntheticDefaultImports",
     "build": "npm run build-bindings && npm run build-rollup && npm run build-types",
