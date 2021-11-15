@@ -138,6 +138,12 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
       return n;
     },
 
+    invSqrt(): Float {
+      const n = FloatFn();
+      gmp.mpfr_rec_sqrt(n.mpfr_t, this.mpfr_t, this.rndMode);
+      return n;
+    },
+
     cbrt(): Float {
       const n = FloatFn();
       gmp.mpfr_cbrt(n.mpfr_t, this.mpfr_t, this.rndMode);

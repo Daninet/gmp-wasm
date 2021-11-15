@@ -80,6 +80,11 @@ test('sqrt()', () => {
   compare(ctx.Float(2).sqrt(), '1.41422');
 });
 
+test('invSqrt()', () => {
+  compare(ctx.Float(4).invSqrt(), '0.5');
+  compare(ctx.Float(2).invSqrt(), '0.707108');
+});
+
 test('cbrt()', () => {
   compare(ctx.Float(27).cbrt(), '3');
   compare(ctx.Float(3).cbrt(), '1.44226');
