@@ -3,8 +3,6 @@ import { getGMPInterface, GMPFunctions } from './functions';
 import { DivMode, getIntegerContext, Integer, IntegerFactory } from './integer';
 import { getRationalContext, Rational, RationalFactory } from './rational';
 
-
-
 export {
   DivMode,
   FloatRoundingMode,
@@ -42,8 +40,8 @@ type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 
 export interface CalculateOptions extends FloatOptions {};
 
-export async function getGMP(wasmPath: string) {
-  const binding = await getGMPInterface(wasmPath) as Awaited<ReturnType<typeof getGMPInterface>>;
+export async function getGMP() {
+  const binding = await getGMPInterface() as Awaited<ReturnType<typeof getGMPInterface>>;
 
   const createContext = (options: CalculateOptions) => {
     const intContext = getIntegerContext(binding);

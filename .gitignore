@@ -4,3 +4,4 @@ dist
 coverage
 docs
 .jest-cache
+gmp.wasm.ts

@@ -5,3 +5,4 @@ coverage
 docs
 .jest-cache
 benchmark
+gmp.wasm.ts

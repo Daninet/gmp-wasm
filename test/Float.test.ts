@@ -6,7 +6,7 @@ let gmp: Awaited<ReturnType<typeof getGMP>> = null;
 let ctx: CalculateType = null;
 
 beforeAll(async () => {
-  gmp = await getGMP(require.resolve('../binding/dist/gmp.wasm'));
+  gmp = await getGMP();
   ctx = gmp.calculateManual({ precisionBits: 16 });
 });
 
