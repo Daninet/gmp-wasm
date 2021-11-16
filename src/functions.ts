@@ -9,9 +9,6 @@ export type mpfr_srcptr = number;
 export type mpq_ptr = number;
 export type mpq_srcptr = number;
 
-export type mpc_ptr = number;
-export type mpc_srcptr = number;
-
 export type mp_bitcnt_t = number;
 
 export type gmp_randstate_t = number;
@@ -31,11 +28,9 @@ export type mp_limb_t = number;
 export type mp_srcptr = number;
 export type mp_size_t = number;
 export type mpfr_prec_t = number;
-export type mpc_rnd_t = number;
 export type mpfr_flags_t = number;
 export type mpfr_ptr_ptr = number;
 export type mp_ptr = number;
-export type mpc_ptr_ptr = number;
 export type mpfr_exp_t_ptr = number;
 export type c_str_ptr_ptr = number;
 
@@ -72,14 +67,24 @@ type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 type GMPFunctionsType = Awaited<ReturnType<typeof getGMPInterface>>;
 export interface GMPFunctions extends GMPFunctionsType {}
 
+const encoder = new TextEncoder();
+
 export async function getGMPInterface() {
-  const gmp = await getBinding();
+  let gmp = await getBinding();
 
   return {
+    reset: async () => { gmp = await getBinding(true); },
     malloc: (size: c_size_t): c_void_ptr => gmp.g_malloc(size),
+    malloc_cstr: (str: string): number => {
+      const buf = encoder.encode(str);
+      const ptr = gmp.g_malloc(buf.length + 1);
+      gmp.heap.HEAP8.set(buf, ptr);
+      gmp.heap.HEAP8[ptr + buf.length] = 0;
+      return ptr;
+    },
     free: (ptr: c_void_ptr): void => gmp.g_free(ptr),
-    mem: gmp.HEAP8 as Uint8Array,
-    memView: new DataView(gmp.HEAP8.buffer, gmp.HEAP8.byteOffset, gmp.HEAP8.byteLength),
+    get mem() { return gmp.heap.HEAP8 as Uint8Array },
+    get memView() { return new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength) },
 
     /**************** Random number routines.  ****************/
     g_randinit_default: (p1: gmp_randstate_t): void => { gmp.g_randinit_default(p1); },

@@ -84,6 +84,10 @@ export async function getGMP() {
         ...context.types,
         destroy: context.destroy,
       };
-    }
+    },
+
+    reset: async () => {
+      return binding.reset();
+    },
   };
 }
