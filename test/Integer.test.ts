@@ -1,5 +1,5 @@
 import { DivMode } from '../src/integer';
-import { CalculateType, getGMP, IntegerType } from '../src';
+import { CalculateType, FloatType, getGMP, IntegerType, RationalType } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
@@ -11,7 +11,7 @@ beforeAll(async () => {
   ctx = gmp.calculateManual();
 });
 
-const compare = (int: IntegerType, res: string) => {
+const compare = (int: IntegerType | RationalType | FloatType, res: string) => {
   expect(int.toString()).toBe(res);
 }
 
@@ -47,6 +47,10 @@ test('add()', () => {
   compare(ctx.Integer(-2).add(ctx.Integer(-1)), '-3');
   compare(ctx.Integer(-2).add(ctx.Integer(0)), '-2');
   compare(ctx.Integer(-2).add(ctx.Integer(1)), '-1');
+  compare(ctx.Integer(-2).add(ctx.Rational(-1, 2)), '-5/2');
+  compare(ctx.Integer(-2).add(ctx.Rational(1, 2)), '-3/2');
+  compare(ctx.Integer(-2).add(ctx.Float('-0.5')), '-2.5');
+  compare(ctx.Integer(-2).add(ctx.Float('0.5')), '-1.5');
 });
 
 test('subtract()', () => {
@@ -56,6 +60,8 @@ test('subtract()', () => {
   compare(ctx.Integer(-2).sub(ctx.Integer(-1)), '-1');
   compare(ctx.Integer(-2).sub(ctx.Integer(0)), '-2');
   compare(ctx.Integer(-2).sub(ctx.Integer(1)), '-3');
+  compare(ctx.Integer(-2).sub(ctx.Rational(-1, 2)), '-3/2');
+  compare(ctx.Integer(-2).sub(ctx.Rational(1, 2)), '-5/2');
 });
 
 test('multiply()', () => {
@@ -63,6 +69,8 @@ test('multiply()', () => {
   compare(ctx.Integer(3).mul(-4), '-12');
   compare(ctx.Integer(3).mul(ctx.Integer(4)), '12');
   compare(ctx.Integer(3).mul(ctx.Integer(-4)), '-12');
+  compare(ctx.Integer(3).mul(ctx.Rational(-1, 2)), '-3/2');
+  compare(ctx.Integer(3).mul(ctx.Rational(1, 2)), '3/2');
 });
 
 test('neg()', () => {
@@ -93,6 +101,9 @@ test('div()', () => {
   compare(ctx.Integer(12).div(ctx.Integer(5), DivMode.FLOOR), '2');
   compare(ctx.Integer(12).div(ctx.Integer(-5), DivMode.TRUNCATE), '-2');
   compare(ctx.Integer(12).div(ctx.Integer(5), DivMode.TRUNCATE), '2');
+
+  compare(ctx.Integer(12).div(ctx.Rational(-5, 3)), '-36/5');
+  compare(ctx.Integer(12).div(ctx.Rational(5, 3)), '36/5');
 });
 
 test('pow()', () => {
@@ -107,6 +118,10 @@ test('pow()', () => {
   compare(ctx.Integer(3).pow(ctx.Integer(4)), '81');
   compare(ctx.Integer(2).pow(ctx.Integer(3), 3), '2');
   compare(ctx.Integer(2).pow(ctx.Integer(3), ctx.Integer(3)), '2');
+
+  compare(ctx.Integer(3).pow(ctx.Rational(4, 1)), '81');
+  compare(ctx.Integer(3).pow(ctx.Rational(4, 2)), '9');
+  compare(ctx.Integer(3).pow(ctx.Rational(4, 3)), '4');
 });
 
 test('sqrt()', () => {
@@ -183,6 +198,10 @@ test('isEqual()', () => {
   expect(ctx.Integer('2').isEqual(-2)).toBe(false);
   expect(ctx.Integer('2').isEqual(ctx.Integer(2))).toBe(true);
   expect(ctx.Integer('2').isEqual(ctx.Integer(-2))).toBe(false);
+  expect(ctx.Integer('2').isEqual(ctx.Rational(4, 2))).toBe(true);
+  expect(ctx.Integer('2').isEqual(ctx.Rational(-3, 2))).toBe(false);
+  expect(ctx.Integer('2').isEqual(ctx.Float('2'))).toBe(true);
+  expect(ctx.Integer('2').isEqual(ctx.Float('2.01'))).toBe(false);
 });
 
 test('lessThan()', () => {
@@ -192,6 +211,27 @@ test('lessThan()', () => {
   expect(ctx.Integer('2').lessThan(ctx.Integer(3))).toBe(true);
   expect(ctx.Integer('2').lessThan(ctx.Integer(2))).toBe(false);
   expect(ctx.Integer('2').lessThan(ctx.Integer(-2))).toBe(false);
+  expect(ctx.Integer('2').lessThan(ctx.Rational(5, 2))).toBe(true);
+  expect(ctx.Integer('2').lessThan(ctx.Rational(4, 2))).toBe(false);
+  expect(ctx.Integer('2').lessThan(ctx.Rational(-3, 2))).toBe(false);
+  expect(ctx.Integer('2').lessThan(ctx.Float('2.01'))).toBe(true);
+  expect(ctx.Integer('2').lessThan(ctx.Float('2.0'))).toBe(false);
+  expect(ctx.Integer('2').lessThan(ctx.Float('1.99'))).toBe(false);
+});
+
+test('lessOrEqual()', () => {
+  expect(ctx.Integer('2').lessOrEqual(3)).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual(2)).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual(-2)).toBe(false);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Integer(3))).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Integer(2))).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Integer(-2))).toBe(false);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Rational(5, 2))).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Rational(4, 2))).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Rational(-4, 2))).toBe(false);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Float('2.01'))).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Float('2.0'))).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual(ctx.Float('1.99'))).toBe(false);
 });
 
 test('greaterThan()', () => {
@@ -201,6 +241,27 @@ test('greaterThan()', () => {
   expect(ctx.Integer('2').greaterThan(ctx.Integer(3))).toBe(false);
   expect(ctx.Integer('2').greaterThan(ctx.Integer(2))).toBe(false);
   expect(ctx.Integer('2').greaterThan(ctx.Integer(-2))).toBe(true);
+  expect(ctx.Integer('2').greaterThan(ctx.Rational(5, 2))).toBe(false);
+  expect(ctx.Integer('2').greaterThan(ctx.Rational(4, 2))).toBe(false);
+  expect(ctx.Integer('2').greaterThan(ctx.Rational(-4, 2))).toBe(true);
+  expect(ctx.Integer('2').greaterThan(ctx.Float('2.01'))).toBe(false);
+  expect(ctx.Integer('2').greaterThan(ctx.Float('2.0'))).toBe(false);
+  expect(ctx.Integer('2').greaterThan(ctx.Float('1.99'))).toBe(true);
+});
+
+test('greaterOrEqual()', () => {
+  expect(ctx.Integer('2').greaterOrEqual(3)).toBe(false);
+  expect(ctx.Integer('2').greaterOrEqual(2)).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual(-2)).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Integer(3))).toBe(false);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Integer(2))).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Integer(-2))).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Rational(5, 2))).toBe(false);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Rational(4, 2))).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Rational(-4, 2))).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Float('2.01'))).toBe(false);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Float('2.0'))).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual(ctx.Float('1.99'))).toBe(true);
 });
 
 test('sign()', () => {

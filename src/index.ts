@@ -41,28 +41,35 @@ type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 export interface CalculateOptions extends FloatOptions {};
 
 export async function getGMP() {
-  const binding = await getGMPInterface() as Awaited<ReturnType<typeof getGMPInterface>>;
+  const binding: Awaited<ReturnType<typeof getGMPInterface>> = await getGMPInterface();
 
   const createContext = (options: CalculateOptions) => {
-    const intContext = getIntegerContext(binding);
-    const rationalContext = getRationalContext(binding);
-    const floatContext = getFloatContext(binding, options);
+    const ctx = {
+      intContext: null,
+      rationalContext: null,
+      floatContext: null,
+    };
+
+    ctx.intContext = getIntegerContext(binding, ctx);
+    ctx.rationalContext = getRationalContext(binding, ctx);
+    ctx.floatContext = getFloatContext(binding, ctx, options);
 
     return {
       types: {
-        Integer: intContext.Integer,
-        Rational: rationalContext.Rational,
-        Float: floatContext.Float,
-        Pi: floatContext.Pi,
-        EulerConstant: floatContext.EulerConstant,
-        EulerNumber: floatContext.EulerNumber,
-        Log2: floatContext.Log2,
-        Catalan: floatContext.Catalan,
+        Integer: ctx.intContext.Integer,
+        Rational: ctx.rationalContext.Rational,
+        Float: ctx.floatContext.Float,
+        Pi: ctx.floatContext.Pi,
+        EulerConstant: ctx.floatContext.EulerConstant,
+        EulerNumber: ctx.floatContext.EulerNumber,
+        Log2: ctx.floatContext.Log2,
+        Catalan: ctx.floatContext.Catalan,
       },
+
       destroy: () => {
-        intContext.destroy();
-        rationalContext.destroy();
-        floatContext.destroy();
+        ctx.intContext.destroy();
+        ctx.rationalContext.destroy();
+        ctx.floatContext.destroy();
       },
     };
   };
@@ -72,7 +79,11 @@ export async function getGMP() {
 
     calculate: (fn: (gmp: CalculateType) => Integer, options: CalculateOptions = {}): string => {
       const context = createContext(options);
-      const res = fn(context.types).toString();
+      if (typeof fn !== 'function') {
+        throw new Error('calculate() requires a callback function');
+      }
+      const fnRes = fn(context.types);
+      const res = fnRes?.toString();
       context.destroy();
 
       return res;
@@ -91,3 +102,5 @@ export async function getGMP() {
     },
   };
 }
+
+export const precisionToBits = (digits: number) => Math.ceil(digits * 3.3219281);

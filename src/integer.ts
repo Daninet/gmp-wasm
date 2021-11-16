@@ -1,13 +1,23 @@
 import type { GMPFunctions } from './functions';
+import { Float } from './float';
+import { Rational } from './rational';
 import { assertInt32, assertUint32 } from './util';
 
 const decoder = new TextDecoder();
-const encoder = new TextEncoder();
 
 type IntegerFactoryReturn = ReturnType<typeof getIntegerContext>['Integer'];
 export interface IntegerFactory extends IntegerFactoryReturn {};
 type IntegerReturn = ReturnType<IntegerFactoryReturn>;
 export interface Integer extends IntegerReturn {};
+
+// these should not be exported
+type AllTypes = Integer | Rational | Float | number;
+type OutputType<T> = 
+  T extends number ? Integer :
+  T extends Integer ? Integer :
+  T extends Rational ? Rational :
+  T extends Float ? Float :
+  never;
 
 export enum DivMode {
   CEIL = 0,
@@ -15,61 +25,96 @@ export enum DivMode {
   TRUNCATE = 2,
 };
 
-export function getIntegerContext(gmp: GMPFunctions) {
+const INVALID_PARAMETER_ERROR = 'Invalid parameter!';
+
+export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
   const mpz_t_arr: number[] = [];
 
-  const compare = (mpz_t: number, val: Integer | number) => {
+  const isInteger = (val): boolean => ctx.intContext.isInteger(val);
+  const isRational = (val): boolean => ctx.rationalContext.isRational(val);
+  const isFloat = (val): boolean => ctx.floatContext.isFloat(val);
+
+  const compare = (mpz_t: number, val: AllTypes): number => {
     if (typeof val === 'number') {
       assertInt32(val);
       return gmp.mpz_cmp_si(mpz_t, val);
-    } else {
-      return gmp.mpz_cmp(mpz_t, val.mpz_t);
     }
+    if (isInteger(val)) {
+      return gmp.mpz_cmp(mpz_t, (val as Integer).mpz_t);
+    }
+    if (isRational(val)) {
+      return -gmp.mpq_cmp_z((val as Rational).mpq_t, mpz_t);
+    }
+    if (isFloat(val)) {
+      return -gmp.mpfr_cmp_z((val as Float).mpfr_t, mpz_t);
+    }
+    throw new Error(INVALID_PARAMETER_ERROR);
   }
 
   const IntPrototype = {
     mpz_t: 0,
     type: 'integer',
 
-    add(val: Integer | number): Integer {
-      const n = IntegerFn();
+    add<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number') {
         assertInt32(val);
+        const n = IntegerFn();
         if (val < 0) {
           gmp.mpz_sub_ui(n.mpz_t, this.mpz_t, -val);
         } else {
           gmp.mpz_add_ui(n.mpz_t, this.mpz_t, val);
         }
-      } else {
-        gmp.mpz_add(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n as OutputType<T>;
       }
-      return n;
+      if (isInteger(val)) {
+        const n = IntegerFn();
+        gmp.mpz_add(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+        return n as OutputType<T>;
+      }
+      if (isRational(val) || isFloat(val)) {
+        return val.add(this) as OutputType<T>;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    sub(val: Integer | number): Integer {
-      const n = IntegerFn();
+    sub<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number') {
+        const n = IntegerFn();
         assertInt32(val);
         if (val < 0) {
           gmp.mpz_add_ui(n.mpz_t, this.mpz_t, -val);
         } else {
           gmp.mpz_sub_ui(n.mpz_t, this.mpz_t, val);
         }
-      } else {
-        gmp.mpz_sub(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n as OutputType<T>;
       }
-      return n;
+      if (isInteger(val)) {
+        const n = IntegerFn();
+        gmp.mpz_sub(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+        return n as OutputType<T>;
+      }
+      if (isRational(val) || isFloat(val)) {
+        return val.neg().add(this) as OutputType<T>;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    mul(val: Integer | number): Integer {
-      const n = IntegerFn();
+    mul<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number') {
+        const n = IntegerFn();
         assertInt32(val);
         gmp.mpz_mul_si(n.mpz_t, this.mpz_t, val);
-      } else {
-        gmp.mpz_mul(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n as OutputType<T>;
       }
-      return n;
+      if (isInteger(val)) {
+        const n = IntegerFn();
+        gmp.mpz_mul(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+        return n as OutputType<T>;
+      }
+      if (isRational(val) || isFloat(val)) {
+        return val.mul(this) as OutputType<T>;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
     neg(): Integer {
@@ -84,36 +129,46 @@ export function getIntegerContext(gmp: GMPFunctions) {
       return n;
     },
 
-    div(val: Integer | number, mode = DivMode.CEIL): Integer {
-      const n = IntegerFn(this);
+    div<T extends AllTypes>(val: T, mode = DivMode.CEIL): OutputType<T> {
       if (typeof val === 'number') {
+        const n = IntegerFn(this);
         assertInt32(val);
         if (val < 0) {
           gmp.mpz_neg(n.mpz_t, n.mpz_t);
-          val = -val;
+          val = -val as T;
         }
         if (mode === DivMode.CEIL) {
-          gmp.mpz_cdiv_q_ui(n.mpz_t, n.mpz_t, val);
+          gmp.mpz_cdiv_q_ui(n.mpz_t, n.mpz_t, val as number);
         } else if (mode === DivMode.FLOOR) {
-          gmp.mpz_fdiv_q_ui(n.mpz_t, n.mpz_t, val);
+          gmp.mpz_fdiv_q_ui(n.mpz_t, n.mpz_t, val as number);
         } else if (mode === DivMode.TRUNCATE) {
-          gmp.mpz_tdiv_q_ui(n.mpz_t, n.mpz_t, val);
+          gmp.mpz_tdiv_q_ui(n.mpz_t, n.mpz_t, val as number);
         }
-      } else {
-        if (mode === DivMode.CEIL) {
-          gmp.mpz_cdiv_q(n.mpz_t, this.mpz_t, val.mpz_t);
-        } else if (mode === DivMode.FLOOR) {
-          gmp.mpz_fdiv_q(n.mpz_t, this.mpz_t, val.mpz_t);
-        } else if (mode === DivMode.TRUNCATE) {
-          gmp.mpz_tdiv_q(n.mpz_t, this.mpz_t, val.mpz_t);
-        }
+        return n as OutputType<T>;
       }
-      return n;
+      if (isInteger(val)) {
+        const n = IntegerFn(this);
+        if (mode === DivMode.CEIL) {
+          gmp.mpz_cdiv_q(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+        } else if (mode === DivMode.FLOOR) {
+          gmp.mpz_fdiv_q(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+        } else if (mode === DivMode.TRUNCATE) {
+          gmp.mpz_tdiv_q(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+        }
+        return n as OutputType<T>;
+      }
+      if (isRational(val)) {
+        return (val as Rational).invert().mul(this) as OutputType<T>;
+      }
+      if (isFloat(val)) {
+        return ctx.floatContext.Float(this).div(val);
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    pow(exp: Integer | number, mod?: Integer | number): Integer {
-      const n = IntegerFn();
+    pow(exp: Rational | Integer | number, mod?: Integer | number): Integer {
       if (typeof exp === 'number') {
+        const n = IntegerFn();
         assertUint32(exp);
         if (mod !== undefined) {
           if (typeof mod === 'number') {
@@ -125,21 +180,35 @@ export function getIntegerContext(gmp: GMPFunctions) {
         } else {
           gmp.mpz_pow_ui(n.mpz_t, this.mpz_t, exp);
         }
-      } else {
+        return n;
+      }
+      if (isInteger(exp)) {
+        const n = IntegerFn();
         if (mod !== undefined) {
           if (typeof mod === 'number') {
             assertUint32(mod);
-            gmp.mpz_powm(n.mpz_t, this.mpz_t, exp.mpz_t, IntegerFn(mod).mpz_t);
+            gmp.mpz_powm(n.mpz_t, this.mpz_t, (exp as Integer).mpz_t, IntegerFn(mod).mpz_t);
           } else {
-            gmp.mpz_powm(n.mpz_t, this.mpz_t, exp.mpz_t, mod.mpz_t);
+            gmp.mpz_powm(n.mpz_t, this.mpz_t, (exp as Integer).mpz_t, mod.mpz_t);
           }
         } else {
           const expNum = exp.toNumber();
           assertUint32(expNum);
           gmp.mpz_pow_ui(n.mpz_t, this.mpz_t, expNum);
         }
+        return n;
       }
-      return n;
+      if (isRational(exp) && mod === undefined) {
+        const n = IntegerFn();
+        const numerator = (exp as Rational).numerator().toNumber();
+        assertUint32(numerator);
+        const denominator = (exp as Rational).denominator().toNumber();
+        assertUint32(denominator);
+        gmp.mpz_pow_ui(n.mpz_t, this.mpz_t, numerator);
+        gmp.mpz_root(n.mpz_t, n.mpz_t, denominator);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
     sqrt(): Integer {
@@ -175,7 +244,7 @@ export function getIntegerContext(gmp: GMPFunctions) {
       return n;
     },
 
-    isPrime(reps: number = 20) {
+    isPrime(reps: number = 20): boolean | 'probably-prime' {
       assertUint32(reps);
       const ret = gmp.mpz_probab_prime_p(this.mpz_t, reps);
       if (ret === 0) return false; // definitely non-prime
@@ -194,10 +263,13 @@ export function getIntegerContext(gmp: GMPFunctions) {
       if (typeof val === 'number') {
         assertUint32(val);
         gmp.mpz_gcd_ui(n.mpz_t, this.mpz_t, val);
-      } else {
-        gmp.mpz_gcd(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n;
       }
-      return n;
+      if (isInteger(val)) {
+        gmp.mpz_gcd(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
     lcm(val: Integer | number): Integer {
@@ -205,10 +277,13 @@ export function getIntegerContext(gmp: GMPFunctions) {
       if (typeof val === 'number') {
         assertUint32(val);
         gmp.mpz_lcm_ui(n.mpz_t, this.mpz_t, val);
-      } else {
-        gmp.mpz_lcm(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n;
       }
-      return n;
+      if (isInteger(val)) {
+        gmp.mpz_lcm(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
     and(val: Integer | number): Integer {
@@ -216,10 +291,13 @@ export function getIntegerContext(gmp: GMPFunctions) {
       if (typeof val === 'number') {
         assertUint32(val);
         gmp.mpz_and(n.mpz_t, this.mpz_t, IntegerFn(val).mpz_t);
-      } else {
-        gmp.mpz_and(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n;
       }
-      return n;
+      if (isInteger(val)) {
+        gmp.mpz_and(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
     or(val: Integer | number): Integer {
@@ -227,10 +305,13 @@ export function getIntegerContext(gmp: GMPFunctions) {
       if (typeof val === 'number') {
         assertUint32(val);
         gmp.mpz_ior(n.mpz_t, this.mpz_t, IntegerFn(val).mpz_t);
-      } else {
-        gmp.mpz_ior(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n;
       }
-      return n;
+      if (isInteger(val)) {
+        gmp.mpz_ior(n.mpz_t, this.mpz_t, val.mpz_t);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
     xor(val: Integer | number): Integer {
@@ -258,16 +339,24 @@ export function getIntegerContext(gmp: GMPFunctions) {
       return n;
     },
 
-    isEqual(val: Integer | number) {
+    isEqual(val: AllTypes): boolean {
       return compare(this.mpz_t, val) === 0;
     },
 
-    lessThan(val: Integer | number) {
+    lessThan(val: AllTypes): boolean {
       return compare(this.mpz_t, val) < 0;
     },
 
-    greaterThan(val: Integer | number) {
+    lessOrEqual(val: AllTypes): boolean {
+      return compare(this.mpz_t, val) <= 0;
+    },
+
+    greaterThan(val: AllTypes): boolean {
       return compare(this.mpz_t, val) > 0;
+    },
+
+    greaterOrEqual(val: AllTypes): boolean {
+      return compare(this.mpz_t, val) >= 0;
     },
 
     sign() {
@@ -297,15 +386,13 @@ export function getIntegerContext(gmp: GMPFunctions) {
     if (num === undefined) {
       gmp.mpz_init(instance.mpz_t);
     } else if (typeof num === 'string') {
-      const encoded = encoder.encode(num);
-      const strptr = gmp.malloc(encoded.length + 1);
-      gmp.mem.set(encoded, strptr);
-      gmp.mpz_init_set_str(instance.mpz_t, strptr, 10);
-      gmp.free(strptr);
+      const strPtr = gmp.malloc_cstr(num);
+      gmp.mpz_init_set_str(instance.mpz_t, strPtr, 10);
+      gmp.free(strPtr);
     } else if (typeof num === 'number') {
       assertInt32(num);
       gmp.mpz_init_set_si(instance.mpz_t, num);
-    } else if (num?.type === 'integer') {
+    } else if (isInteger(num)) {
       gmp.mpz_init_set(instance.mpz_t, num.mpz_t);
     } else {
       gmp.mpz_t_free(instance.mpz_t);
@@ -319,6 +406,7 @@ export function getIntegerContext(gmp: GMPFunctions) {
 
   return {
     Integer: IntegerFn,
+    isInteger: (val) => IntPrototype.isPrototypeOf(val),
     destroy: () => mpz_t_arr.forEach(mpz_t => {
       gmp.mpz_clear(mpz_t);
       gmp.mpz_t_free(mpz_t);

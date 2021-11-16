@@ -1,13 +1,17 @@
 import type { GMPFunctions, mpfr_rnd_t } from './functions';
-import { assertUint32, isInt32 } from './util';
+import { Integer } from './integer';
+import { Rational } from './rational';
+import { assertInt32, assertUint32, isInt32 } from './util';
 
 const decoder = new TextDecoder();
-const encoder = new TextEncoder();
 
 type FloatFactoryReturn = ReturnType<typeof getFloatContext>['Float'];
 export interface FloatFactory extends FloatFactoryReturn {};
 type FloatReturn = ReturnType<FloatFactoryReturn>;
 export interface Float extends FloatReturn {};
+
+// these should not be exported
+type AllTypes = Integer | Rational | Float | number;
 
 // matches mpfr_rnd_t
 export enum FloatRoundingMode {
@@ -75,12 +79,35 @@ const insertDecimalPoint = (mantissa: string, pointPos: number) => {
   return mantissa;
 }
 
-export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
+const INVALID_PARAMETER_ERROR = 'Invalid parameter!';
+
+export function getFloatContext(gmp: GMPFunctions, ctx: any, options?: FloatOptions) {
   const mpfr_t_arr: number[] = [];
+
+  const isInteger = (val): boolean => ctx.intContext.isInteger(val);
+  const isRational = (val): boolean => ctx.rationalContext.isRational(val);
+  const isFloat = (val): boolean => ctx.floatContext.isFloat(val);
 
   const globalRndMode = (options.roundingMode ?? FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) as number as mpfr_rnd_t;
   const globalPrecisionBits = options.precisionBits ?? 52;
   assertUint32(globalPrecisionBits);
+
+  const compare = (mpfr_t: number, val: AllTypes): number => {
+    if (typeof val === 'number') {
+      assertInt32(val);
+      return gmp.mpfr_cmp_si(mpfr_t, val);
+    }
+    if (isInteger(val)) {
+      return gmp.mpfr_cmp_z(mpfr_t, (val as Integer).mpz_t);
+    }
+    if (isRational(val)) {
+      return gmp.mpfr_cmp_q(mpfr_t, (val as Rational).mpq_t);
+    }
+    if (isFloat(val)) {
+      return gmp.mpfr_cmp(mpfr_t, (val as Float).mpfr_t);
+    }
+    throw new Error(INVALID_PARAMETER_ERROR);
+  }
 
   const FloatPrototype = {
     mpfr_t: 0,
@@ -88,27 +115,49 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
     rndMode: globalRndMode,
     type: 'float',
 
-    add(val: Float | number): Float {
+    add(val: AllTypes): Float {
       const n = FloatFn();
       if (typeof val === 'number') {
         gmp.mpfr_add_d(n.mpfr_t, this.mpfr_t, val, this.rndMode);
-      } else {
-        gmp.mpfr_add(n.mpfr_t, this.mpfr_t, val.mpfr_t, this.rndMode);
+        return n;
       }
-      return n;
+      if (isFloat(val)) {
+        gmp.mpfr_add(n.mpfr_t, this.mpfr_t, (val as Float).mpfr_t, this.rndMode);
+        return n;
+      }
+      if (isRational(val)) {
+        gmp.mpfr_add_q(n.mpfr_t, this.mpfr_t, (val as Rational).mpq_t, this.rndMode);
+        return n;
+      }
+      if (isInteger(val)) {
+        gmp.mpfr_add_z(n.mpfr_t, this.mpfr_t, (val as Integer).mpz_t, this.rndMode);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    sub(val: Float | number): Float {
+    sub(val: AllTypes): Float {
       const n = FloatFn();
       if (typeof val === 'number') {
         gmp.mpfr_sub_d(n.mpfr_t, this.mpfr_t, val, this.rndMode);
-      } else {
-        gmp.mpfr_sub(n.mpfr_t, this.mpfr_t, val.mpfr_t, this.rndMode);
+        return n;
       }
-      return n;
+      if (isFloat(val)) {
+        gmp.mpfr_sub(n.mpfr_t, this.mpfr_t, (val as Float).mpfr_t, this.rndMode);
+        return n;
+      }
+      if (isRational(val)) {
+        gmp.mpfr_sub_q(n.mpfr_t, this.mpfr_t, (val as Rational).mpq_t, this.rndMode);
+        return n;
+      }
+      if (isInteger(val)) {
+        gmp.mpfr_sub_z(n.mpfr_t, this.mpfr_t, (val as Integer).mpz_t, this.rndMode);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    mul(val: Float | number): Float {
+    mul(val: AllTypes): Float {
       const n = FloatFn();
       if (typeof val === 'number') {
         if (isInt32(val)) {
@@ -116,20 +165,42 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
         } else {
           gmp.mpfr_mul_d(n.mpfr_t, this.mpfr_t, val, this.rndMode);
         }
-      } else {
-        gmp.mpfr_mul(n.mpfr_t, this.mpfr_t, val.mpfr_t, this.rndMode);
+        return n;
       }
-      return n;
+      if (isFloat(val)) {
+        gmp.mpfr_mul(n.mpfr_t, this.mpfr_t, (val as Float).mpfr_t, this.rndMode);
+        return n;
+      }
+      if (isRational(val)) {
+        gmp.mpfr_mul_q(n.mpfr_t, this.mpfr_t, (val as Rational).mpq_t, this.rndMode);
+        return n;
+      }
+      if (isInteger(val)) {
+        gmp.mpfr_mul_z(n.mpfr_t, this.mpfr_t, (val as Integer).mpz_t, this.rndMode);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    div(val: Float | number): Float {
+    div(val: AllTypes): Float {
       const n = FloatFn();
       if (typeof val === 'number') {
         gmp.mpfr_div_d(n.mpfr_t, this.mpfr_t, val, this.rndMode);
-      } else {
-        gmp.mpfr_div(n.mpfr_t, this.mpfr_t, val.mpfr_t, this.rndMode);
+        return n;
       }
-      return n;
+      if (isFloat(val)) {
+        gmp.mpfr_div(n.mpfr_t, this.mpfr_t, (val as Float).mpfr_t, this.rndMode);
+        return n;
+      }
+      if (isRational(val)) {
+        gmp.mpfr_div_q(n.mpfr_t, this.mpfr_t, (val as Rational).mpq_t, this.rndMode);
+        return n;
+      }
+      if (isInteger(val)) {
+        gmp.mpfr_div_z(n.mpfr_t, this.mpfr_t, (val as Integer).mpz_t, this.rndMode);
+        return n;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
     sqrt(): Float {
@@ -199,29 +270,24 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
       return gmp.mpfr_nan_p(this.mpfr_t) !== 0;
     },
 
-    isEqual(val: Float | number) {
-      val = (typeof val === 'number') ? FloatFn(val) : val;
-      return gmp.mpfr_equal_p(this.mpfr_t, val.mpfr_t) !== 0;
+    isEqual(val: AllTypes): boolean {
+      return compare(this.mpfr_t, val) === 0;
     },
 
-    lessThan(val: Float | number) {
-      val = typeof val === 'number' ? FloatFn(val) : val;
-      return gmp.mpfr_less_p(this.mpfr_t, val.mpfr_t) !== 0;
+    lessThan(val: AllTypes): boolean {
+      return compare(this.mpfr_t, val) < 0;
     },
 
-    lessOrEqual(val: Float | number) {
-      val = typeof val === 'number' ? FloatFn(val) : val;
-      return gmp.mpfr_lessequal_p(this.mpfr_t, val.mpfr_t) !== 0;
+    lessOrEqual(val: AllTypes): boolean {
+      return compare(this.mpfr_t, val) <= 0;
     },
 
-    greaterThan(val: Float | number) {
-      val = typeof val === 'number' ? FloatFn(val) : val;
-      return gmp.mpfr_greater_p(this.mpfr_t, val.mpfr_t) !== 0;
+    greaterThan(val: AllTypes): boolean {
+      return compare(this.mpfr_t, val) > 0;
     },
 
-    greaterOrEqual(val: Float | number) {
-      val = typeof val === 'number' ? FloatFn(val) : val;
-      return gmp.mpfr_greaterequal_p(this.mpfr_t, val.mpfr_t) !== 0;
+    greaterOrEqual(val: AllTypes): boolean {
+      return compare(this.mpfr_t, val) >= 0;
     },
 
     ln(): Float {
@@ -447,11 +513,9 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
     if (val === undefined) {
 
     } else if (typeof val === 'string') {
-      const encoded = encoder.encode(val);
-      const strptr = gmp.malloc(encoded.length + 1);
-      gmp.mem.set(encoded, strptr);
-      gmp.mpfr_set_str(instance.mpfr_t, strptr, 10, rndMode);
-      gmp.free(strptr);
+      const strPtr = gmp.malloc_cstr(val);
+      gmp.mpfr_set_str(instance.mpfr_t, strPtr, 10, rndMode);
+      gmp.free(strPtr);
     } else if (typeof val === 'number') {
       if (isInt32(val)) {
         gmp.mpfr_set_si(instance.mpfr_t, val, rndMode);
@@ -471,6 +535,7 @@ export function getFloatContext(gmp: GMPFunctions, options?: FloatOptions) {
 
   return {
     Float: FloatFn,
+    isFloat: (val) => FloatPrototype.isPrototypeOf(val),
 
     Pi: () => {
       const n = FloatFn();

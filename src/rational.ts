@@ -1,50 +1,77 @@
 import type { GMPFunctions } from './functions';
+import { Float } from './float';
 import { Integer } from './integer';
 import { assertInt32 } from './util';
 
 const decoder = new TextDecoder();
-const encoder = new TextEncoder();
 
 type RationalFactoryReturn = ReturnType<typeof getRationalContext>['Rational'];
 export interface RationalFactory extends RationalFactoryReturn {};
 type RationalReturn = ReturnType<RationalFactoryReturn>;
 export interface Rational extends RationalReturn {};
 
-export function getRationalContext(gmp: GMPFunctions) {
+// these should not be exported
+type AllTypes = Integer | Rational | Float | number;
+type OutputType<T> = 
+  T extends number ? Rational :
+  T extends Integer ? Rational :
+  T extends Rational ? Rational :
+  T extends Float ? Float :
+  never;
+
+const INVALID_PARAMETER_ERROR = 'Invalid parameter!';
+
+export function getRationalContext(gmp: GMPFunctions, ctx: any) {
   const mpq_t_arr: number[] = [];
+
+  const isInteger = (val): boolean => ctx.intContext.isInteger(val);
+  const isRational = (val): boolean => ctx.rationalContext.isRational(val);
+  const isFloat = (val): boolean => ctx.floatContext.isFloat(val);
 
   const RationalPrototype = {
     mpq_t: 0,
     type: 'rational',
 
-    add(val: Rational | number): Rational {
-      const n = RationalFn(0, 1);
-      if (typeof val === 'number') {
-        gmp.mpq_add(n.mpq_t, this.mpq_t, RationalFn(val).mpq_t);
-      } else {
-        gmp.mpq_add(n.mpq_t, this.mpq_t, val.mpq_t);
+    add<T extends AllTypes>(val: T): OutputType<T> {
+      if (typeof val === 'number' || isInteger(val)) {
+        const n = RationalFn(0, 1);
+        gmp.mpq_add(n.mpq_t, this.mpq_t, RationalFn(val as number | Integer).mpq_t);
+        return n as OutputType<T>;
       }
-      return n;
+      if (isRational(val)) {
+        const n = RationalFn(0, 1);
+        gmp.mpq_add(n.mpq_t, this.mpq_t, (val as Rational).mpq_t);
+        return n as OutputType<T>;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    sub(val: Rational | number): Rational {
-      const n = RationalFn(0, 1);
-      if (typeof val === 'number') {
-        gmp.mpq_sub(n.mpq_t, this.mpq_t, RationalFn(val).mpq_t);
-      } else {
-        gmp.mpq_sub(n.mpq_t, this.mpq_t, val.mpq_t);
+    sub<T extends AllTypes>(val: T): OutputType<T> {
+      if (typeof val === 'number' || isInteger(val)) {
+        const n = RationalFn(0, 1);
+        gmp.mpq_sub(n.mpq_t, this.mpq_t, RationalFn(val as number | Integer).mpq_t);
+        return n as OutputType<T>;
       }
-      return n;
+      if (isRational(val)) {
+        const n = RationalFn(0, 1);
+        gmp.mpq_sub(n.mpq_t, this.mpq_t, (val as Rational).mpq_t);
+        return n as OutputType<T>;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    mul(val: Rational | number): Rational {
-      const n = RationalFn(0, 1);
-      if (typeof val === 'number') {
-        gmp.mpq_mul(n.mpq_t, this.mpq_t, RationalFn(val).mpq_t);
-      } else {
-        gmp.mpq_mul(n.mpq_t, this.mpq_t, val.mpq_t);
+    mul<T extends AllTypes>(val: T): OutputType<T> {
+      if (typeof val === 'number' || isInteger(val)) {
+        const n = RationalFn(0, 1);
+        gmp.mpq_mul(n.mpq_t, this.mpq_t, RationalFn(val as number | Integer).mpq_t);
+        return n as OutputType<T>;
       }
-      return n;
+      if (isRational(val)) {
+        const n = RationalFn(0, 1);
+        gmp.mpq_mul(n.mpq_t, this.mpq_t, (val as Rational).mpq_t);
+        return n as OutputType<T>;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
     },
 
     neg(): Rational {
@@ -65,38 +92,63 @@ export function getRationalContext(gmp: GMPFunctions) {
       return n;
     },
 
-    div(val: Rational | number): Rational {
-      const n = RationalFn(0, 1);
-      if (typeof val === 'number') {
-        gmp.mpq_div(n.mpq_t, this.mpq_t, RationalFn(val).mpq_t);
-      } else {
-        gmp.mpq_div(n.mpq_t, this.mpq_t, val.mpq_t);
+    div<T extends AllTypes>(val: T): OutputType<T> {
+      if (typeof val === 'number' || isInteger(val)) {
+        const n = RationalFn(0, 1);
+        gmp.mpq_div(n.mpq_t, this.mpq_t, RationalFn(val as number | Integer).mpq_t);
+        return n as OutputType<T>;
       }
+      if (isRational(val)) {
+        const n = RationalFn(0, 1);
+        gmp.mpq_div(n.mpq_t, this.mpq_t, (val as Rational).mpq_t);
+        return n as OutputType<T>;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
+    },
+
+    isEqual(val: AllTypes): boolean {
+      if (typeof val === 'number' || isInteger(val)) {
+        return gmp.mpq_equal(this.mpq_t, RationalFn(val as number | Integer).mpq_t) !== 0;
+      }
+      if (isRational(val)) {
+        return gmp.mpq_equal(this.mpq_t, (val as Rational).mpq_t) !== 0;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
+    },
+
+    lessThan(val: AllTypes): boolean {
+      if (typeof val === 'number' || isInteger(val)) {
+        return gmp.mpq_cmp(this.mpq_t, RationalFn(val as number | Integer).mpq_t) < 0;
+      }
+      if (isRational(val)) {
+        return gmp.mpq_cmp(this.mpq_t, (val as Rational).mpq_t) < 0;
+      }
+      throw new Error(INVALID_PARAMETER_ERROR);
+    },
+
+    lessOrEqual(val: AllTypes): boolean { return false },
+
+    greaterThan(val: AllTypes): boolean {
+      if (typeof val === 'number' || isInteger(val)) {
+        return gmp.mpq_cmp(this.mpq_t, RationalFn(val as number | Integer).mpq_t) > 0;
+      }
+      if (isRational(val)) {
+        return gmp.mpq_cmp(this.mpq_t, (val as Rational).mpq_t) > 0;
+      }
+    },
+
+    greaterOrEqual(val: AllTypes): boolean { return false },
+
+    numerator(): Integer {
+      const n = ctx.intContext.Integer() as Integer;
+      gmp.mpq_get_num(n.mpz_t, this.mpq_t);
       return n;
     },
 
-    isEqual(val: Rational | number) {
-      if (typeof val === 'number') {
-        return gmp.mpq_equal(this.mpq_t, RationalFn(val).mpq_t) !== 0;
-      } else {
-        return gmp.mpq_equal(this.mpq_t, val.mpq_t) !== 0;
-      }
-    },
-
-    lessThan(val: Rational | number) {
-      if (typeof val === 'number') {
-        return gmp.mpq_cmp(this.mpq_t, RationalFn(val).mpq_t) < 0;
-      } else {
-        return gmp.mpq_cmp(this.mpq_t, val.mpq_t) < 0;
-      }
-    },
-
-    greaterThan(val: Rational | number) {
-      if (typeof val === 'number') {
-        return gmp.mpq_cmp(this.mpq_t, RationalFn(val).mpq_t) > 0;
-      } else {
-        return gmp.mpq_cmp(this.mpq_t, val.mpq_t) > 0;
-      }
+    denominator(): Integer {
+      const n = ctx.intContext.Integer() as Integer;
+      gmp.mpq_get_den(n.mpz_t, this.mpq_t);
+      return n;
     },
 
     sign() {
@@ -131,18 +183,20 @@ export function getRationalContext(gmp: GMPFunctions) {
       return;
     }
 
-    const p1Obj = p1 as Rational | Integer;
-    if (p1Obj?.type === 'rational' && p2 === undefined) {
-      gmp.mpq_set(mpq_t, (p1Obj as Rational).mpq_t);
+    if (isInteger(p1) && p2 === undefined) {
+      gmp.mpq_set_z(mpq_t, (p1 as Integer).mpz_t);
+      return;
+    }
+
+    if (isRational(p1) && p2 === undefined) {
+      gmp.mpq_set(mpq_t, (p1 as Rational).mpq_t);
       return;
     }
 
     const finalString = p2 !== undefined ? `${p1.toString()}/${p2.toString()}` : p1.toString();
-    const encoded = encoder.encode(finalString);
-    const strptr = gmp.malloc(encoded.length + 1);
-    gmp.mem.set(encoded, strptr);
-    gmp.mpq_set_str(mpq_t, strptr, 10);
-    gmp.free(strptr);
+    const strPtr = gmp.malloc_cstr(finalString);
+    gmp.mpq_set_str(mpq_t, strPtr, 10);
+    gmp.free(strPtr);
   }
 
   const RationalFn = (p1: string | number | Rational | Integer, p2?: string | number | Integer) => {
@@ -161,6 +215,7 @@ export function getRationalContext(gmp: GMPFunctions) {
 
   return {
     Rational: RationalFn,
+    isRational: (val) => RationalPrototype.isPrototypeOf(val),
     destroy: () => mpq_t_arr.forEach(mpq_t => {
       gmp.mpq_clear(mpq_t);
       gmp.mpq_t_free(mpq_t);

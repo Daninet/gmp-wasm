@@ -1,4 +1,4 @@
-import { CalculateType, getGMP, RationalType } from '../src';
+import { CalculateType, getGMP, IntegerType, RationalType } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
@@ -10,7 +10,7 @@ beforeAll(async () => {
   ctx = gmp.calculateManual();
 });
 
-const compare = (int: RationalType, res: string) => {
+const compare = (int: RationalType | IntegerType, res: string) => {
   expect(int.toString()).toBe(res);
 }
 
@@ -75,6 +75,18 @@ test('abs()', () => {
   compare(ctx.Rational(-2, 3).abs(), '2/3');
   compare(ctx.Rational(2, -3).abs(), '2/3');
   compare(ctx.Rational(2, 3).abs(), '2/3');
+});
+
+test('numerator()', () => {
+  compare(ctx.Rational(-2, 3).numerator(), '-2');
+  compare(ctx.Rational(2, -3).numerator(), '-2');
+  compare(ctx.Rational(2, 3).numerator(), '2');
+});
+
+test('denominator()', () => {
+  compare(ctx.Rational(-2, 3).denominator(), '3');
+  compare(ctx.Rational(2, -3).denominator(), '3');
+  compare(ctx.Rational(2, 3).denominator(), '3');
 });
 
 test('isEqual()', () => {
