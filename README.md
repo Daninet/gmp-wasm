@@ -20,6 +20,46 @@ It provides arbitrary-precision Integer, Rational and Float types.
 In some cases this library can provide better performance than the built-in BigInt type.
 
 
+## Installation
+
+```
+npm i gmp-wasm
+```
+
+It can also be used directly from HTML (via [jsDelivr](https://www.jsdelivr.com/package/npm/gmp-wasm)):
+
+```html
+<!-- loads the library into the global `gmp` variable -->
+<script src="https://cdn.jsdelivr.net/npm/gmp-wasm"></script>
+```
+
+## Usage
+
+The library provides an easy-to-use wrapper over the native functions. There are three major components:
+- g.Integer() - Wraps integers (MPZ)
+- g.Rational() - Wraps rational numbers (MPQ)
+- g.Float() - Wraps floating-point numbers (MPFR)
+
+```js
+const { getGMP } = require('gmp-wasm');
+getGMP().then(({ calculate }) => {
+  // calculate() automatically deallocates all objects created within the callback function
+  const result = calculate((g) => {
+    const six = g.Float(1).add(5);
+    return g.Pi().div(six).sin(); // sin(Pi/6) = 0.5
+  });
+  console.log(result);
+});
+```
+
+## Constants
+
+- gmp.Pi
+- gmp.EulerConstant
+- gmp.EulerNumber
+- gmp.Log2
+- gmp.Catalan
+
 ## Advanced usage
 
 If you want more control and performance you can use the original GMP / MPFR functions.
