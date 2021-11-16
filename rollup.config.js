@@ -1,9 +1,9 @@
 import typescript from '@rollup/plugin-typescript';
 import json from '@rollup/plugin-json';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import license from 'rollup-plugin-license';
 import commonjs from '@rollup/plugin-commonjs';
-import copy from 'rollup-plugin-copy';
 
 const TERSER_CONFIG = {
   output: {
@@ -20,29 +20,27 @@ const LICENSE_CONFIG = {
   },
 };
 
-const MINIFIED_MAIN_BUNDLE_CONFIG = {
+const getBundleConfig = (minified = false) => ({
   input: 'src/index.ts',
   output: [
     {
-      file: 'dist/index.umd.min.js',
+      file: `dist/index.umd${minified ? '.min' : ''}.js`,
       name: 'gmp',
       format: 'umd',
     },
     {
-      file: 'dist/index.esm.min.js',
+      file: `dist/index.esm${minified ? '.min' : ''}.js`,
       format: 'es',
     },
   ],
   plugins: [
+    nodeResolve(),
     commonjs(),
     json(),
     typescript(),
-    terser(TERSER_CONFIG),
+    ...(minified ? [terser(TERSER_CONFIG)]: []),
     license(LICENSE_CONFIG),
-    copy({
-      targets: [{ src: './binding/dist/gmp.wasm', dest: './dist' }],
-    }),
   ],
-};
+});
 
-export default [MINIFIED_MAIN_BUNDLE_CONFIG];
+export default [getBundleConfig(false), getBundleConfig(true)];

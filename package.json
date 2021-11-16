@@ -2,16 +2,16 @@
   "name": "gmp-wasm",
   "version": "0.0.1",
   "description": "WebAssembly bindings for the GMP and MPFR libraries",
-  "main": "dist/index.umd.min.js",
-  "module": "dist/index.esm.min.js",
-  "types": "dist/types/index.d.ts",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/types/src/index.d.ts",
   "scripts": {
     "build-gmp": "sh -c ./binding/build-gmp.sh",
     "build-mpfr": "sh -c ./binding/build-mpfr.sh",
     "build-src": "sh -c ./binding/build-src.sh",
     "build-bindings": "npm run build-gmp && npm run build-mpfr && npm run build-src",
     "build-rollup": "rollup -c",
-    "build-types": "tsc ./src/index --outDir ./dist/types --downlevelIteration --declaration --emitDeclarationOnly --allowSyntheticDefaultImports",
+    "build-types": "tsc ./src/index -t es5 --outDir ./dist/types --downlevelIteration --declaration --emitDeclarationOnly --allowSyntheticDefaultImports",
     "build": "npm run build-bindings && npm run build-rollup && npm run build-types",
     "test": "jest --coverage",
     "typedoc": "typedoc ./src/index.ts"
@@ -39,12 +39,10 @@
     "type": "git",
     "url": "git+https://github.com/Daninet/gmp-wasm.git"
   },
-  "dependencies": {
-    "fflate": "^0.7.1"
-  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.0.6",
     "@rollup/plugin-typescript": "^8.3.0",
     "@types/estree": "^0.0.50",
     "@types/jest": "^27.0.2",
