@@ -1,20 +1,27 @@
 const DecimalJs = require('decimal.js');
-const { getGMP, DivMode } = require('../dist/index.umd.min.js');
+const { getGMP, DivMode } = require('../dist/index.umd.js');
 const piDecimals = require("pi-decimals");
 
 const precisionToBits = (digits) => Math.ceil(digits * 3.3219281);
 
-const PRECISION = 1100;
+const PRECISION = 4000;
 const referencePi = '3.' + piDecimals.decimals.slice(0, PRECISION - 2).join('');
+
+const decoder = new TextDecoder();
 
 console.log(`Calculating ${PRECISION} digits of Pi...`);
 console.log('------------------');
 
-getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
+getGMP().then(gmp => {
+  const GCCallbacks = [];
+  const runWASMGC = () => GCCallbacks.forEach(fn => fn());
+
   const solvers = [
-    function JSBigIntTaylor (precision) {
-      // http://ajennings.net/blog/a-million-digits-of-pi-in-9-lines-of-javascript.html
-      // PI = 3 + 3(1/2)(1/3)(1/4) + 3((1/2)(3/4))(1/5)(1/4^2) + 3((1/2)(3/4)(5/6))(1/7)(1/4^3) + ...
+    // Tests ending in "Taylor" use the following infinite series to estimate Pi:
+    // PI = 3 + 3(1/2)(1/3)(1/4) + 3((1/2)(3/4))(1/5)(1/4^2) + 3((1/2)(3/4)(5/6))(1/7)(1/4^3) + ...
+    // http://ajennings.net/blog/a-million-digits-of-pi-in-9-lines-of-javascript.html
+
+    function JS_BigInt_Taylor (precision) {
       let i = 1n;
       let x = 3n * (10n ** (BigInt(precision) + 20n));
       let pi = x;
@@ -26,8 +33,7 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
       return '3.' + pi.toString().slice(1, precision);
     },
   
-    function GMPBigIntTaylor (precision) {
-      // The algorithm from JSBigIntTaylor()
+    function GMP_BigInt_Taylor (precision) {
       const res = gmp.calculate(g => {
         let i = g.Integer(1);
         let x = g.Integer(3).mul(g.Integer(10).pow(precision + 20));
@@ -42,8 +48,57 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
       return '3.' + res.toString().slice(1, precision);
     },
 
-    function DecimalJsBigIntTaylor (precision) {
-      // The algorithm from JSBigIntTaylor()
+    function GMP_DelayGC_BigInt_Taylor (precision) {
+      const g = gmp.calculateManual();
+      let i = g.Integer(1);
+      let x = g.Integer(3).mul(g.Integer(10).pow(precision + 20));
+      let pi = x;
+      while (!x.isEqual(0)) {
+        x = x.mul(i).div(i.add(1).mul(4), DivMode.TRUNCATE);
+        i = i.add(2);
+        pi = pi.add(x.div(i, DivMode.TRUNCATE));
+      }
+      // GCCallbacks.push(() => g.destroy());
+      return '3.' + pi.toString().slice(1, precision);
+    },
+
+    function GMP_LowLevel_BigInt_Taylor (precision) {
+      const { binding } = gmp;
+      const i = binding.mpz_t();
+      binding.mpz_init_set_ui(i, 1);
+      const x = binding.mpz_t();
+      binding.mpz_init_set_ui(x, 3);
+      const aux = binding.mpz_t();
+      binding.mpz_init_set_ui(aux, 10);
+      binding.mpz_pow_ui(aux, aux, precision + 20);
+      binding.mpz_mul(x, x, aux);
+      const pi = binding.mpz_t();
+      binding.mpz_init_set(pi, x);
+      while (binding.mpz_cmp_ui(x, 0) !== 0) {
+        binding.mpz_add_ui(aux, i, 1);
+        binding.mpz_mul_ui(aux, aux, 4);
+        binding.mpz_mul(x, x, i);
+        binding.mpz_tdiv_q(x, x, aux);
+        binding.mpz_add_ui(i, i, 2);
+        binding.mpz_tdiv_q(aux, x, i);
+        binding.mpz_add(pi, pi, aux);
+      }
+      const strptr = binding.mpz_get_str(0, 10, pi);
+      const endptr = binding.mem.indexOf(0, strptr);
+      const str = decoder.decode(binding.mem.subarray(strptr, endptr));
+      binding.free(strptr);
+      binding.mpz_clear(i);
+      binding.mpz_t_free(i);
+      binding.mpz_clear(x);
+      binding.mpz_t_free(x);
+      binding.mpz_clear(aux);
+      binding.mpz_t_free(aux);
+      binding.mpz_clear(pi);
+      binding.mpz_t_free(pi);
+      return '3.' + str.slice(1, precision);
+    },
+
+    function DecimalJs_BigInt_Taylor (precision) {
       DecimalJs.precision = precision + 20;
       let i = DecimalJs(1);
       let x = DecimalJs(3).mul(DecimalJs(10).pow(precision + 20));
@@ -56,40 +111,80 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
       return pi.toString().slice(0, precision + 1);
     },
 
-    function GMPFloatTaylor (precision) {
-      // PI = 3 + 3(1/2)(1/3)(1/4) + 3((1/2)(3/4))(1/5)(1/4^2) + 3((1/2)(3/4)(5/6))(1/7)(1/4^3) + ...
-      const precisionBits = precisionToBits(precision) + 1;
+    function GMP_Float_Taylor (precision) {
+      const precisionBits = precisionToBits(precision + 1);
       const res = gmp.calculate(g => {
-        let i = 1;
+        let i = 1
         let x = g.Float(3);
         let pi = g.Float(x);
         const endPrecision = g.Float(10).pow(-precision);
-        console.time('gmp2');
         while (x.greaterThan(endPrecision)) {
-          x = x.mul(i).div(g.Float(i, { precisionBits: 32 }).add(1).mul(4));
+          x = x.mul(i).div((i + 1) * 4);
           i += 2;
           pi = pi.add(x.div(i));
         }
-        console.timeEnd('gmp2');
         return pi;
       }, { precisionBits });
       return res.toString();
     },
 
-    function DecimalJsFloatTaylor (precision) {
-      // PI = 3 + 3(1/2)(1/3)(1/4) + 3((1/2)(3/4))(1/5)(1/4^2) + 3((1/2)(3/4)(5/6))(1/7)(1/4^3) + ...
-      DecimalJs.precision = precision + 4;
+    function GMP_DelayGC_Float_Taylor (precision) {
+      const precisionBits = precisionToBits(precision + 1);
+      const g = gmp.calculateManual({ precisionBits });
+      let i = 1
+      let x = g.Float(3);
+      let pi = g.Float(x);
+      const endPrecision = g.Float(10).pow(-precision);
+      while (x.greaterThan(endPrecision)) {
+        x = x.mul(i).div((i + 1) * 4);
+        i += 2;
+        pi = pi.add(x.div(i));
+      }
+      // GCCallbacks.push(() => g.destroy());
+      return pi.toString();
+    },
+
+    function GMP_LowLevel_Float_Taylor (precision) {
+      const { binding } = gmp;
+      const precisionBits = precisionToBits(precision + 1);
+      let i = 1
+      const aux = binding.mpfr_t();
+      binding.mpfr_init2(aux, precisionBits);
+      const x = binding.mpfr_t();
+      binding.mpfr_init2(x, precisionBits);
+      binding.mpfr_set_ui(x, 3, 0);
+      const pi = binding.mpfr_t();
+      binding.mpfr_init2(pi, precisionBits);
+      binding.mpfr_set(pi, x, 0);
+      const endPrecision = binding.mpfr_t();
+      binding.mpfr_init2(endPrecision, precisionBits);
+      binding.mpfr_set_ui(endPrecision, 10, 0);
+      binding.mpfr_pow_si(endPrecision, endPrecision, -precision, 0);
+      while (binding.mpfr_greater_p(x, endPrecision) !== 0) {
+        binding.mpfr_mul_ui(x, x, i, 0);
+        binding.mpfr_div_ui(x, x, ((i + 1) * 4), 0);
+        i += 2;
+        binding.mpfr_div_ui(aux, x, i, 0);
+        binding.mpfr_add(pi, pi, aux, 0);
+      }
+      const g = gmp.calculateManual({ precisionBits });
+      const out = g.Float();
+      out.mpfr_t = pi;
+      g.destroy();
+      return out.toString();
+    },
+
+    function DecimalJs_Float_Taylor (precision) {
+      DecimalJs.precision = precision + 1;
       let i = 1;
       let x = DecimalJs(3);
       let pi = DecimalJs(x);
       const endPrecision = DecimalJs(10).pow(-precision);
-      console.time('dec2');
       while (x.greaterThan(endPrecision)) {
-        x = x.mul(i).div(DecimalJs(i).add(1).mul(4));
+        x = x.mul(i).div((i + 1) * 4);
         i += 2;
         pi = pi.add(x.div(i));
       }
-      console.timeEnd('dec2');
       return pi.toString();
     },
   
@@ -99,10 +194,10 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
     //   return a.toString();
     // },
   
-    function GMPAtan1(precision) {
-      const precisionBits = precisionToBits(precision);
+    function GMP_Atan_1(precision) {
+      const precisionBits = precisionToBits(precision + 1);
       return gmp.calculate(g => {
-        return g.Float('1').atan().mul(4);
+        return g.Float(1).atan().mul(4);
       }, { precisionBits });
     },
 
@@ -112,8 +207,8 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
     //   return a.toString();
     // },
 
-    function GMPAsin1over2(precision) {
-      const precisionBits = precisionToBits(precision);
+    function GMP_Asin_1over2(precision) {
+      const precisionBits = precisionToBits(precision + 1);
       return gmp.calculate(g => {
         return g.Float('0.5').asin().mul(6);
       }, { precisionBits });
@@ -121,33 +216,54 @@ getGMP(require.resolve('../dist/gmp.wasm')).then(gmp => {
   ];
 
   // verify
-  solvers.forEach(solver => {
-    console.log('checking', solver.name, '()...');
-    console.log(solver(20));
-  });
+  // solvers.forEach(solver => {
+  //   console.log('verifying', solver.name, '()...');
+  //   console.log(solver(20));
+  // });
 
   // warm-up
   solvers.forEach(solver => {
     console.log('warming up', solver.name, '()...');
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       const start = performance.now();
       solver(PRECISION);
+      runWASMGC();
       const end = performance.now();
       if (end - start > 1000) break;
     }
   });
 
+  const results = {};
+
+  const measure = (i) => {
+    solvers.forEach(solver => {
+      const start = performance.now();
+      const res = solver(PRECISION);
+      const end = performance.now();
+      runWASMGC();
+      if (res.slice(0, PRECISION) !== referencePi) {
+        console.log(res.slice(0, PRECISION));
+        throw new Error(`Pi mismatch at ${solver.name}`);
+      }
+      if (!results[solver.name]) results[solver.name] = {};
+      results[solver.name].avg = (results[solver.name].avg ?? 0) + (end - start);
+      results[solver.name][`run${i + 1}`] = (end - start).toFixed(2) + ' ms';
+    });
+  };
+
+  console.log('-----------');
+
   // measure
-  setTimeout(() => {
-    for (let i = 0; i < 3; i++) {
-      solvers.forEach(solver => {
-        console.time(solver.name);
-        const res = solver(PRECISION);
-        console.timeEnd(solver.name);
-        if (res.slice(0, PRECISION) !== referencePi) {
-          throw new Error(`Pi mismatch at ${solver.name}`);
-        }
-      });
-    }
-  }, 500);
+  const sleep = () => new Promise(resolve => setTimeout(resolve, 500));
+  sleep();
+
+  for (let i = 0; i < 4; i++) {
+    console.log(`Measuring... round ${i + 1}`);
+    measure(i);
+    sleep();
+  }
+
+  Object.values(results).forEach(r => r.avg = (r.avg / 4).toFixed(2) + ' ms');
+
+  console.table(results);
 });
