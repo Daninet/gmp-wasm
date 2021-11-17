@@ -502,7 +502,40 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, options?: FloatOpti
     }
   };
 
-  const FloatFn = (val?: string | number | Float, options?: FloatOptions) => {
+  const setValue = (mpfr_t: number, rndMode: mpfr_rnd_t, val: string | number | Float | Rational | Integer) => {
+    if (typeof val === 'string') {
+      const strPtr = gmp.malloc_cstr(val);
+      gmp.mpfr_set_str(mpfr_t, strPtr, 10, rndMode);
+      gmp.free(strPtr);
+      return;
+    }
+    if (typeof val === 'number') {
+      if (isInt32(val)) {
+        gmp.mpfr_set_si(mpfr_t, val, rndMode);
+        if (Object.is(val, -0)) {
+          gmp.mpfr_neg(mpfr_t, mpfr_t, rndMode);
+        }
+      } else {
+        gmp.mpfr_set_d(mpfr_t, val, rndMode);
+      }
+      return;
+    }
+    if (isFloat(val)) {
+      gmp.mpfr_set(mpfr_t, (val as Float).mpfr_t, rndMode);
+      return;
+    }
+    if (isRational(val)) {
+      gmp.mpfr_set_q(mpfr_t, (val as Rational).mpq_t, rndMode);
+      return;
+    }
+    if (isInteger(val)) {
+      gmp.mpfr_set_z(mpfr_t, (val as Integer).mpz_t, rndMode);
+      return;
+    }
+    throw new Error(INVALID_PARAMETER_ERROR);
+  };
+
+  const FloatFn = (val?: string | number | Float | Rational | Integer, options?: FloatOptions) => {
     const rndMode = (options?.roundingMode ?? globalRndMode) as number as mpfr_rnd_t;
     const precisionBits = options?.precisionBits ?? globalPrecisionBits;
 
@@ -510,23 +543,8 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, options?: FloatOpti
     instance.mpfr_t = gmp.mpfr_t();
     gmp.mpfr_init2(instance.mpfr_t, precisionBits);
 
-    if (val === undefined) {
-
-    } else if (typeof val === 'string') {
-      const strPtr = gmp.malloc_cstr(val);
-      gmp.mpfr_set_str(instance.mpfr_t, strPtr, 10, rndMode);
-      gmp.free(strPtr);
-    } else if (typeof val === 'number') {
-      if (isInt32(val)) {
-        gmp.mpfr_set_si(instance.mpfr_t, val, rndMode);
-        if (Object.is(val, -0)) {
-          gmp.mpfr_neg(instance.mpfr_t, instance.mpfr_t, rndMode);
-        }
-      } else {
-        gmp.mpfr_set_d(instance.mpfr_t, val, rndMode);
-      }
-    } else if (val?.type === 'float') {
-      gmp.mpfr_set(instance.mpfr_t, val.mpfr_t, rndMode);
+    if (val !== undefined) {
+      setValue(instance.mpfr_t, rndMode, val);
     }
 
     mpfr_t_arr.push(instance.mpfr_t);

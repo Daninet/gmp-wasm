@@ -62,6 +62,8 @@ test('subtract()', () => {
   compare(ctx.Integer(-2).sub(ctx.Integer(1)), '-3');
   compare(ctx.Integer(-2).sub(ctx.Rational(-1, 2)), '-3/2');
   compare(ctx.Integer(-2).sub(ctx.Rational(1, 2)), '-5/2');
+  compare(ctx.Integer(-2).sub(ctx.Float('-0.5')), '-1.5');
+  compare(ctx.Integer(-2).sub(ctx.Float('0.5')), '-2.5');
 });
 
 test('multiply()', () => {
@@ -71,6 +73,8 @@ test('multiply()', () => {
   compare(ctx.Integer(3).mul(ctx.Integer(-4)), '-12');
   compare(ctx.Integer(3).mul(ctx.Rational(-1, 2)), '-3/2');
   compare(ctx.Integer(3).mul(ctx.Rational(1, 2)), '3/2');
+  compare(ctx.Integer(3).mul(ctx.Float('-0.5')), '-1.5');
+  compare(ctx.Integer(3).mul(ctx.Float('0.5')), '1.5');
 });
 
 test('neg()', () => {
@@ -104,6 +108,9 @@ test('div()', () => {
 
   compare(ctx.Integer(12).div(ctx.Rational(-5, 3)), '-36/5');
   compare(ctx.Integer(12).div(ctx.Rational(5, 3)), '36/5');
+
+  compare(ctx.Integer(12).div(ctx.Float('-0.5')), '-24');
+  compare(ctx.Integer(12).div(ctx.Float('0.5')), '24');
 });
 
 test('pow()', () => {

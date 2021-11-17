@@ -77,7 +77,7 @@ export async function getGMP() {
   return {
     binding,
 
-    calculate: (fn: (gmp: CalculateType) => Integer, options: CalculateOptions = {}): string => {
+    calculate: (fn: (gmp: CalculateType) => Integer | Rational | Float, options: CalculateOptions = {}): string => {
       const context = createContext(options);
       if (typeof fn !== 'function') {
         throw new Error('calculate() requires a callback function');

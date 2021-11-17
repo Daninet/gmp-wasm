@@ -20,6 +20,9 @@ test('parse strings', () => {
   compare(ctx.Float('-1'), '-1');
   compare(ctx.Float('0.5'), '0.5');
   compare(ctx.Float('-0.5'), '-0.5');
+  compare(ctx.Float('0.002'), '0.00199997');
+  compare(ctx.Float('1000000'), '1000000');
+  compare(ctx.Float('10000.000'), '10000');
 });
 
 test('parse numbers', () => {
@@ -226,6 +229,93 @@ test('tan()', () => {
   compare(ctx.Pi().div(6).tan(), '0.577362');
   compare(ctx.Pi().div(4).tan(), '1');
   compare(ctx.Pi().div(3).tan(), '1.73212');
+});
+
+test('asin()', () => {
+  compare(ctx.Float(0).asin(), '0');
+  compare(ctx.Float(ctx.Float(1).div(2)).asin(), ctx.Pi().div(6).toString());
+  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).asin(), ctx.Pi().div(4).toString());
+  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).asin(), ctx.Pi().div(3).toString());
+  compare(ctx.Float(1).asin(), ctx.Pi().div(2).toString());
+});
+
+test('acos()', () => {
+  compare(ctx.Float(0).acos(), ctx.Pi().div(2).toString());
+  compare(ctx.Float(ctx.Float(1).div(2)).acos(), ctx.Pi().div(3).toString());
+  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).acos(), ctx.Pi().div(4).toString());
+  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).acos(), '0.52359');
+  compare(ctx.Float(1).acos(), '0');
+});
+
+test('atan()', () => {
+  compare(ctx.Float(0).atan(), '0');
+  compare(ctx.Float(ctx.Float(3).sqrt().div(3)).atan(), '0.52359');
+  compare(ctx.Float(ctx.Float(1)).atan(), ctx.Pi().div(4).toString());
+  compare(ctx.Float(ctx.Float(3).sqrt()).atan(), ctx.Pi().div(3).toString());
+});
+
+test('csc()', () => {
+  compare(ctx.Float(ctx.Pi().div(3)).csc(), ctx.Float(3).sqrt().mul(2).div(3).toString());
+});
+
+test('sec()', () => {
+  compare(ctx.Float(ctx.Pi().div(3)).sec(), '2.00006');
+});
+
+test('cot()', () => {
+  compare(ctx.Float(ctx.Pi().div(3)).cot(), '0.577332');
+});
+
+test('sinh()', () => {
+  compare(ctx.Float('1.5').sinh(), '2.12927');
+});
+
+test('cosh()', () => {
+  compare(ctx.Float('1.5').cosh(), '2.35242');
+});
+
+test('tanh()', () => {
+  compare(ctx.Float('1.5').tanh(), '0.905151');
+});
+
+test('asinh()', () => {
+  compare(ctx.Float('2.12927').asinh(), '1.5');
+});
+
+test('acosh()', () => {
+  compare(ctx.Float('2.35242').acosh(), '1.5');
+});
+
+test('atanh()', () => {
+  compare(ctx.Float('0.905151').atanh(), '1.50003');
+});
+
+test('ceil()', () => {
+  compare(ctx.Float(0.1).ceil(), '1');
+  compare(ctx.Float(-0.1).ceil(), '-0');
+});
+
+test('floor()', () => {
+  compare(ctx.Float(0.1).floor(), '0');
+  compare(ctx.Float(-0.1).floor(), '-1');
+});
+
+test('round()', () => {
+  compare(ctx.Float('1').round(), '1');
+  compare(ctx.Float('-1').round(), '-1');
+  compare(ctx.Float('0.4').round(), '0');
+  compare(ctx.Float('0.6').round(), '1');
+  compare(ctx.Float('0.5').round(), '1');
+  compare(ctx.Float('-0.5').round(), '-1');
+});
+
+test('trunc()', () => {
+  compare(ctx.Float('1').trunc(), '1');
+  compare(ctx.Float('-1').trunc(), '-1');
+  compare(ctx.Float('0.4').trunc(), '0');
+  compare(ctx.Float('0.6').trunc(), '0');
+  compare(ctx.Float('0.5').trunc(), '0');
+  compare(ctx.Float('-0.5').trunc(), '-0');
 });
 
 test('special values', () => {

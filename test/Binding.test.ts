@@ -1,5 +1,4 @@
-import { DivMode } from '../src/integer';
-import { getGMP, IntegerType } from '../src';
+import { getGMP } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
