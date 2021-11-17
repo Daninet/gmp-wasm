@@ -315,8 +315,15 @@ EMSCRIPTEN_KEEPALIVE int r_sub_q (mpfr_ptr p1, mpfr_srcptr p2, mpq_srcptr p3, mp
 EMSCRIPTEN_KEEPALIVE int r_cmp_q (mpfr_srcptr p1, mpq_srcptr p2) { return mpfr_cmp_q(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void r_get_q (mpq_ptr p1, mpfr_srcptr p2) { return mpfr_get_q(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int r_set_str (mpfr_ptr p1, const char *p2, int p3, mpfr_rnd_t p4) { return mpfr_set_str(p1, p2, p3, p4); }
+
+EMSCRIPTEN_KEEPALIVE int r_init_set (mpfr_ptr p1, mpfr_srcptr p2, mpfr_rnd_t p3) { return mpfr_init_set(p1, p2, p3); }
+EMSCRIPTEN_KEEPALIVE int r_init_set_ui (mpfr_ptr p1, unsigned long int p2, mpfr_rnd_t p3) { return mpfr_init_set_ui(p1, p2, p3); }
+EMSCRIPTEN_KEEPALIVE int r_init_set_si (mpfr_ptr p1, long int p2, mpfr_rnd_t p3) { return mpfr_init_set_si(p1, p2, p3); }
+EMSCRIPTEN_KEEPALIVE int r_init_set_d (mpfr_ptr p1, double p2, mpfr_rnd_t p3) { return mpfr_init_set_d(p1, p2, p3); }
+EMSCRIPTEN_KEEPALIVE int r_init_set_z (mpfr_ptr p1, mpz_srcptr p2, mpfr_rnd_t p3) { return mpfr_init_set_z(p1, p2, p3); }
+EMSCRIPTEN_KEEPALIVE int r_init_set_q (mpfr_ptr p1, mpq_srcptr p2, mpfr_rnd_t p3) { return mpfr_init_set_q(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE int r_init_set_str (mpfr_ptr p1, const char *p2, int p3, mpfr_rnd_t p4) { return mpfr_init_set_str(p1, p2, p3, p4); }
-EMSCRIPTEN_KEEPALIVE int r_set4 (mpfr_ptr p1, mpfr_srcptr p2, mpfr_rnd_t p3, int p4) { return mpfr_set4(p1, p2, p3, p4); }
+
 EMSCRIPTEN_KEEPALIVE int r_abs (mpfr_ptr p1, mpfr_srcptr p2, mpfr_rnd_t p3) { return mpfr_abs(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE int r_set (mpfr_ptr p1, mpfr_srcptr p2, mpfr_rnd_t p3) { return mpfr_set(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE int r_neg (mpfr_ptr p1, mpfr_srcptr p2, mpfr_rnd_t p3) { return mpfr_neg(p1, p2, p3); }
@@ -327,7 +334,6 @@ EMSCRIPTEN_KEEPALIVE mpfr_exp_t r_get_z_2exp (mpz_ptr p1, mpfr_srcptr p2) { retu
 // EMSCRIPTEN_KEEPALIVE float r_get_flt (mpfr_srcptr p1, mpfr_rnd_t p2) { return mpfr_get_flt(p1, p2); }
 EMSCRIPTEN_KEEPALIVE double r_get_d (mpfr_srcptr p1, mpfr_rnd_t p2) { return mpfr_get_d(p1, p2); }
 // EMSCRIPTEN_KEEPALIVE long double r_get_ld (mpfr_srcptr p1, mpfr_rnd_t p2) { return mpfr_get_ld(p1, p2); }
-EMSCRIPTEN_KEEPALIVE double r_get_d1 (mpfr_srcptr p1) { return mpfr_get_d1(p1); }
 EMSCRIPTEN_KEEPALIVE double r_get_d_2exp (long* p1, mpfr_srcptr p2, mpfr_rnd_t p3) { return mpfr_get_d_2exp(p1, p2, p3); }
 // EMSCRIPTEN_KEEPALIVE long double r_get_ld_2exp (long* p1, mpfr_srcptr p2, mpfr_rnd_t p3) { return mpfr_get_ld_2exp(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE int r_frexp (mpfr_exp_t* p1, mpfr_ptr p2, mpfr_srcptr p3, mpfr_rnd_t p4) { return mpfr_frexp(p1, p2, p3, p4); }
@@ -418,7 +424,6 @@ EMSCRIPTEN_KEEPALIVE int r_eint (mpfr_ptr p1, mpfr_srcptr p2, mpfr_rnd_t p3) { r
 EMSCRIPTEN_KEEPALIVE int r_li2 (mpfr_ptr p1, mpfr_srcptr p2, mpfr_rnd_t p3) { return mpfr_li2(p1, p2, p3); }
 
 EMSCRIPTEN_KEEPALIVE int r_cmp  (mpfr_srcptr p1, mpfr_srcptr p2) { return mpfr_cmp(p1, p2); }
-EMSCRIPTEN_KEEPALIVE int r_cmp3 (mpfr_srcptr p1, mpfr_srcptr p2, int p3) { return mpfr_cmp3(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE int r_cmp_d (mpfr_srcptr p1, double p2) { return mpfr_cmp_d(p1, p2); }
 // EMSCRIPTEN_KEEPALIVE int r_cmp_ld (mpfr_srcptr p1, long double p2) { return mpfr_cmp_ld(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int r_cmp_ui (mpfr_srcptr p1, unsigned long p2) { return mpfr_cmp_ui(p1, p2); }
@@ -465,7 +470,6 @@ EMSCRIPTEN_KEEPALIVE int r_fits_sshort_p (mpfr_srcptr p1, mpfr_rnd_t p2) { retur
 EMSCRIPTEN_KEEPALIVE int r_fits_uintmax_p (mpfr_srcptr p1, mpfr_rnd_t p2) { return mpfr_fits_uintmax_p(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int r_fits_intmax_p (mpfr_srcptr p1, mpfr_rnd_t p2) { return mpfr_fits_intmax_p(p1, p2); }
 
-EMSCRIPTEN_KEEPALIVE void r_extract (mpz_ptr p1, mpfr_srcptr p2, unsigned int p3) { mpfr_extract(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void r_swap (mpfr_ptr p1, mpfr_ptr p2) { mpfr_swap(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void r_dump (mpfr_srcptr p1) { mpfr_dump(p1); }
 
@@ -558,9 +562,6 @@ EMSCRIPTEN_KEEPALIVE int r_mp_memory_cleanup () { return mpfr_mp_memory_cleanup(
 EMSCRIPTEN_KEEPALIVE int r_subnormalize (mpfr_ptr p1, int p2, mpfr_rnd_t p3) { return mpfr_subnormalize(p1, p2, p3); }
 
 EMSCRIPTEN_KEEPALIVE int r_strtofr (mpfr_ptr p1, const char * p2, char ** p3, int p4, mpfr_rnd_t p5) { return mpfr_strtofr(p1, p2, p3, p4, p5); }
-
-EMSCRIPTEN_KEEPALIVE void r_round_nearest_away_begin (mpfr_t p1) { mpfr_round_nearest_away_begin(p1); }
-EMSCRIPTEN_KEEPALIVE int r_round_nearest_away_end (mpfr_t p1, int p2) { return mpfr_round_nearest_away_end(p1, p2); }
 
 EMSCRIPTEN_KEEPALIVE size_t r_custom_get_size (mpfr_prec_t p1) { return mpfr_custom_get_size(p1); }
 EMSCRIPTEN_KEEPALIVE void r_custom_init (void * p1, mpfr_prec_t p2) { mpfr_custom_init(p1, p2); }
