@@ -1,7 +1,7 @@
 {
   "name": "gmp-wasm",
   "version": "0.0.1",
-  "description": "WebAssembly bindings for the GMP and MPFR libraries",
+  "description": "Arbitrary-precision Integer, Rational and Float types based on the GMP and MPFR libraries",
   "main": "dist/index.umd.js",
   "module": "dist/index.esm.js",
   "types": "dist/types/src/index.d.ts",
@@ -23,12 +23,25 @@
     "wasm",
     "arbitrary",
     "precision",
+    "multi",
+    "multiprecision",
+    "arithmetic",
     "webassembly",
-    "math",
-    "mathematics",
+    "fast",
     "decimal",
     "large",
-    "integer"
+    "integer",
+    "big",
+    "rational",
+    "rationals",
+    "float",
+    "biginteger",
+    "bigdecimal",
+    "bignumber",
+    "bigint",
+    "bignum",
+    "math",
+    "mathematics"
   ],
   "bugs": {
     "url": "https://github.com/Daninet/gmp-wasm/issues"
