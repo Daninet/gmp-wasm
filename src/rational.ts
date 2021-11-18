@@ -241,9 +241,12 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
   return {
     Rational: RationalFn,
     isRational: (val) => RationalPrototype.isPrototypeOf(val),
-    destroy: () => mpq_t_arr.forEach(mpq_t => {
-      gmp.mpq_clear(mpq_t);
-      gmp.mpq_t_free(mpq_t);
-    }),
+    destroy: () => {
+      for (let i = mpq_t_arr.length - 1; i >= 0; i--) {
+        gmp.mpq_clear(mpq_t_arr[i]);
+        gmp.mpq_t_free(mpq_t_arr[i]);
+      }
+      mpq_t_arr.length = 0;
+    }
   };
 };

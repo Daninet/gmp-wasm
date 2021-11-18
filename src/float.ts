@@ -583,9 +583,12 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, options?: FloatOpti
       return n;
     },
 
-    destroy: () => mpfr_t_arr.forEach(mpfr_t => {
-      gmp.mpfr_clear(mpfr_t);
-      gmp.mpfr_t_free(mpfr_t);
-    }),
+    destroy: () => {
+      for (let i = mpfr_t_arr.length - 1; i >= 0; i--) {
+        gmp.mpfr_clear(mpfr_t_arr[i]);
+        gmp.mpfr_t_free(mpfr_t_arr[i]);
+      }
+      mpfr_t_arr.length = 0;
+    }
   };
 };

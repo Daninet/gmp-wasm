@@ -407,9 +407,12 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
   return {
     Integer: IntegerFn,
     isInteger: (val) => IntPrototype.isPrototypeOf(val),
-    destroy: () => mpz_t_arr.forEach(mpz_t => {
-      gmp.mpz_clear(mpz_t);
-      gmp.mpz_t_free(mpz_t);
-    }),
+    destroy: () => {
+      for (let i = mpz_t_arr.length - 1; i >= 0; i--) {
+        gmp.mpz_clear(mpz_t_arr[i]);
+        gmp.mpz_t_free(mpz_t_arr[i]);
+      }
+      mpz_t_arr.length = 0;
+    }
   };
 };
