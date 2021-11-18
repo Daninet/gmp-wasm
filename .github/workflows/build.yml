@@ -24,9 +24,6 @@ jobs:
       - name: Build MPFR
         run: npm run build-mpfr
 
-      - name: Build MPC
-        run: npm run build-mpc
-
       - name: Build src
         run: npm run build-src
 
