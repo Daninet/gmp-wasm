@@ -9,6 +9,8 @@
   "author": "Dani Biró <danibiro93@gmail.com>",
   "license": "LGPL-3.0-only",
   "dependencies": {
+    "big-integer": "^1.6.51",
+    "big.js": "^6.1.1",
     "decimal.js": "^10.3.1",
     "pi-decimals": "^2.0.3"
   }
