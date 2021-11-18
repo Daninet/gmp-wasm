@@ -1,12 +1,12 @@
-import { getGMP } from '../src';
+import { init as initGMP } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
-let gmp: Awaited<ReturnType<typeof getGMP>> = null;
+let gmp: Awaited<ReturnType<typeof initGMP>> = null;
 let binding: typeof gmp.binding = null;
 
 beforeAll(async () => {
-  gmp = await getGMP();
+  gmp = await initGMP();
   binding = gmp.binding;
 });
 
@@ -24,10 +24,8 @@ test('addition', () => {
   expect(binding.mpz_get_si(num1Ptr)).toBe(70);
   // Deallocate memory
   binding.free(strPtr);
-  binding.mpz_clear(num1Ptr);
-  binding.mpz_clear(num2Ptr);
-  binding.mpz_t_free(num1Ptr);
-  binding.mpz_t_free(num2Ptr);
+  binding.mpz_clears(num1Ptr, num2Ptr);
+  binding.mpz_t_frees(num1Ptr, num2Ptr);
 });
 
 test('allocate a lot of objects', async () => {

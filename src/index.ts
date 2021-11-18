@@ -40,7 +40,7 @@ type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 
 export interface CalculateOptions extends FloatOptions {};
 
-export async function getGMP() {
+export async function init() {
   const binding: Awaited<ReturnType<typeof getGMPInterface>> = await getGMPInterface();
 
   const createContext = (options: CalculateOptions) => {
@@ -89,7 +89,7 @@ export async function getGMP() {
       return res;
     },
 
-    calculateManual: (options: CalculateOptions = {}): CalculateTypeWithDestroy => {
+    getContext: (options: CalculateOptions = {}): CalculateTypeWithDestroy => {
       const context = createContext(options);
       return {
         ...context.types,
@@ -103,4 +103,4 @@ export async function getGMP() {
   };
 }
 
-export const precisionToBits = (digits: number) => Math.ceil(digits * 3.3219281);
+export const precisionToBits = (digits: number) => Math.ceil(digits * 3.3219281); // digits * log2(10)

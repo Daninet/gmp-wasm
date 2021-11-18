@@ -1,13 +1,13 @@
-import { CalculateType, getGMP } from '../src';
+import { CalculateType, init as initGMP } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
-let gmp: Awaited<ReturnType<typeof getGMP>> = null;
+let gmp: Awaited<ReturnType<typeof initGMP>> = null;
 let ctx: CalculateType = null;
 
 beforeAll(async () => {
-  gmp = await getGMP();
-  ctx = gmp.calculateManual({ precisionBits: 16 });
+  gmp = await initGMP();
+  ctx = gmp.getContext({ precisionBits: 16 });
 });
 
 const compare = (int: ReturnType<typeof ctx.Float>, res: string) => {

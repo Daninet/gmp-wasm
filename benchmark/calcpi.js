@@ -1,7 +1,7 @@
 const DecimalJs = require('decimal.js');
 const Big = require('big.js');
 const BigInteger = require('big-integer');
-const { getGMP, DivMode } = require('../dist/index.umd.js');
+const { init: initGMP, DivMode } = require('../dist/index.umd.js');
 const piDecimals = require("pi-decimals");
 
 const precisionToBits = (digits) => Math.ceil(digits * 3.3219281);
@@ -14,7 +14,7 @@ const decoder = new TextDecoder();
 console.log(`Calculating ${PRECISION} digits of Pi...`);
 console.log('------------------');
 
-getGMP().then(gmp => {
+initGMP().then(gmp => {
   const GCCallbacks = [];
   const runWASMGC = () => {
     GCCallbacks.forEach(fn => fn());
@@ -54,7 +54,7 @@ getGMP().then(gmp => {
     },
 
     function GMP_DelayGC_BigInt_Series (precision) {
-      const g = gmp.calculateManual();
+      const g = gmp.getContext();
       let i = g.Integer(1);
       let x = g.Integer(3).mul(g.Integer(10).pow(precision + 20));
       let pi = x;
@@ -154,7 +154,7 @@ getGMP().then(gmp => {
 
     function GMP_DelayGC_Float_Series (precision) {
       const precisionBits = precisionToBits(precision + 1);
-      const g = gmp.calculateManual({ precisionBits });
+      const g = gmp.getContext({ precisionBits });
       let i = 1
       let x = g.Float(3);
       let pi = g.Float(x);
@@ -191,7 +191,7 @@ getGMP().then(gmp => {
         binding.mpfr_div_ui(aux, x, i, 0);
         binding.mpfr_add(pi, pi, aux, 0);
       }
-      const g = gmp.calculateManual({ precisionBits });
+      const g = gmp.getContext({ precisionBits });
       // Use the string converter from the Float wrapper
       const out = g.Float();
       out.mpfr_t = pi;
