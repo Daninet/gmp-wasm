@@ -1,13 +1,11 @@
 # GMP-WASM
-WebAssembly bindings for the [GMP](https://gmplib.org/) and [MPFR](https://www.mpfr.org/) libraries.
-
-It provides arbitrary-precision Integer, Rational and Float types.
+Arbitrary-precision **Integer**, **Rational** and **Float** types based on the [GMP](https://gmplib.org/) and [MPFR](https://www.mpfr.org/) libraries.
 
 ## Features
 
 - Provides arbitrary-precision Integer, Rational and Float types
 - Has a lot more features, and in some cases, it's faster than the built-in **BigInt** type
-- Includes an easy-to-use JavaScript wrapper, but native functions are also exposed
+- Includes an easy-to-use, high-level wrapper, but low-level functions are also exposed
 - Supports all modern browsers, web workers, Node.js and Deno
 - The WASM binary is bundled as a compressed base64 string (no problems with linking)
 - Works even without Webpack or other bundlers
@@ -17,8 +15,38 @@ It provides arbitrary-precision Integer, Rational and Float types.
 
 ## Performance
 
-In some cases this library can provide better performance than the built-in BigInt type.
+In some cases, this library can provide better performance than the built-in *BigInt* type.
 
+Calculating 8000 digits of Pi using the following [formula](http://ajennings.net/blog/a-million-digits-of-pi-in-9-lines-of-javascript.html):
+```
+PI = 3
+  + 3 * (1/2) * (1/3) * (1/4)
+  + 3 * ((1 * 3)/(2 * 4)) * (1/5) * (1 / (4^2))
+  + 3 * ((1 * 3 * 5) / (2 * 4 * 6)) * (1/7) * (1 / (4^3))
+  + ...
+```
+
+
+
+| Test                         | Avg. time   | Speedup      | Notes                                                                               |
+|------------------------------|-------------|--------------|-------------------------------------------------------------------------------------|
+| JS_BigInt_Series             | 130.20 ms   | 1x           | With JS built-in `BigInt` type                                                        |
+| GMP_BigInt_Series            | 87.90 ms    | 1.48x        | **gmp-wasm** `Integer()` high-level wrapper                                           |
+| GMP_DelayGC_BigInt_Series    | 78.88 ms    | 1.65x        | Same as previous with delayed memory deallocation                                   |
+| GMP_LowLevel_BigInt_Series   | 53.93 ms    | 2.41x        | **gmp-wasm** `MPZ` low-level functions                                              |
+| DecimalJs_BigInt_Series      | 426.99 ms   | 0.30x        | [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with integer division |
+| BigInteger_Series            | 129.98 ms   | 1x           | [big-integer](https://www.npmjs.com/package/big-integer) 1.6.51 |
+| ---------------------------- | ----------- | ------------ | ---------------                                                               |
+| GMP_Float_Series             | 198.31 ms   | 0.66x        | **gmp-wasm** `Float()` high-level wrapper                                             |
+| GMP_DelayGC_Float_Series     | 191.94 ms   | 0.68x        | Same as previous with delayed memory deallocation                                   |
+| GMP_LowLevel_Float_Series    | 135.49 ms   | 0.96x        | **gmp-wasm** `MPFR` low-level functions                                             |
+| DecimalJs_Float_Series       | 764.15 ms   | 0.17x        | [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with float division   |
+| ---------------------------- | ----------- | ------------ | ---------------                                                               |
+| GMP_Atan_1                   | 0.65 ms     | 200.31x      | **gmp-wasm** `Float(1).atan().mul(4)`                                               |
+| GMP_Asin_1over2              | 17.21 ms    | 7.57x        | **gmp-wasm** `Float('0.5').asin().mul(6)`                                           |
+
+
+\* These measurements were made with `Node.js v16.13` on an Intel Kaby Lake desktop CPU. Source code is [here](https://github.com/Daninet/gmp-wasm/blob/master/benchmark/calcpi.js).
 
 ## Installation
 
