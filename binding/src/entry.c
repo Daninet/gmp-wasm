@@ -39,7 +39,6 @@ EMSCRIPTEN_KEEPALIVE void z_add_ui (mpz_ptr p1, mpz_srcptr p2, unsigned long int
 EMSCRIPTEN_KEEPALIVE void z_addmul (mpz_ptr p1, mpz_srcptr p2, mpz_srcptr p3) { mpz_addmul(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_addmul_ui (mpz_ptr p1, mpz_srcptr p2, unsigned long int p3) { mpz_addmul_ui(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_and (mpz_ptr p1, mpz_srcptr p2, mpz_srcptr p3) { mpz_and(p1, p2, p3); }
-EMSCRIPTEN_KEEPALIVE void z_array_init (mpz_ptr p1, mp_size_t p2, mp_size_t p3) { mpz_array_init(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_bin_ui (mpz_ptr p1, mpz_srcptr p2, unsigned long int p3) { mpz_bin_ui(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_bin_uiui (mpz_ptr p1, unsigned long int p2, unsigned long int p3) { mpz_bin_uiui(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_cdiv_q (mpz_ptr p1, mpz_srcptr p2, mpz_srcptr p3) { mpz_cdiv_q(p1, p2, p3); }
@@ -71,7 +70,7 @@ EMSCRIPTEN_KEEPALIVE void z_divexact_ui (mpz_ptr p1, mpz_srcptr p2, unsigned lon
 EMSCRIPTEN_KEEPALIVE int z_divisible_p (mpz_srcptr p1, mpz_srcptr p2) { return mpz_divisible_p(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int z_divisible_ui_p (mpz_srcptr p1, unsigned long p2) { return mpz_divisible_ui_p(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int z_divisible_2exp_p (mpz_srcptr p1, mp_bitcnt_t p2) { return mpz_divisible_2exp_p(p1, p2); }
-EMSCRIPTEN_KEEPALIVE void z_dump (mpz_srcptr p1) { mpz_dump(p1); }
+EMSCRIPTEN_KEEPALIVE void z_even_p (mpz_srcptr p1) { mpz_even_p(p1); }
 EMSCRIPTEN_KEEPALIVE void *z_export (void * p1, size_t * p2, int p3, size_t p4, int p5, size_t p6, mpz_srcptr p7) { return z_export(p1, p2, p3, p4, p5, p6, p7); }
 EMSCRIPTEN_KEEPALIVE void z_fac_ui (mpz_ptr p1, unsigned long int p2) { mpz_fac_ui(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_2fac_ui (mpz_ptr p1, unsigned long int p2) { mpz_2fac_ui(p1, p2); }
@@ -107,7 +106,7 @@ EMSCRIPTEN_KEEPALIVE mp_bitcnt_t z_hamdist (mpz_srcptr p1, mpz_srcptr p2) { retu
 EMSCRIPTEN_KEEPALIVE void z_import (mpz_ptr p1, size_t p2, int p3, size_t p4, int p5, size_t p6, const void * p7) { mpz_import(p1, p2, p3, p4, p5, p6, p7); }
 EMSCRIPTEN_KEEPALIVE void z_init (mpz_ptr p1) { mpz_init(p1); }
 EMSCRIPTEN_KEEPALIVE void z_init2 (mpz_ptr p1, mp_bitcnt_t p2) { mpz_init2(p1, p2); }
-// EMSCRIPTEN_KEEPALIVE void z_inits (mpz_ptr p1, ...) {}
+// EMSCRIPTEN_KEEPALIVE void z_inits (mpz_ptr ptr) {}
 EMSCRIPTEN_KEEPALIVE void z_init_set (mpz_ptr p1, mpz_srcptr p2) { mpz_init_set(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_init_set_d (mpz_ptr p1, double p2) { mpz_init_set_d(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_init_set_si (mpz_ptr p1, signed long int p2) { mpz_init_set_si(p1, p2); }
@@ -116,22 +115,26 @@ EMSCRIPTEN_KEEPALIVE void z_init_set_ui (mpz_ptr p1, unsigned long int p2) { mpz
 EMSCRIPTEN_KEEPALIVE int z_invert (mpz_ptr p1, mpz_srcptr p2, mpz_srcptr p3) { return mpz_invert(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_ior (mpz_ptr p1, mpz_srcptr p2, mpz_srcptr p3) { mpz_ior(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE int z_jacobi (mpz_srcptr p1, mpz_srcptr p2) { return mpz_jacobi(p1, p2); }
+EMSCRIPTEN_KEEPALIVE int z_kronecker (mpz_srcptr p1, mpz_srcptr p2) { return mpz_kronecker(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int z_kronecker_si (mpz_srcptr p1, long p2) { return mpz_kronecker_si(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int z_kronecker_ui (mpz_srcptr p1, unsigned long p2) { return mpz_kronecker_ui(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int z_si_kronecker (long p1, mpz_srcptr p2) { return mpz_si_kronecker(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int z_ui_kronecker (unsigned long p1, mpz_srcptr p2) { return mpz_ui_kronecker(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_lcm (mpz_ptr p1, mpz_srcptr p2, mpz_srcptr p3) { mpz_lcm(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_lcm_ui (mpz_ptr p1, mpz_srcptr p2, unsigned long p3) { mpz_lcm_ui(p1, p2, p3); }
+EMSCRIPTEN_KEEPALIVE int z_legendre (mpz_srcptr p1, mpz_srcptr p2) { return mpz_legendre(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_lucnum_ui (mpz_ptr p1, unsigned long int p2) { mpz_lucnum_ui(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_lucnum2_ui (mpz_ptr p1, mpz_ptr p2, unsigned long int p3) { mpz_lucnum2_ui(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE int z_millerrabin (mpz_srcptr p1, int p2) { return mpz_millerrabin(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_mod (mpz_ptr p1, mpz_srcptr p2, mpz_srcptr p3) { mpz_mod(p1, p2, p3); }
+EMSCRIPTEN_KEEPALIVE void z_mod_ui (mpz_ptr p1, mpz_srcptr p2, unsigned long int p3) { mpz_mod_ui(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_mul (mpz_ptr p1, mpz_srcptr p2, mpz_srcptr p3) { mpz_mul(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_mul_2exp (mpz_ptr p1, mpz_srcptr p2, mp_bitcnt_t p3) { mpz_mul_2exp(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_mul_si (mpz_ptr p1, mpz_srcptr p2, long int p3) { mpz_mul_si(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_mul_ui (mpz_ptr p1, mpz_srcptr p2, unsigned long int p3) { mpz_mul_ui(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void z_neg (mpz_ptr p1, mpz_srcptr p2) { mpz_neg(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_nextprime (mpz_ptr p1, mpz_srcptr p2) { mpz_nextprime(p1, p2); }
+EMSCRIPTEN_KEEPALIVE void z_odd_p (mpz_srcptr p1) { mpz_odd_p(p1); }
 EMSCRIPTEN_KEEPALIVE int z_perfect_power_p (mpz_srcptr p1) { return mpz_perfect_power_p(p1); }
 EMSCRIPTEN_KEEPALIVE int z_perfect_square_p (mpz_srcptr p1) { return mpz_perfect_square_p(p1); }
 EMSCRIPTEN_KEEPALIVE mp_bitcnt_t z_popcount (mpz_srcptr p1) { return mpz_popcount(p1); }
