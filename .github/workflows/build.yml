@@ -30,6 +30,9 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
+      - name: Generate gmp.wasm.ts
+        run: npm run build-wasm-ts
+
       - name: Build JS library
         run: npm run build-rollup
 
