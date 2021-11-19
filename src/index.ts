@@ -20,28 +20,28 @@ export interface CalculateType {
   Integer: IntegerFactory;
   Rational: RationalFactory;
   Float: FloatFactory;
-  Pi: () => Float;
-  EulerConstant: () => Float;
-  EulerNumber: () => Float;
-  Log2: () => Float;
-  Catalan: () => Float;
+  Pi: (options?: FloatOptions) => Float;
+  EulerConstant: (options?: FloatOptions) => Float;
+  EulerNumber: (options?: FloatOptions) => Float;
+  Log2: (options?: FloatOptions) => Float;
+  Catalan: (options?: FloatOptions) => Float;
 };
 
 export interface CalculateTypeWithDestroy extends CalculateType {
   destroy: () => void;
 };
 
-type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
-
-// export interface GMPLib {
-//   binding: Awaited<ReturnType<typeof getGMPInterface>>;
-//   calculate: (fn: (gmp: CalculateType) => Integer) => void;
-// };
+export interface GMPLib {
+  binding: GMPFunctions;
+  calculate: (fn: (gmp: CalculateType) => Integer | Rational | Float, options?: CalculateOptions) => void;
+  getContext: (options?: CalculateOptions) => CalculateTypeWithDestroy;
+  reset: () => Promise<void>;
+};
 
 export interface CalculateOptions extends FloatOptions {};
 
-export async function init() {
-  const binding: Awaited<ReturnType<typeof getGMPInterface>> = await getGMPInterface();
+export async function init(): Promise<GMPLib> {
+  const binding: GMPFunctions = await getGMPInterface();
 
   const createContext = (options: CalculateOptions) => {
     const ctx = {
