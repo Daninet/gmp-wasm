@@ -39,6 +39,9 @@ jobs:
       - name: Build TypeScript types
         run: npm run build-types
 
+      - name: Run tests and upload test coverage
+        run: npm test && bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
+
       - name: Deploy to 'binaries' branch
         if: success()
         uses: crazy-max/ghaction-github-pages@v2.1.3
