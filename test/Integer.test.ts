@@ -1,14 +1,18 @@
 import { DivMode } from '../src/integer';
-import { CalculateType, FloatType, init as initGMP, IntegerType, RationalType } from '../src';
+import { CalculateTypeWithDestroy, FloatType, init as initGMP, IntegerType, RationalType } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 let gmp: Awaited<ReturnType<typeof initGMP>> = null;
-let ctx: CalculateType = null;
+let ctx: CalculateTypeWithDestroy = null;
 
 beforeAll(async () => {
   gmp = await initGMP();
   ctx = gmp.getContext();
+});
+
+afterAll(() => {
+  ctx.destroy();
 });
 
 const compare = (int: IntegerType | RationalType | FloatType, res: string) => {

@@ -1,13 +1,17 @@
-import { CalculateType, init as initGMP } from '../src';
+import { CalculateTypeWithDestroy, FloatRoundingMode, init as initGMP } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 let gmp: Awaited<ReturnType<typeof initGMP>> = null;
-let ctx: CalculateType = null;
+let ctx: CalculateTypeWithDestroy = null;
 
 beforeAll(async () => {
   gmp = await initGMP();
   ctx = gmp.getContext({ precisionBits: 16 });
+});
+
+afterAll(() => {
+  ctx.destroy();
 });
 
 const compare = (int: ReturnType<typeof ctx.Float>, res: string) => {
