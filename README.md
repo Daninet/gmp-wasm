@@ -3,7 +3,7 @@
 [![npm package](https://img.shields.io/npm/v/gmp-wasm.svg)](http://npmjs.org/package/gmp-wasm)
 [![Bundle size](https://badgen.net/bundlephobia/minzip/gmp-wasm)](https://bundlephobia.com/result?p=gmp-wasm)
 [![codecov](https://codecov.io/gh/Daninet/gmp-wasm/branch/master/graph/badge.svg)](https://codecov.io/gh/Daninet/gmp-wasm)
-[![Build status](https://github.com/Daninet/gmp-wasm/workflows/Build%20&%20publish/badge.svg?branch=master)](https://github.com/Daninet/gmp-wasm/actions)
+[![Build status](https://github.com/Daninet/gmp-wasm/workflows/Build/badge.svg?branch=master)](https://github.com/Daninet/gmp-wasm/actions)
 [![JSDelivr downloads](https://data.jsdelivr.com/v1/package/npm/gmp-wasm/badge)](https://www.jsdelivr.com/package/npm/gmp-wasm)
 
 Arbitrary-precision **Integer**, **Rational** and **Float** types based on the [GMP](https://gmplib.org/) and [MPFR](https://www.mpfr.org/) libraries.
@@ -16,8 +16,9 @@ Arbitrary-precision **Integer**, **Rational** and **Float** types based on the [
 - Supports all modern browsers, web workers, Node.js and Deno
 - The WASM binary is bundled as a compressed base64 string (no problems with linking)
 - Works even without Webpack or other bundlers
-- Includes TypeScript type definitions
+- Includes TypeScript type definitions, check API [here](https://paka.dev/npm/gmp-wasm).
 - Zero dependencies
+- Minified and gzipped bundle has a size of [![Bundle size](https://badgen.net/bundlephobia/minzip/gmp-wasm)](https://bundlephobia.com/result?p=gmp-wasm)
 - 100% open source & [transparent build process](https://github.com/Daninet/gmp-wasm/actions)
 
 ## Installation
@@ -29,8 +30,11 @@ npm i gmp-wasm
 It can also be used directly from HTML (via [jsDelivr](https://www.jsdelivr.com/package/npm/gmp-wasm)):
 
 ```html
-<!-- loads the library into the global `gmp` variable -->
+<!-- loads the minified library into the global `gmp` variable -->
 <script src="https://cdn.jsdelivr.net/npm/gmp-wasm"></script>
+
+<!-- or the non-minified library -->
+<script src="https://cdn.jsdelivr.net/npm/gmp-wasm/dist/index.umd.js"></script>
 ```
 
 ## Usage
@@ -69,7 +73,23 @@ gmp.init().then(({ getContext }) => {
 });
 ```
 
-## Constants
+The precision and the rounding modes can be set by passing a parameter to the context or to the Float constructor.
+
+```js
+const gmp = require('gmp-wasm');
+
+const roundingMode = gmp.FloatRoundingMode.ROUND_TOWARD_NEG_INF;
+const options = { precisionBits: 10, roundingMode };
+
+const result = calculate(g => g.Float(1).div(3), options);
+// or
+const result2 = calculate(g => g.Float(1, options).div(3));
+// or
+const ctx = getContext(options);
+const result3 = ctx.Float(1).div(3).toString();
+```
+
+## Predefined constants
 
 - gmp.Pi
 - gmp.EulerConstant
@@ -113,7 +133,7 @@ await binding.reset();
 
 In some cases, this library can provide better performance than the built-in *BigInt* type.
 
-Calculating 8000 digits of Pi using the following [formula](http://ajennings.net/blog/a-million-digits-of-pi-in-9-lines-of-javascript.html):
+For example, calculating 8000 digits of Pi using the following [formula](http://ajennings.net/blog/a-million-digits-of-pi-in-9-lines-of-javascript.html) provides better results:
 
 ```
 PI = 3
@@ -123,22 +143,22 @@ PI = 3
   + ...
 ```
 
-| Test                         | Avg. time   | Speedup      | Notes                                                                               |
-|------------------------------|-------------|--------------|-------------------------------------------------------------------------------------|
-| JS_BigInt_Series             | 130.20 ms   | 1x           | With JS built-in `BigInt` type                                                        |
-| GMP_BigInt_Series            | 87.90 ms    | 1.48x        | **gmp-wasm** `Integer()` high-level wrapper                                           |
-| GMP_DelayGC_BigInt_Series    | 78.88 ms    | 1.65x        | Same as previous with delayed memory deallocation                                   |
-| GMP_LowLevel_BigInt_Series   | 53.93 ms    | 2.41x        | **gmp-wasm** `MPZ` low-level functions                                              |
-| DecimalJs_BigInt_Series      | 426.99 ms   | 0.30x        | [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with integer division |
-| BigInteger_Series            | 129.98 ms   | 1x           | [big-integer](https://www.npmjs.com/package/big-integer) 1.6.51 |
-| ---------------------------- | --------    | --------     | ---------------                                                               |
-| GMP_Float_Series             | 198.31 ms   | 0.66x        | **gmp-wasm** `Float()` high-level wrapper                                             |
-| GMP_DelayGC_Float_Series     | 191.94 ms   | 0.68x        | Same as previous with delayed memory deallocation                                   |
-| GMP_LowLevel_Float_Series    | 135.49 ms   | 0.96x        | **gmp-wasm** `MPFR` low-level functions                                             |
-| DecimalJs_Float_Series       | 764.15 ms   | 0.17x        | [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with float division   |
-| ---------------------------- | --------    | --------     | ---------------                                                               |
-| GMP_Atan_1                   | 0.65 ms     | 200.31x      | **gmp-wasm** `Float(1).atan().mul(4)`                                               |
-| GMP_Asin_1over2              | 17.21 ms    | 7.57x        | **gmp-wasm** `Float('0.5').asin().mul(6)`                                           |
+| Test                                                                                | Avg. time | Speedup  |
+|-------------------------------------------------------------------------------------|-----------|----------|
+| With JS built-in `BigInt` type                                                      | 130.20 ms | 1x       |
+| **gmp-wasm** `Integer()` high-level wrapper                                         | 87.90 ms  | 1.48x    |
+| Same as previous with delayed memory deallocation                                   | 78.88 ms  | 1.65x    |
+| **gmp-wasm** `MPZ` low-level functions                                              | 53.93 ms  | 2.41x    |
+| [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with integer division | 426.99 ms | 0.30x    |
+| [big-integer](https://www.npmjs.com/package/big-integer) 1.6.51                     | 129.98 ms | 1x       |
+| ----------------------------                                                        | --------  | -------- |
+| **gmp-wasm** `Float()` high-level wrapper                                           | 198.31 ms | 0.66x    |
+| Same as previous with delayed memory deallocation                                   | 191.94 ms | 0.68x    |
+| **gmp-wasm** `MPFR` low-level functions                                             | 135.49 ms | 0.96x    |
+| [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with float division   | 764.15 ms | 0.17x    |
+| ----------------------------                                                        | --------  | -------- |
+| **gmp-wasm** `Float(1).atan().mul(4)`                                               | 0.65 ms   | 200.31x  |
+| **gmp-wasm** `Float('0.5').asin().mul(6)`                                           | 17.21 ms  | 7.57x    |
 
 
 \* These measurements were made with `Node.js v16.13` on an Intel Kaby Lake desktop CPU. Source code is [here](https://github.com/Daninet/gmp-wasm/blob/master/benchmark/calcpi.js).
