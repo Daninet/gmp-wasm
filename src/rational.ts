@@ -130,7 +130,7 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
         return n as OutputType<T>;
       }
       if (isFloat(val)) {
-        return val.mul(this.invert()) as OutputType<T>;
+        return ctx.floatContext.Float(this).div(val) as OutputType<T>;
       }
       throw new Error(INVALID_PARAMETER_ERROR);
     },
