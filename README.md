@@ -10,10 +10,9 @@ Arbitrary-precision **Integer**, **Rational** and **Float** types based on the [
 
 ## Features
 
-- Provides arbitrary-precision Integer, Rational and Float types
-- Has a lot more features, and in some cases, [it's faster](#performance) than the built-in **BigInt** type
-- Includes an easy-to-use, high-level wrapper, but low-level functions are also exposed
 - Supports all modern browsers, web workers, Node.js and Deno
+- Includes an easy-to-use, high-level wrapper, but low-level functions are also exposed
+- Has a lot more features, and in some cases, [it's faster](#performance) than the built-in **BigInt** type
 - The WASM binary is bundled as a compressed base64 string (no problems with linking)
 - Works even without Webpack or other bundlers
 - Includes TypeScript type definitions, check API [here](https://paka.dev/npm/gmp-wasm).
@@ -76,8 +75,6 @@ gmp.init().then(({ getContext }) => {
 The precision and the rounding modes can be set by passing a parameter to the context or to the Float constructor.
 
 ```js
-const gmp = require('gmp-wasm');
-
 const roundingMode = gmp.FloatRoundingMode.ROUND_TOWARD_NEG_INF;
 const options = { precisionBits: 10, roundingMode };
 
@@ -91,15 +88,28 @@ const result3 = ctx.Float(1).div(3).toString();
 
 ## Predefined constants
 
-- gmp.Pi
-- gmp.EulerConstant
-- gmp.EulerNumber
-- gmp.Log2
-- gmp.Catalan
+- Pi
+- EulerConstant
+- EulerNumber
+- Log2
+- Catalan
 
 ## Advanced usage
 
-If you want more control and performance you can use the original GMP / MPFR functions.
+High-level wrapper can be combined with low-level functions:
+
+```js
+const sum = calculate((g) => {
+  const a = g.Float(1);
+  const b = g.Float(2);
+  const c = g.Float(0);
+  // c = a + b
+  binding.mpfr_add(c.mpfr_t, a.mpfr_t, b.mpfr_t, 0);
+  return c;
+});
+```
+
+If you want more control and performance you can use the original GMP / MPFR functions even without high-level wrappers.
 
 ```js
 const gmp = require('gmp-wasm');

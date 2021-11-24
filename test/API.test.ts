@@ -30,3 +30,14 @@ test('getContext()', () => {
 test('precisionToBits()', () => {
   expect(precisionToBits(12)).toBe(40);
 });
+
+test('mixed usage', () => {
+  const sum = gmp.calculate((g) => {
+    const a = g.Float(1);
+    const b = g.Float(2);
+    const c = g.Float();
+    gmp.binding.mpfr_add(c.mpfr_t, a.mpfr_t, b.mpfr_t, 0);
+    return c;
+  });
+  expect(sum).toBe('3');
+});
