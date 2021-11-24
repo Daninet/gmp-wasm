@@ -255,6 +255,19 @@ test('flipBits()', () => {
   compare(ctx.Integer(12).flipBits([0, 1, 3]), '7');
 });
 
+test('getBit()', () => {
+  expect(ctx.Integer(0b1101).getBit(0)).toBe(1);
+  expect(ctx.Integer(0b1101).getBit(1)).toBe(0);
+  expect(ctx.Integer(0b1101).getBit(2)).toBe(1);
+  expect(ctx.Integer(0b1101).getBit(10)).toBe(0);
+});
+
+test('msbPosition()', () => {
+  expect(ctx.Integer(0).msbPosition()).toBe(0);
+  expect(ctx.Integer(0b1).msbPosition()).toBe(0);
+  expect(ctx.Integer(0b101).msbPosition()).toBe(2);
+});
+
 test('sliceBits()', () => {
   compare(ctx.Integer(0b111001000).sliceBits(), (0b111001000).toString());
   compare(ctx.Integer(0b111001000).sliceBits(0), (0b111001000).toString());

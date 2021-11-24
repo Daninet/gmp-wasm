@@ -415,9 +415,14 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
-    // Returns the position of the most significant bit
-    msb() {
-      return gmp.mpz_sizeinbase(this.mpz_t, 2);
+    getBit(index: number): number {
+      assertUint32(index);
+      return gmp.mpz_tstbit(this.mpz_t, index);
+    },
+
+    // Returns the position of the most significant bit. The least significant bit is number 0.
+    msbPosition() {
+      return gmp.mpz_sizeinbase(this.mpz_t, 2) - 1;
     },
 
     /** Works similarly to JS Array.slice() but on bits. The least significant bit is number 0 */
