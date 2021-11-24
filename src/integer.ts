@@ -286,6 +286,19 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    complement1(): Integer {
+      const n = IntegerFn();
+      gmp.mpz_com(n.mpz_t, this.mpz_t);
+      return n;
+    },
+
+    complement2(): Integer {
+      const n = IntegerFn();
+      gmp.mpz_com(n.mpz_t, this.mpz_t);
+      gmp.mpz_add_ui(n.mpz_t, n.mpz_t, 1);
+      return n;
+    },
+
     and(val: Integer | number): Integer {
       const n = IntegerFn();
       if (typeof val === 'number') {
@@ -339,6 +352,118 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Sets the value of bit i to 1. The least significant bit is number 0 */
+    setBit(i: number): Integer {
+      const n = IntegerFn(this);
+      assertUint32(i);
+      gmp.mpz_setbit(n.mpz_t, i);
+      return n;
+    },
+
+    /** Sets the value of multiple bits to 1. The least significant bit is number 0 */
+    setBits(indices: number[]): Integer {
+      const n = IntegerFn(this);
+      if (!Array.isArray(indices)){
+        throw new Array('Requires array!');
+      }
+      indices.forEach(i => {
+        assertUint32(i);
+        gmp.mpz_setbit(n.mpz_t, i);
+      });
+      return n;
+    },
+
+    /** Sets the value of bit i to 0. The least significant bit is number 0 */
+    clearBit(index: number): Integer {
+      const n = IntegerFn(this);
+      assertUint32(index);
+      gmp.mpz_clrbit(n.mpz_t, index);
+      return n;
+    },
+
+    /** Sets the value of multiple bits to 0. The least significant bit is number 0 */
+    clearBits(indices: number[]): Integer {
+      const n = IntegerFn(this);
+      if (!Array.isArray(indices)){
+        throw new Array('Requires array!');
+      }
+      indices.forEach(i => {
+        assertUint32(i);
+        gmp.mpz_clrbit(n.mpz_t, i);
+      });
+      return n;
+    },
+
+    /** Inverts the value of bit i. The least significant bit is number 0 */
+    flipBit(index: number): Integer {
+      const n = IntegerFn(this);
+      assertUint32(index);
+      gmp.mpz_combit(n.mpz_t, index);
+      return n;
+    },
+
+    /** Inverts the value of multiple bits. The least significant bit is number 0 */
+    flipBits(indices: number[]): Integer {
+      const n = IntegerFn(this);
+      if (!Array.isArray(indices)){
+        throw new Array('Requires array!');
+      }
+      indices.forEach(i => {
+        assertUint32(i);
+        gmp.mpz_combit(n.mpz_t, i);
+      });
+      return n;
+    },
+
+    // Returns the position of the most significant bit
+    msb() {
+      return gmp.mpz_sizeinbase(this.mpz_t, 2);
+    },
+
+    /** Works similarly to JS Array.slice() but on bits. The least significant bit is number 0 */
+    sliceBits(start?: number, end?: number): Integer {
+      if (start === undefined) start = 0;
+      assertInt32(start);
+      const msb = gmp.mpz_sizeinbase(this.mpz_t, 2);
+      if (start < 0) start = msb + start;
+      start = Math.max(0, start);
+      if (end === undefined) end = msb + 1;
+      assertInt32(end);
+      if (end < 0) end = msb + end;
+      end = Math.min(msb + 1, end);
+      if (start >= end) return IntegerFn(0);
+      const n = IntegerFn(1);
+      if (end < msb + 1) {
+        gmp.mpz_mul_2exp(n.mpz_t, n.mpz_t, end);
+        gmp.mpz_sub_ui(n.mpz_t, n.mpz_t, 1);
+        gmp.mpz_and(n.mpz_t, this.mpz_t, n.mpz_t);
+        gmp.mpz_fdiv_q_2exp(n.mpz_t, n.mpz_t, start);
+      } else {
+        gmp.mpz_fdiv_q_2exp(n.mpz_t, this.mpz_t, start);
+      }
+      return n;
+    },
+
+    /** Creates new integer with the copy of binary representation of num to position offset. Optionally bitCount can be used to zero-pad the number to a specific number of bits. The least significant bit is number 0 */
+    writeTo(num: Integer, offset = 0, bitCount?: number) {
+      assertUint32(offset);
+      if (!isInteger(num)) throw new Error('Only Integers are supported');
+      if (bitCount === undefined) {
+        bitCount = gmp.mpz_sizeinbase(num.mpz_t, 2);
+      }
+      assertUint32(bitCount);
+      const aux = IntegerFn();
+      const n = IntegerFn();
+      gmp.mpz_fdiv_q_2exp(n.mpz_t, this.mpz_t, offset + bitCount);
+      gmp.mpz_mul_2exp(n.mpz_t, n.mpz_t, bitCount);
+      gmp.mpz_tdiv_r_2exp(aux.mpz_t, num.mpz_t, bitCount);
+      gmp.mpz_ior(n.mpz_t, n.mpz_t, aux.mpz_t);
+      gmp.mpz_tdiv_r_2exp(aux.mpz_t, this.mpz_t, offset);
+      gmp.mpz_mul_2exp(n.mpz_t, n.mpz_t, offset);
+      gmp.mpz_ior(n.mpz_t, n.mpz_t, aux.mpz_t);
+      return n;
+    },
+
     isEqual(val: AllTypes): boolean {
       return compare(this.mpz_t, val) === 0;
     },
@@ -370,8 +495,23 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return gmp.mpz_get_si(this.mpz_t);
     },
 
-    toString() {
-      const strptr = gmp.mpz_get_str(0, 10, this.mpz_t);
+    /** Exports integer into an Uint8Array. Sign is ignored. */
+    toBuffer(littleEndian = false): Uint8Array {
+      const countPtr = gmp.malloc(4);
+      const startptr = gmp.mpz_export(0, countPtr, littleEndian ? -1 : 1, 1, 1, 0, this.mpz_t);
+      const size = gmp.memView.getUint32(countPtr, true);
+      const endptr = startptr + size;
+      const buf = gmp.mem.slice(startptr, endptr);
+      gmp.free(startptr);
+      gmp.free(countPtr);
+      return buf;
+    },
+
+    toString(radix: number = 10) {
+      if (!Number.isSafeInteger(radix) || radix < 2 || radix > 62) {
+        throw new Error('radix must have a value between 2 and 62');
+      }
+      const strptr = gmp.mpz_get_str(0, radix, this.mpz_t);
       const endptr = gmp.mem.indexOf(0, strptr);
       const str = decoder.decode(gmp.mem.subarray(strptr, endptr));
       gmp.free(strptr);
@@ -379,21 +519,35 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     },
   };
 
-  const IntegerFn = (num?: string | number | Integer) => {
+  const IntegerFn = (num?: string | number | Integer | Uint8Array, radix: number = 10) => {
     const instance = Object.create(IntPrototype) as typeof IntPrototype;
     instance.mpz_t = gmp.mpz_t();
 
     if (num === undefined) {
       gmp.mpz_init(instance.mpz_t);
     } else if (typeof num === 'string') {
+      if (!Number.isSafeInteger(radix) || radix < 2 || radix > 36) {
+        throw new Error('radix must have a value between 2 and 36');
+      }
       const strPtr = gmp.malloc_cstr(num);
-      gmp.mpz_init_set_str(instance.mpz_t, strPtr, 10);
+      const res = gmp.mpz_init_set_str(instance.mpz_t, strPtr, radix);
       gmp.free(strPtr);
+      if (res !== 0) {
+        throw new Error('Invalid number provided!');
+      }
     } else if (typeof num === 'number') {
       assertInt32(num);
       gmp.mpz_init_set_si(instance.mpz_t, num);
     } else if (isInteger(num)) {
-      gmp.mpz_init_set(instance.mpz_t, num.mpz_t);
+      gmp.mpz_init_set(instance.mpz_t, (num as Integer).mpz_t);
+    } else if (ArrayBuffer.isView(num)) {
+      if (!(num instanceof Uint8Array)) {
+        throw new Error('Only Uint8Array is supported!');
+      }
+      const wasmBufPtr = gmp.malloc(num.length);
+      gmp.mem.set(num, wasmBufPtr);
+      gmp.mpz_import(instance.mpz_t, num.length, 1, 1, 1, 0, wasmBufPtr);
+      gmp.free(wasmBufPtr);
     } else {
       gmp.mpz_t_free(instance.mpz_t);
       throw new Error('Invalid value for the Integer type!');

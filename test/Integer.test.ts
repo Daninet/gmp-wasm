@@ -15,8 +15,8 @@ afterAll(() => {
   ctx.destroy();
 });
 
-const compare = (int: IntegerType | RationalType | FloatType, res: string) => {
-  expect(int.toString()).toBe(res);
+const compare = (int: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
+  expect(int.toString(radix)).toBe(res);
 }
 
 test('parse strings', () => {
@@ -26,6 +26,9 @@ test('parse strings', () => {
   compare(ctx.Integer('123456789'), '123456789');
   compare(ctx.Integer('123 456789123 456789'), '123456789123456789');
   compare(ctx.Integer('-123 456789123 456789'), '-123456789123456789');
+  compare(ctx.Integer('110', 2), '6');
+  compare(ctx.Integer('1a', 16), '26');
+  compare(ctx.Integer('-1A', 16), '-26');
 });
 
 test('parse numbers', () => {
@@ -181,6 +184,18 @@ test('lcm()', () => {
   compare(ctx.Integer(6).lcm(ctx.Integer(15)), '30');
 });
 
+test('complement1()', () => {
+  compare(ctx.Integer(24).complement1(), '-25');
+  compare(ctx.Integer(5).complement1(), '-6');
+  compare(ctx.Integer('-6').complement1(), '5');
+});
+
+test('complement2()', () => {
+  compare(ctx.Integer(2).complement2(), '-2');
+  compare(ctx.Integer(5).complement2(), '-5');
+  compare(ctx.Integer('-6').complement2(), '6');
+});
+
 test('and()', () => {
   compare(ctx.Integer(0b1100).and(0b1010), '8');
   compare(ctx.Integer(0b1100).and(ctx.Integer(0b1010)), '8');
@@ -202,6 +217,84 @@ test('shiftLeft()', () => {
 
 test('shiftRight()', () => {
   compare(ctx.Integer(0b1100).shiftRight(2), '3');
+});
+
+test('setBit()', () => {
+  compare(ctx.Integer(8).setBit(0), '9');
+  compare(ctx.Integer(8).setBit(1), '10');
+  compare(ctx.Integer(8).setBit(3), '8');
+  compare(ctx.Integer(8).setBit(4), '24');
+});
+
+test('setBits()', () => {
+  compare(ctx.Integer(8).setBits([]), '8');
+  compare(ctx.Integer(8).setBits([0, 1, 3]), '11');
+});
+
+test('clearBit()', () => {
+  compare(ctx.Integer(15).clearBit(0), '14');
+  compare(ctx.Integer(15).clearBit(1), '13');
+  compare(ctx.Integer(15).clearBit(3), '7');
+  compare(ctx.Integer(15).clearBit(4), '15');
+});
+
+test('clearBits()', () => {
+  compare(ctx.Integer(15).clearBits([]), '15');
+  compare(ctx.Integer(15).clearBits([0, 1, 3]), '4');
+});
+
+test('flipBit()', () => {
+  compare(ctx.Integer(12).flipBit(0), '13');
+  compare(ctx.Integer(12).flipBit(1), '14');
+  compare(ctx.Integer(12).flipBit(3), '4');
+  compare(ctx.Integer(12).flipBit(4), '28');
+});
+
+test('flipBits()', () => {
+  compare(ctx.Integer(12).flipBits([]), '12');
+  compare(ctx.Integer(12).flipBits([0, 1, 3]), '7');
+});
+
+test('sliceBits()', () => {
+  compare(ctx.Integer(0b111001000).sliceBits(), (0b111001000).toString());
+  compare(ctx.Integer(0b111001000).sliceBits(0), (0b111001000).toString());
+  compare(ctx.Integer(0b111001000).sliceBits(1), (0b11100100).toString());
+  compare(ctx.Integer(0b111001000).sliceBits(3), (0b111001).toString());
+  compare(ctx.Integer(0b111001000).sliceBits(10), '0');
+  compare(ctx.Integer(0b111001000).sliceBits(-1), '1');
+  compare(ctx.Integer(0b111001000).sliceBits(-5), (0b11100).toString());
+  compare(ctx.Integer(0b111001000).sliceBits(-10), (0b111001000).toString());
+  compare(ctx.Integer(0b1111).sliceBits(0, 0), '0');
+  compare(ctx.Integer(0b1111).sliceBits(1, 1), '0');
+  compare(ctx.Integer(0b1110).sliceBits(0, 0), '0');
+  compare(ctx.Integer(0b1110).sliceBits(0, 1), '0');
+  compare(ctx.Integer(0b1110).sliceBits(0, 2), '2');
+  compare(ctx.Integer(0b1110).sliceBits(0, 3), '6');
+  compare(ctx.Integer(0b1110).sliceBits(0, -1), '6');
+  compare(ctx.Integer(0b1110).sliceBits(0, -2), '2');
+  compare(ctx.Integer(0b1110).sliceBits(0, -10), '0');
+  compare(ctx.Integer(0b111001000).sliceBits(3, 7), '9');
+  compare(ctx.Integer(0b111001000).sliceBits(3, 8), '25');
+});
+
+test('writeTo()', () => {
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0)), '110100', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b10)), '110110', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b10), 1), '110100', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b10), 2), '111000', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b10), 3), '110100', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b10), 4), '100100', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b10), 5), '1010100', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b10), 6), '10110100', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b101), 0, 0), '110100', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b101), 0, 1), '110101', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b101), 0, 5), '100101', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b101), 0, 6), '101', 2);
+  compare(ctx.Integer(0b110100).writeTo(ctx.Integer(0b101), 4, 2), '10100', 2);
+  compare(ctx.Integer(0x12345678).writeTo(ctx.Integer(0xFF)), '123456ff', 16);
+  compare(ctx.Integer(0x12345678).writeTo(ctx.Integer(0xFF), 12), '123ff678', 16);
+  compare(ctx.Integer(0x12345678).writeTo(ctx.Integer(0xFF), 12, 4), '1234f678', 16);
+  compare(ctx.Integer(0x12345678).writeTo(ctx.Integer(0xFF), 12, 16), '100ff678', 16);
 });
 
 test('isEqual()', () => {
@@ -285,4 +378,31 @@ test('toNumber()', () => {
   expect(ctx.Integer('2').toNumber()).toBe(2);
   expect(ctx.Integer('-2').toNumber()).toBe(-2);
   expect(ctx.Integer('999 999 999 999').toNumber()).toBe(999999999999);
+});
+
+test('toBuffer()', () => {
+  expect(ctx.Integer('0').toBuffer()).toStrictEqual(new Uint8Array([]));
+  expect(ctx.Integer('1').toBuffer()).toStrictEqual(new Uint8Array([1]));
+  expect(ctx.Integer('-1').toBuffer()).toStrictEqual(new Uint8Array([1]));
+  expect(ctx.Integer('256').toBuffer()).toStrictEqual(new Uint8Array([1, 0]));
+  expect(ctx.Integer('256').toBuffer(true)).toStrictEqual(new Uint8Array([0, 1]));
+  expect(ctx.Integer('1234567').toBuffer()).toStrictEqual(new Uint8Array([0b10010, 0b11010110, 0b10000111]));
+  expect(ctx.Integer('1234567').toBuffer(true)).toStrictEqual(new Uint8Array([0b10000111, 0b11010110, 0b10010]));
+});
+
+test('init from Uint8Array', () => {
+  compare(ctx.Integer(ctx.Integer('0').toBuffer()), '0');
+  compare(ctx.Integer(ctx.Integer('1').toBuffer()), '1');
+  compare(ctx.Integer(ctx.Integer('-1').toBuffer()), '1');
+  compare(ctx.Integer(ctx.Integer('1234567').toBuffer()), '1234567');
+});
+
+test('toString()', () => {
+  expect(ctx.Integer('2').toString()).toBe('2');
+  expect(ctx.Integer('-2').toString()).toBe('-2');
+  expect(ctx.Integer('999 999 999 999').toString()).toBe('999999999999');
+  expect(ctx.Integer(0b1101100).toString(2)).toBe('1101100');
+  expect(ctx.Integer(-0b1101100).toString(2)).toBe('-1101100');
+  expect(ctx.Integer(0b1101100).toString(16)).toBe('6c');
+  expect(ctx.Integer(-0b1101100).toString(16)).toBe('-6c');
 });

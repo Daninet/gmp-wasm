@@ -71,7 +71,7 @@ EMSCRIPTEN_KEEPALIVE int z_divisible_p (mpz_srcptr p1, mpz_srcptr p2) { return m
 EMSCRIPTEN_KEEPALIVE int z_divisible_ui_p (mpz_srcptr p1, unsigned long p2) { return mpz_divisible_ui_p(p1, p2); }
 EMSCRIPTEN_KEEPALIVE int z_divisible_2exp_p (mpz_srcptr p1, mp_bitcnt_t p2) { return mpz_divisible_2exp_p(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_even_p (mpz_srcptr p1) { mpz_even_p(p1); }
-EMSCRIPTEN_KEEPALIVE void *z_export (void * p1, size_t * p2, int p3, size_t p4, int p5, size_t p6, mpz_srcptr p7) { return z_export(p1, p2, p3, p4, p5, p6, p7); }
+EMSCRIPTEN_KEEPALIVE void *z_export (void * p1, size_t * p2, int p3, size_t p4, int p5, size_t p6, mpz_srcptr p7) { return mpz_export(p1, p2, p3, p4, p5, p6, p7); }
 EMSCRIPTEN_KEEPALIVE void z_fac_ui (mpz_ptr p1, unsigned long int p2) { mpz_fac_ui(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_2fac_ui (mpz_ptr p1, unsigned long int p2) { mpz_2fac_ui(p1, p2); }
 EMSCRIPTEN_KEEPALIVE void z_mfac_uiui (mpz_ptr p1, unsigned long int p2, unsigned long int p3) { mpz_mfac_uiui(p1, p2, p3); }
