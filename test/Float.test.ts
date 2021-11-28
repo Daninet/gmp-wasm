@@ -385,7 +385,7 @@ test('special values to JS types', () => {
 });
 
 test('FloatOptions', () => {
-  const roundingMode = FloatRoundingMode.ROUND_TOWARD_NEG_INF;
+  const roundingMode = FloatRoundingMode.ROUND_DOWN;
   const options = { precisionBits: 10, roundingMode };
   expect(gmp.calculate(g => g.Float(1).div(3), {})).toBe('0.33333333333333337');
   expect(gmp.calculate(g => g.Float(1, {}).div(3))).toBe('0.33333333333333337');
@@ -399,13 +399,13 @@ test('FloatOptions', () => {
   expect(gmp.calculate(g => g.Float(1, { precisionBits: 4 }).div(g.Float(3, { precisionBits: 5 })), options)).toBe('0.328');
   // merge roundingMode
   expect(gmp.calculate(g => g.Float(1).div(g.Float(3)), options)).toBe('0.333');
-  const { ROUND_TOWARD_INF } = FloatRoundingMode;
-  expect(gmp.calculate(g => g.Float(1, { roundingMode: ROUND_TOWARD_INF }).div(g.Float(3)), options)).toBe('0.33349');
-  expect(gmp.calculate(g => g.Float(1).div(g.Float(3, { roundingMode: ROUND_TOWARD_INF })), options)).toBe('0.33301');
+  const { ROUND_UP } = FloatRoundingMode;
+  expect(gmp.calculate(g => g.Float(1, { roundingMode: ROUND_UP }).div(g.Float(3)), options)).toBe('0.33349');
+  expect(gmp.calculate(g => g.Float(1).div(g.Float(3, { roundingMode: ROUND_UP })), options)).toBe('0.33301');
 });
 
 test('FloatOptions constants', () => {
-  const roundingMode = FloatRoundingMode.ROUND_TOWARD_NEG_INF;
+  const roundingMode = FloatRoundingMode.ROUND_DOWN;
   const options = { precisionBits: 10, roundingMode };
   expect(gmp.calculate(g => g.Pi(), options)).toBe('3.1406');
   expect(gmp.calculate(g => g.Pi(options))).toBe('3.1406');

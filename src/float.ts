@@ -17,19 +17,19 @@ type AllTypes = Integer | Rational | Float | number;
 /** Represents the different rounding modes. */
 export enum FloatRoundingMode {
   /** Round to nearest, with ties to even. MPFR_RNDN */
-  ROUND_TO_NEAREST_TIES_TO_EVEN = 0,
+  ROUND_NEAREST = 0,
   /** Round toward zero. MPFR_RNDZ */
-  ROUND_TOWARD_ZERO = 1,
+  ROUND_TO_ZERO = 1,
   /** Round toward +Infinity. MPFR_RNDU */
-  ROUND_TOWARD_INF = 2,
+  ROUND_UP = 2,
   /** Round toward -Infinity. MPFR_RNDD */
-  ROUND_TOWARD_NEG_INF = 3,
+  ROUND_DOWN = 3,
   /** Round away from zero. MPFR_RNDA */
-  ROUND_AWAY_FROM_ZERO = 4,
-  /** Faithful rounding. MPFR_RNDF */
-  ROUND_FAITHFUL = 5,
-  /** Round to nearest, with ties away from zero. MPFR_RNDNA */
-  ROUND_TO_NEAREST_AWAY_FROM_ZERO = -1,
+  ROUND_FROM_ZERO = 4,
+  // /** (Experimental) Faithful rounding. MPFR_RNDF */
+  // ROUND_FAITHFUL = 5,
+  // /** (Experimental) Round to nearest, with ties away from zero. MPFR_RNDNA */
+  // ROUND_TO_NEAREST_AWAY_FROM_ZERO = -1,
 };
 
 export interface FloatOptions {
@@ -96,7 +96,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
   const isRational = (val): boolean => ctx.rationalContext.isRational(val);
   const isFloat = (val): boolean => ctx.floatContext.isFloat(val);
 
-  const globalRndMode = (ctxOptions.roundingMode ?? FloatRoundingMode.ROUND_TO_NEAREST_TIES_TO_EVEN) as number as mpfr_rnd_t;
+  const globalRndMode = (ctxOptions.roundingMode ?? FloatRoundingMode.ROUND_NEAREST) as number as mpfr_rnd_t;
   const globalPrecisionBits = ctxOptions.precisionBits ?? 52;
   assertUint32(globalPrecisionBits);
 
