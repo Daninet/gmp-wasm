@@ -410,6 +410,22 @@ test('init from Uint8Array', () => {
   compare(ctx.Integer(ctx.Integer('1234567').toBuffer()), '1234567');
 });
 
+test('init from Rational', () => {
+  compare(ctx.Integer(ctx.Rational(0, 1)), '0');
+  compare(ctx.Integer(ctx.Rational(-3, 2)), '-2');
+  compare(ctx.Integer(ctx.Rational(-4, 3)), '-1');
+  compare(ctx.Integer(ctx.Rational('3/2')), '2');
+  compare(ctx.Integer(ctx.Rational('4/3')), '1');
+});
+
+test('init from Float', () => {
+  compare(ctx.Integer(ctx.Float('0')), '0');
+  compare(ctx.Integer(ctx.Float('-1.49')), '-1');
+  compare(ctx.Integer(ctx.Float('-1.50')), '-2');
+  compare(ctx.Integer(ctx.Float('1.49')), '1');
+  compare(ctx.Integer(ctx.Float('1.50')), '2');
+});
+
 test('toString()', () => {
   expect(ctx.Integer('2').toString()).toBe('2');
   expect(ctx.Integer('-2').toString()).toBe('-2');

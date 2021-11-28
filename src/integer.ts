@@ -1,7 +1,7 @@
 import type { GMPFunctions } from './functions';
 import { Float } from './float';
 import { Rational } from './rational';
-import { assertInt32, assertUint32 } from './util';
+import { assertArray, assertInt32, assertUint32 } from './util';
 
 const decoder = new TextDecoder();
 
@@ -363,9 +363,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     /** Sets the value of multiple bits to 1. The least significant bit is number 0 */
     setBits(indices: number[]): Integer {
       const n = IntegerFn(this);
-      if (!Array.isArray(indices)){
-        throw new Array('Requires array!');
-      }
+      assertArray(indices);
       indices.forEach(i => {
         assertUint32(i);
         gmp.mpz_setbit(n.mpz_t, i);
@@ -384,9 +382,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     /** Sets the value of multiple bits to 0. The least significant bit is number 0 */
     clearBits(indices: number[]): Integer {
       const n = IntegerFn(this);
-      if (!Array.isArray(indices)){
-        throw new Array('Requires array!');
-      }
+      assertArray(indices);
       indices.forEach(i => {
         assertUint32(i);
         gmp.mpz_clrbit(n.mpz_t, i);
@@ -405,9 +401,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     /** Inverts the value of multiple bits. The least significant bit is number 0 */
     flipBits(indices: number[]): Integer {
       const n = IntegerFn(this);
-      if (!Array.isArray(indices)){
-        throw new Array('Requires array!');
-      }
+      assertArray(indices);
       indices.forEach(i => {
         assertUint32(i);
         gmp.mpz_combit(n.mpz_t, i);
@@ -524,7 +518,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     },
   };
 
-  const IntegerFn = (num?: string | number | Integer | Uint8Array, radix: number = 10) => {
+  const IntegerFn = (num?: string | number | Integer | Uint8Array | Rational | Float, radix: number = 10) => {
     const instance = Object.create(IntPrototype) as typeof IntPrototype;
     instance.mpz_t = gmp.mpz_t();
 
@@ -553,6 +547,11 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       gmp.mem.set(num, wasmBufPtr);
       gmp.mpz_import(instance.mpz_t, num.length, 1, 1, 1, 0, wasmBufPtr);
       gmp.free(wasmBufPtr);
+    } else if (isRational(num)) {
+      const f = ctx.floatContext.Float(num);
+      gmp.mpfr_get_z(instance.mpz_t, f.mpfr_t, 0);
+    } else if (isFloat(num)) {
+      gmp.mpfr_get_z(instance.mpz_t, (num as Float).mpfr_t, (num as Float).rndMode);
     } else {
       gmp.mpz_t_free(instance.mpz_t);
       throw new Error('Invalid value for the Integer type!');

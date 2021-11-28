@@ -17,3 +17,9 @@ export function assertInt32(num: number) {
     throw new Error('Invalid number specified: int32_t is required');
   }
 }
+
+export function assertArray(arr: any[]) {
+  if (!Array.isArray(arr)) {
+    throw new Error('Invalid parameter specified. Array is required!');
+  }
+}
