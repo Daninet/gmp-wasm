@@ -37,9 +37,9 @@ test('parse numbers', () => {
   compare(ctx.Float(1), '1');
   compare(ctx.Float(0.5), '0.5');
   compare(ctx.Float(-0.5), '-0.5');
-  compare(ctx.Float(Infinity), '@Inf@');
-  compare(ctx.Float(-Infinity), '-@Inf@');
-  compare(ctx.Float(NaN), '@NaN@');
+  compare(ctx.Float(Infinity), 'Infinity');
+  compare(ctx.Float(-Infinity), '-Infinity');
+  compare(ctx.Float(NaN), 'NaN');
 });
 
 test('copy constructor', () => {
@@ -364,15 +364,33 @@ test('exponent2()', () => {
 });
 
 test('special values', () => {
-  compare(ctx.Float(), '@NaN@');
-  compare(ctx.Float(null), '@NaN@');
-  compare(ctx.Float(undefined), '@NaN@');
+  compare(ctx.Float(), 'NaN');
+  compare(ctx.Float(null), 'NaN');
+  compare(ctx.Float(undefined), 'NaN');
   compare(ctx.Float(0), '0');
   compare(ctx.Float(-0), '-0');
   compare(ctx.Float('-0'), '-0');
-  compare(ctx.Float(0).div(0), '@NaN@');
-  compare(ctx.Float(1).div(0), '@Inf@');
-  compare(ctx.Float(-1).div(0), '-@Inf@');
+  compare(ctx.Float(0).div(0), 'NaN');
+  compare(ctx.Float(1).div(0), 'Infinity');
+  compare(ctx.Float(-1).div(0), '-Infinity');
+});
+
+test('.toFixed()', () => {
+  expect(ctx.Float().toFixed()).toBe('NaN');
+  expect(ctx.Float('0').toFixed()).toBe('0');
+  expect(ctx.Float('0').toFixed(5)).toBe('0.00000');
+  expect(ctx.Float('-1.234').toFixed()).toBe('-1');
+  expect(ctx.Float('-1.234').toFixed(2)).toBe('-1.23');
+  expect(ctx.Float('-1.678').toFixed()).toBe('-2');
+  expect(ctx.Float('-1.678').toFixed(2)).toBe('-1.68');
+  expect(ctx.Float('0.001').toFixed()).toBe('0');
+  expect(ctx.Float('0.001').toFixed(1)).toBe('0.0');
+  expect(ctx.Float('0.001').toFixed(3)).toBe('0.001');
+  expect(ctx.Float('0.001').toFixed(6)).toBe('0.001000');
+  expect(ctx.Float('-0.001').toFixed(6)).toBe('-0.001000');
+  expect(ctx.Float('123.5000').toFixed(0)).toBe('124');
+  expect(ctx.Float('123.56789').toFixed(2)).toBe('123.57');
+  expect(ctx.Float('0.1').mul(ctx.Float('0.2')).toFixed(2)).toBe('0.02');
 });
 
 test('special values to JS types', () => {

@@ -32,6 +32,14 @@ export enum FloatRoundingMode {
   // ROUND_TO_NEAREST_AWAY_FROM_ZERO = -1,
 };
 
+const SPECIAL_VALUES = {
+  '@NaN@': 'NaN',
+  '@Inf@': 'Infinity',
+  '-@Inf@': '-Infinity',
+} as const;
+
+const SPECIAL_VALUE_KEYS = Object.keys(SPECIAL_VALUES);
+
 export interface FloatOptions {
   precisionBits?: number;
   roundingMode?: FloatRoundingMode;
@@ -723,7 +731,9 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       const endptr = gmp.mem.indexOf(0, strptr);
       let ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
 
-      if (!['@NaN@', '@Inf@', '-@Inf@'].includes(ret)) {
+      if (SPECIAL_VALUE_KEYS.includes(ret)) {
+        ret = SPECIAL_VALUES[ret];
+      } else {
         // decimal point needs to be inserted
         const pointPos = gmp.memView.getInt32(mpfr_exp_t_ptr, true);
         ret = insertDecimalPoint(ret, pointPos);
@@ -732,6 +742,25 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       gmp.mpfr_free_str(strptr);
       gmp.free(mpfr_exp_t_ptr);
       return ret;
+    },
+
+    toFixed(digits = 0) {
+      assertUint32(digits);
+      const str = this.toString();
+      if (Object.values(SPECIAL_VALUES).includes(str)) {
+        return str;
+      }
+      if (digits === 0) {
+        return ctx.intContext.Integer(this).toString();
+      }
+      const multiplied = this.mul(FloatFn(digits).exp10());
+      const int = ctx.intContext.Integer(multiplied);
+      const isNegative = int.sign() === -1;
+      let intStr = int.abs().toString();
+      if (intStr.length < digits + 1) {
+        intStr = '0'.repeat(digits + 1 - intStr.length) + intStr;
+      }
+      return `${isNegative ? '-' : ''}${intStr.slice(0, -digits)}.${intStr.slice(-digits)}`;
     }
   };
 
