@@ -427,6 +427,14 @@ test('.toFixed()', () => {
   expect(ctx.Float('0.1').mul(ctx.Float('0.2')).toFixed(2)).toBe('0.02');
 });
 
+test('toRational()', () => {
+  expect(ctx.Float('2').toRational().toString()).toBe('2');
+});
+
+test('toInteger()', () => {
+  expect(ctx.Float('2').toInteger().toString()).toBe('2');
+});
+
 test('special values to JS types', () => {
   expect(ctx.Float(0).toNumber()).toBe(0);
   expect(ctx.Float(-0).toNumber()).toBe(-0);

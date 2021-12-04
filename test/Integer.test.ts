@@ -407,6 +407,14 @@ test('toNumber()', () => {
   expect(ctx.Integer('999 999 999 999').toNumber()).toBe(999999999999);
 });
 
+test('toFloat()', () => {
+  expect(ctx.Integer('2').toFloat().toFixed(2)).toBe('2.00');
+});
+
+test('toRational()', () => {
+  expect(ctx.Integer('2').toRational().toString()).toBe('2');
+});
+
 test('toBuffer()', () => {
   expect(ctx.Integer('0').toBuffer()).toStrictEqual(new Uint8Array([]));
   expect(ctx.Integer('1').toBuffer()).toStrictEqual(new Uint8Array([1]));

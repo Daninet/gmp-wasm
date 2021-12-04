@@ -53,6 +53,7 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
     mpq_t: 0,
     type: 'rational',
 
+    /** Returns the sum of this number and the given one. */
     add<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number' || isInteger(val)) {
         const n = RationalFn(0, 1);
@@ -75,6 +76,7 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the difference of this number and the given one. */
     sub<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number' || isInteger(val)) {
         const n = RationalFn(0, 1);
@@ -97,6 +99,7 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the product of this number and the given one. */
     mul<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number' || isInteger(val)) {
         const n = RationalFn(0, 1);
@@ -119,6 +122,7 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the number with inverted sign. */
     neg(): Rational {
       const n = RationalFn(0, 1);
       gmp.mpq_neg(n.mpq_t, this.mpq_t);
@@ -131,12 +135,14 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns the absolute value of this number. */
     abs(): Rational {
       const n = RationalFn(0, 1);
       gmp.mpq_abs(n.mpq_t, this.mpq_t);
       return n;
     },
 
+    /** Returns the result of the division of this number by the given one. */
     div<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number' || isInteger(val)) {
         const n = RationalFn(0, 1);
@@ -218,6 +224,14 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       const str = decoder.decode(gmp.mem.subarray(strptr, endptr));
       gmp.free(strptr);
       return str;
+    },
+
+    toInteger(): Integer {
+      return ctx.intContext.Integer(this);
+    },
+
+    toFloat(): Float {
+      return ctx.floatContext.Float(this);
     },
   };
 

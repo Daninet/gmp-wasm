@@ -159,6 +159,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       };
     },
 
+    /** Returns the sum of this number and the given one. */
     add(val: AllTypes): Float {
       if (typeof val === 'number') {
         const n = FloatFn(null, this.options);
@@ -188,6 +189,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the difference of this number and the given one. */
     sub(val: AllTypes): Float {
       if (typeof val === 'number') {
         const n = FloatFn(null, this.options);
@@ -217,6 +219,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the product of this number and the given one. */
     mul(val: AllTypes): Float {
       if (typeof val === 'number') {
         const n = FloatFn(null, this.options);
@@ -250,6 +253,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the result of the division of this number by the given one. */
     div(val: AllTypes): Float {
       if (typeof val === 'number') {
         const n = FloatFn(null, this.options);
@@ -279,6 +283,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the integer square root number of this number. */
     sqrt(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_sqrt(n.mpfr_t, this.mpfr_t, this.rndMode);
@@ -304,12 +309,14 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return n;
     },
 
+    /** Returns the number with inverted sign. */
     neg(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_neg(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the absolute value of this number. */
     abs(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_abs(n.mpfr_t, this.mpfr_t, this.rndMode);
@@ -406,6 +413,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return n;
     },
 
+    /** Returns this number exponentiated to the given value. */
     pow(val: Float | number): Float {
       const n = FloatFn(null, this.options);
       if (typeof val === 'number') {
@@ -785,7 +793,15 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
         intStr = '0'.repeat(digits + 1 - intStr.length) + intStr;
       }
       return `${isNegative ? '-' : ''}${intStr.slice(0, -digits)}.${intStr.slice(-digits)}`;
-    }
+    },
+
+    toInteger(): Integer {
+      return ctx.intContext.Integer(this);
+    },
+
+    toRational(): Rational {
+      return ctx.rationalContext.Rational(this);
+    },
   };
 
   const setValue = (mpfr_t: number, rndMode: mpfr_rnd_t, val: string | number | Float | Rational | Integer) => {

@@ -59,6 +59,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     mpz_t: 0,
     type: 'integer',
 
+    /** Returns the sum of this number and the given one. */
     add<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number') {
         assertInt32(val);
@@ -86,6 +87,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the difference of this number and the given one. */
     sub<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number') {
         const n = IntegerFn();
@@ -113,6 +115,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the product of this number and the given one. */
     mul<T extends AllTypes>(val: T): OutputType<T> {
       if (typeof val === 'number') {
         const n = IntegerFn();
@@ -136,18 +139,21 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the number with inverted sign. */
     neg(): Integer {
       const n = IntegerFn();
       gmp.mpz_neg(n.mpz_t, this.mpz_t);
       return n;
     },
 
+    /** Returns the absolute value of this number. */
     abs(): Integer {
       const n = IntegerFn();
       gmp.mpz_abs(n.mpz_t, this.mpz_t);
       return n;
     },
 
+    /** Returns the result of the division of this number by the given one. */
     div<T extends AllTypes>(val: T, mode = DivMode.CEIL): OutputType<T> {
       if (typeof val === 'number') {
         const n = IntegerFn(this);
@@ -187,6 +193,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns this number exponentiated to the given value. */
     pow(exp: Rational | Integer | number, mod?: Integer | number): Integer {
       if (typeof exp === 'number') {
         const n = IntegerFn();
@@ -232,6 +239,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the integer square root number of this number, rounded down. */
     sqrt(): Integer {
       const n = IntegerFn();
       gmp.mpz_sqrt(n.mpz_t, this.mpz_t);
@@ -279,6 +287,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns the greatest common divisor of this number and the given one. */
     gcd(val: Integer | number): Integer {
       const n = IntegerFn();
       if (typeof val === 'number') {
@@ -320,6 +329,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns the integer bitwise-and combined with another integer. */
     and(val: Integer | number): Integer {
       const n = IntegerFn();
       if (typeof val === 'number') {
@@ -334,6 +344,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the integer bitwise-or combined with another integer. */
     or(val: Integer | number): Integer {
       const n = IntegerFn();
       if (typeof val === 'number') {
@@ -348,6 +359,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the integer bitwise-xor combined with another integer. */
     xor(val: Integer | number): Integer {
       const n = IntegerFn();
       if (typeof val === 'number') {
@@ -359,6 +371,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns the integer left shifted by a given number of bits. */
     shiftLeft(val: number): Integer {
       assertUint32(val);
       const n = IntegerFn();
@@ -366,6 +379,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns the integer right shifted by a given number of bits. */
     shiftRight(val: number): Integer {
       assertUint32(val);
       const n = IntegerFn();
@@ -430,6 +444,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns 0 or 1 based on the value of a bit at the provided index. The least significant bit is number 0 */
     getBit(index: number): number {
       assertUint32(index);
       return gmp.mpz_tstbit(this.mpz_t, index);
@@ -536,6 +551,14 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       const str = decoder.decode(gmp.mem.subarray(strptr, endptr));
       gmp.free(strptr);
       return str;
+    },
+
+    toRational(): Rational {
+      return ctx.rationalContext.Rational(this);
+    },
+
+    toFloat(): Float {
+      return ctx.floatContext.Float(this);
     },
   };
 

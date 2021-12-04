@@ -172,3 +172,11 @@ test('toNumber()', () => {
   expect(ctx.Rational('-2').toNumber()).toBe(-2);
   expect(ctx.Rational('1/4').toNumber()).toBe(0.25);
 });
+
+test('toFloat()', () => {
+  expect(ctx.Rational('2').toFloat().toFixed(2)).toBe('2.00');
+});
+
+test('toInteger()', () => {
+  expect(ctx.Rational('2').toInteger().toString()).toBe('2');
+});
