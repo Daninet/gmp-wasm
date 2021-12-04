@@ -67,6 +67,7 @@ test('Constants', () => {
 test('add()', () => {
   compare(ctx.Float(0.5).add(1), '1.5');
   compare(ctx.Float(0.4).add(0.6), '1');
+  compare(ctx.Float(0.4).add('0.7'), '1.10001');
   compare(ctx.Float(0.5).add(ctx.Float(1)), '1.5');
   compare(ctx.Float(0.4).add(ctx.Float(0.6)), '1');
   compare(ctx.Float(0.4).add(ctx.Integer(2)), '2.40002');
@@ -76,6 +77,7 @@ test('add()', () => {
 test('sub()', () => {
   compare(ctx.Float(1).sub(0.5), '0.5');
   compare(ctx.Float(0.6).sub(0.4), '0.200005');
+  compare(ctx.Float(0.6).sub('0.4'), '0.200005');
   compare(ctx.Float(1).sub(ctx.Float(0.5)), '0.5');
   compare(ctx.Float(0.6).sub(ctx.Float(0.4)), '0.200005');
   compare(ctx.Float(0.4).sub(ctx.Integer(2)), '-1.60001');
@@ -85,6 +87,7 @@ test('sub()', () => {
 test('mul()', () => {
   compare(ctx.Float(3).mul(0.5), '1.5');
   compare(ctx.Float(6).mul(2), '12');
+  compare(ctx.Float(3).mul('0.5'), '1.5');
   compare(ctx.Float(3).mul(ctx.Float(0.5)), '1.5');
   compare(ctx.Float(6).mul(ctx.Float(2)), '12');
   compare(ctx.Float(0.4).mul(ctx.Integer(2)), '0.800003');
@@ -94,6 +97,7 @@ test('mul()', () => {
 test('div()', () => {
   compare(ctx.Float(3).div(0.5), '6');
   compare(ctx.Float(6).div(2), '3');
+  compare(ctx.Float(3).div('0.5'), '6');
   compare(ctx.Float(3).div(ctx.Float(0.5)), '6');
   compare(ctx.Float(7).div(ctx.Float(2)), '3.5');
   compare(ctx.Float(6).div(ctx.Integer(2)), '3');
@@ -175,6 +179,8 @@ test('isNaN()', () => {
 test('isEqual()', () => {
   expect(ctx.Float(0).isEqual(0)).toBe(true);
   expect(ctx.Float(1).isEqual(0)).toBe(false);
+  expect(ctx.Float(0).isEqual('0')).toBe(true);
+  expect(ctx.Float(1).isEqual('0')).toBe(false);
   expect(ctx.Float(0).isEqual(ctx.Float(0))).toBe(true);
   expect(ctx.Float(1).isEqual(ctx.Float(0))).toBe(false);
   expect(ctx.Float(1).isEqual(ctx.Integer(1))).toBe(true);
@@ -187,6 +193,8 @@ test('lessThan()', () => {
   expect(ctx.Float(0).lessThan(0)).toBe(false);
   expect(ctx.Float(1).lessThan(0)).toBe(false);
   expect(ctx.Float(1).lessThan(2)).toBe(true);
+  expect(ctx.Float(1).lessThan('0')).toBe(false);
+  expect(ctx.Float(1).lessThan('2')).toBe(true);
   expect(ctx.Float(0).lessThan(ctx.Float(0))).toBe(false);
   expect(ctx.Float(1).lessThan(ctx.Float(0))).toBe(false);
   expect(ctx.Float(1).lessThan(ctx.Float(2))).toBe(true);
@@ -196,6 +204,8 @@ test('lessOrEqual()', () => {
   expect(ctx.Float(0).lessOrEqual(0)).toBe(true);
   expect(ctx.Float(1).lessOrEqual(0)).toBe(false);
   expect(ctx.Float(1).lessOrEqual(2)).toBe(true);
+  expect(ctx.Float(1).lessOrEqual('0')).toBe(false);
+  expect(ctx.Float(1).lessOrEqual('2')).toBe(true);
   expect(ctx.Float(0).lessOrEqual(ctx.Float(0))).toBe(true);
   expect(ctx.Float(1).lessOrEqual(ctx.Float(0))).toBe(false);
   expect(ctx.Float(1).lessOrEqual(ctx.Float(2))).toBe(true);
@@ -205,6 +215,8 @@ test('greaterThan()', () => {
   expect(ctx.Float(0).greaterThan(0)).toBe(false);
   expect(ctx.Float(1).greaterThan(0)).toBe(true);
   expect(ctx.Float(1).greaterThan(2)).toBe(false);
+  expect(ctx.Float(1).greaterThan('0')).toBe(true);
+  expect(ctx.Float(1).greaterThan('2')).toBe(false);
   expect(ctx.Float(0).greaterThan(ctx.Float(0))).toBe(false);
   expect(ctx.Float(1).greaterThan(ctx.Float(0))).toBe(true);
   expect(ctx.Float(1).greaterThan(ctx.Float(2))).toBe(false);
@@ -214,6 +226,8 @@ test('greaterOrEqual()', () => {
   expect(ctx.Float(0).greaterOrEqual(0)).toBe(true);
   expect(ctx.Float(1).greaterOrEqual(0)).toBe(true);
   expect(ctx.Float(1).greaterOrEqual(2)).toBe(false);
+  expect(ctx.Float(1).greaterOrEqual('0')).toBe(true);
+  expect(ctx.Float(1).greaterOrEqual('2')).toBe(false);
   expect(ctx.Float(0).greaterOrEqual(ctx.Float(0))).toBe(true);
   expect(ctx.Float(1).greaterOrEqual(ctx.Float(0))).toBe(true);
   expect(ctx.Float(1).greaterOrEqual(ctx.Float(2))).toBe(false);
@@ -354,6 +368,26 @@ test('trunc()', () => {
   compare(ctx.Float('0.6').trunc(), '0');
   compare(ctx.Float('0.5').trunc(), '0');
   compare(ctx.Float('-0.5').trunc(), '-0');
+});
+
+test('roundEven()', () => {
+  compare(ctx.Float('1.5').roundEven(), '2');
+  compare(ctx.Float('-1.5').roundEven(), '-2');
+  compare(ctx.Float('2.5').roundEven(), '2');
+  compare(ctx.Float('-2.5').roundEven(), '-2');
+});
+
+test('frac()', () => {
+  compare(ctx.Float('1.234').frac(), '0.234009');
+  compare(ctx.Float('-1.234').frac(), '-0.234009');
+});
+
+test('nextBelow()', () => {
+  compare(ctx.Float('1').nextBelow(), '0.999985');
+});
+
+test('nextAbove()', () => {
+  compare(ctx.Float('1').nextAbove(), '1.00003');
 });
 
 test('exponent2()', () => {

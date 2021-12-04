@@ -11,7 +11,7 @@ type RationalReturn = ReturnType<RationalFactoryReturn>;
 export interface Rational extends RationalReturn {};
 
 // these should not be exported
-type AllTypes = Integer | Rational | Float | number;
+type AllTypes = Integer | Rational | Float | string | number;
 type OutputType<T> = 
   T extends number ? Rational :
   T extends Integer ? Rational :
@@ -32,6 +32,10 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
     if (typeof val === 'number') {
       assertInt32(val);
       return gmp.mpq_cmp_si(mpq_t, val, 1);
+    }
+    if (typeof val === 'string') {
+      const r = RationalFn(val);
+      return gmp.mpq_cmp(mpq_t, r.mpq_t);
     }
     if (isInteger(val)) {
       return gmp.mpq_cmp_z(mpq_t, (val as Integer).mpz_t);
@@ -55,13 +59,18 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
         gmp.mpq_add(n.mpq_t, this.mpq_t, RationalFn(val as number | Integer).mpq_t);
         return n as OutputType<T>;
       }
+      if (typeof val === 'string') {
+        const n = RationalFn(val);
+        gmp.mpq_add(n.mpq_t, this.mpq_t, n.mpq_t);
+        return n as OutputType<T>;
+      }
       if (isRational(val)) {
         const n = RationalFn(0, 1);
         gmp.mpq_add(n.mpq_t, this.mpq_t, (val as Rational).mpq_t);
         return n as OutputType<T>;
       }
       if (isFloat(val)) {
-        return val.add(this) as OutputType<T>;
+        return (val as Float).add(this) as OutputType<T>;
       }
       throw new Error(INVALID_PARAMETER_ERROR);
     },
@@ -72,13 +81,18 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
         gmp.mpq_sub(n.mpq_t, this.mpq_t, RationalFn(val as number | Integer).mpq_t);
         return n as OutputType<T>;
       }
+      if (typeof val === 'string') {
+        const n = RationalFn(val);
+        gmp.mpq_sub(n.mpq_t, this.mpq_t, n.mpq_t);
+        return n as OutputType<T>;
+      }
       if (isRational(val)) {
         const n = RationalFn(0, 1);
         gmp.mpq_sub(n.mpq_t, this.mpq_t, (val as Rational).mpq_t);
         return n as OutputType<T>;
       }
       if (isFloat(val)) {
-        return val.neg().add(this) as OutputType<T>;
+        return (val as Float).neg().add(this) as OutputType<T>;
       }
       throw new Error(INVALID_PARAMETER_ERROR);
     },
@@ -89,13 +103,18 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
         gmp.mpq_mul(n.mpq_t, this.mpq_t, RationalFn(val as number | Integer).mpq_t);
         return n as OutputType<T>;
       }
+      if (typeof val === 'string') {
+        const n = RationalFn(val);
+        gmp.mpq_mul(n.mpq_t, this.mpq_t, n.mpq_t);
+        return n as OutputType<T>;
+      }
       if (isRational(val)) {
         const n = RationalFn(0, 1);
         gmp.mpq_mul(n.mpq_t, this.mpq_t, (val as Rational).mpq_t);
         return n as OutputType<T>;
       }
       if (isFloat(val)) {
-        return val.mul(this) as OutputType<T>;
+        return (val as Float).mul(this) as OutputType<T>;
       }
       throw new Error(INVALID_PARAMETER_ERROR);
     },
@@ -124,6 +143,11 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
         gmp.mpq_div(n.mpq_t, this.mpq_t, RationalFn(val as number | Integer).mpq_t);
         return n as OutputType<T>;
       }
+      if (typeof val === 'string') {
+        const n = RationalFn(val);
+        gmp.mpq_div(n.mpq_t, this.mpq_t, n.mpq_t);
+        return n as OutputType<T>;
+      }
       if (isRational(val)) {
         const n = RationalFn(0, 1);
         gmp.mpq_div(n.mpq_t, this.mpq_t, (val as Rational).mpq_t);
@@ -139,11 +163,15 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       if (typeof val === 'number' || isInteger(val)) {
         return gmp.mpq_equal(this.mpq_t, RationalFn(val as number | Integer).mpq_t) !== 0;
       }
+      if (typeof val === 'string') {
+        const n = RationalFn(val);
+        return gmp.mpq_equal(this.mpq_t, n.mpq_t) !== 0;
+      }
       if (isRational(val)) {
         return gmp.mpq_equal(this.mpq_t, (val as Rational).mpq_t) !== 0;
       }
       if (isFloat(val)) {
-        return val.isEqual(this);
+        return (val as Float).isEqual(this);
       }
       throw new Error(INVALID_PARAMETER_ERROR);
     },

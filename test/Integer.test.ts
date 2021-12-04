@@ -51,6 +51,7 @@ test('add()', () => {
   compare(ctx.Integer(-2).add(-1), '-3');
   compare(ctx.Integer(-2).add(0), '-2');
   compare(ctx.Integer(-2).add(1), '-1');
+  compare(ctx.Integer(-2).add('-1'), '-3');
   compare(ctx.Integer(-2).add(ctx.Integer(-1)), '-3');
   compare(ctx.Integer(-2).add(ctx.Integer(0)), '-2');
   compare(ctx.Integer(-2).add(ctx.Integer(1)), '-1');
@@ -64,6 +65,7 @@ test('subtract()', () => {
   compare(ctx.Integer(-2).sub(-1), '-1');
   compare(ctx.Integer(-2).sub(0), '-2');
   compare(ctx.Integer(-2).sub(1), '-3');
+  compare(ctx.Integer(-2).sub('1'), '-3');
   compare(ctx.Integer(-2).sub(ctx.Integer(-1)), '-1');
   compare(ctx.Integer(-2).sub(ctx.Integer(0)), '-2');
   compare(ctx.Integer(-2).sub(ctx.Integer(1)), '-3');
@@ -76,6 +78,7 @@ test('subtract()', () => {
 test('multiply()', () => {
   compare(ctx.Integer(3).mul(4), '12');
   compare(ctx.Integer(3).mul(-4), '-12');
+  compare(ctx.Integer(3).mul('-4'), '-12');
   compare(ctx.Integer(3).mul(ctx.Integer(4)), '12');
   compare(ctx.Integer(3).mul(ctx.Integer(-4)), '-12');
   compare(ctx.Integer(3).mul(ctx.Rational(-1, 2)), '-3/2');
@@ -104,6 +107,7 @@ test('div()', () => {
   compare(ctx.Integer(12).div(-5, DivMode.TRUNCATE), '-2');
   compare(ctx.Integer(12).div(5, DivMode.TRUNCATE), '2');
 
+  compare(ctx.Integer(12).div('-5'), '-2');
   compare(ctx.Integer(12).div(ctx.Integer(-5)), '-2');
   compare(ctx.Integer(12).div(ctx.Integer(5)), '3');
   compare(ctx.Integer(12).div(ctx.Integer(-5), DivMode.CEIL), '-2');
@@ -313,6 +317,8 @@ test('writeTo()', () => {
 test('isEqual()', () => {
   expect(ctx.Integer('2').isEqual(2)).toBe(true);
   expect(ctx.Integer('2').isEqual(-2)).toBe(false);
+  expect(ctx.Integer('2').isEqual('2')).toBe(true);
+  expect(ctx.Integer('2').isEqual('3')).toBe(false);
   expect(ctx.Integer('2').isEqual(ctx.Integer(2))).toBe(true);
   expect(ctx.Integer('2').isEqual(ctx.Integer(-2))).toBe(false);
   expect(ctx.Integer('2').isEqual(ctx.Rational(4, 2))).toBe(true);
@@ -325,6 +331,8 @@ test('lessThan()', () => {
   expect(ctx.Integer('2').lessThan(3)).toBe(true);
   expect(ctx.Integer('2').lessThan(2)).toBe(false);
   expect(ctx.Integer('2').lessThan(-2)).toBe(false);
+  expect(ctx.Integer('2').lessThan('3')).toBe(true);
+  expect(ctx.Integer('2').lessThan('-2')).toBe(false);
   expect(ctx.Integer('2').lessThan(ctx.Integer(3))).toBe(true);
   expect(ctx.Integer('2').lessThan(ctx.Integer(2))).toBe(false);
   expect(ctx.Integer('2').lessThan(ctx.Integer(-2))).toBe(false);
@@ -340,6 +348,8 @@ test('lessOrEqual()', () => {
   expect(ctx.Integer('2').lessOrEqual(3)).toBe(true);
   expect(ctx.Integer('2').lessOrEqual(2)).toBe(true);
   expect(ctx.Integer('2').lessOrEqual(-2)).toBe(false);
+  expect(ctx.Integer('2').lessOrEqual('2')).toBe(true);
+  expect(ctx.Integer('2').lessOrEqual('-2')).toBe(false);
   expect(ctx.Integer('2').lessOrEqual(ctx.Integer(3))).toBe(true);
   expect(ctx.Integer('2').lessOrEqual(ctx.Integer(2))).toBe(true);
   expect(ctx.Integer('2').lessOrEqual(ctx.Integer(-2))).toBe(false);
@@ -355,6 +365,8 @@ test('greaterThan()', () => {
   expect(ctx.Integer('2').greaterThan(3)).toBe(false);
   expect(ctx.Integer('2').greaterThan(2)).toBe(false);
   expect(ctx.Integer('2').greaterThan(-2)).toBe(true);
+  expect(ctx.Integer('2').greaterThan('2')).toBe(false);
+  expect(ctx.Integer('2').greaterThan('-2')).toBe(true);
   expect(ctx.Integer('2').greaterThan(ctx.Integer(3))).toBe(false);
   expect(ctx.Integer('2').greaterThan(ctx.Integer(2))).toBe(false);
   expect(ctx.Integer('2').greaterThan(ctx.Integer(-2))).toBe(true);
@@ -370,6 +382,8 @@ test('greaterOrEqual()', () => {
   expect(ctx.Integer('2').greaterOrEqual(3)).toBe(false);
   expect(ctx.Integer('2').greaterOrEqual(2)).toBe(true);
   expect(ctx.Integer('2').greaterOrEqual(-2)).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual('2')).toBe(true);
+  expect(ctx.Integer('2').greaterOrEqual('-2')).toBe(true);
   expect(ctx.Integer('2').greaterOrEqual(ctx.Integer(3))).toBe(false);
   expect(ctx.Integer('2').greaterOrEqual(ctx.Integer(2))).toBe(true);
   expect(ctx.Integer('2').greaterOrEqual(ctx.Integer(-2))).toBe(true);

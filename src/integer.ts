@@ -11,7 +11,7 @@ type IntegerReturn = ReturnType<IntegerFactoryReturn>;
 export interface Integer extends IntegerReturn {};
 
 // these should not be exported
-type AllTypes = Integer | Rational | Float | number;
+type AllTypes = Integer | Rational | Float | string | number;
 type OutputType<T> = 
   T extends number ? Integer :
   T extends Integer ? Integer :
@@ -38,6 +38,10 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     if (typeof val === 'number') {
       assertInt32(val);
       return gmp.mpz_cmp_si(mpz_t, val);
+    }
+    if (typeof val === 'string') {
+      const i = IntegerFn(val);
+      return gmp.mpz_cmp(mpz_t, i.mpz_t);
     }
     if (isInteger(val)) {
       return gmp.mpz_cmp(mpz_t, (val as Integer).mpz_t);
@@ -66,6 +70,11 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
         }
         return n as OutputType<T>;
       }
+      if (typeof val === 'string') {
+        const n = IntegerFn(val);
+        gmp.mpz_add(n.mpz_t, this.mpz_t, n.mpz_t);
+        return n as OutputType<T>;
+      }
       if (isInteger(val)) {
         const n = IntegerFn();
         gmp.mpz_add(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
@@ -88,6 +97,11 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
         }
         return n as OutputType<T>;
       }
+      if (typeof val === 'string') {
+        const n = IntegerFn(val);
+        gmp.mpz_sub(n.mpz_t, this.mpz_t, n.mpz_t);
+        return n as OutputType<T>;
+      }
       if (isInteger(val)) {
         const n = IntegerFn();
         gmp.mpz_sub(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
@@ -104,6 +118,11 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
         const n = IntegerFn();
         assertInt32(val);
         gmp.mpz_mul_si(n.mpz_t, this.mpz_t, val);
+        return n as OutputType<T>;
+      }
+      if (typeof val === 'string') {
+        const n = IntegerFn(val);
+        gmp.mpz_mul(n.mpz_t, this.mpz_t, n.mpz_t);
         return n as OutputType<T>;
       }
       if (isInteger(val)) {
@@ -146,14 +165,16 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
         }
         return n as OutputType<T>;
       }
-      if (isInteger(val)) {
+      if (typeof val === 'string' || isInteger(val)) {
         const n = IntegerFn(this);
+        const intVal = typeof val === 'string' ? IntegerFn(val) : val as Integer;
+
         if (mode === DivMode.CEIL) {
-          gmp.mpz_cdiv_q(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+          gmp.mpz_cdiv_q(n.mpz_t, this.mpz_t, intVal.mpz_t);
         } else if (mode === DivMode.FLOOR) {
-          gmp.mpz_fdiv_q(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+          gmp.mpz_fdiv_q(n.mpz_t, this.mpz_t, intVal.mpz_t);
         } else if (mode === DivMode.TRUNCATE) {
-          gmp.mpz_tdiv_q(n.mpz_t, this.mpz_t, (val as Integer).mpz_t);
+          gmp.mpz_tdiv_q(n.mpz_t, this.mpz_t, intVal.mpz_t);
         }
         return n as OutputType<T>;
       }

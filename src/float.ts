@@ -11,7 +11,7 @@ type FloatReturn = ReturnType<FloatFactoryReturn>;
 export interface Float extends FloatReturn {};
 
 // these should not be exported
-type AllTypes = Integer | Rational | Float | number;
+type AllTypes = Integer | Rational | Float | string | number;
 
 // matches mpfr_rnd_t
 /** Represents the different rounding modes. */
@@ -113,6 +113,10 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       assertInt32(val);
       return gmp.mpfr_cmp_si(mpfr_t, val);
     }
+    if (typeof val === 'string') {
+      const f = FloatFn(val);
+      return gmp.mpfr_cmp(mpfr_t, f.mpfr_t);
+    }
     if (isInteger(val)) {
       return gmp.mpfr_cmp_z(mpfr_t, (val as Integer).mpz_t);
     }
@@ -161,6 +165,11 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
         gmp.mpfr_add_d(n.mpfr_t, this.mpfr_t, val, this.rndMode);
         return n;
       }
+      if (typeof val === 'string') {
+        const n = FloatFn(val, this.options);
+        gmp.mpfr_add(n.mpfr_t, this.mpfr_t, n.mpfr_t, this.rndMode);
+        return n;
+      }
       if (isFloat(val)) {
         const n = FloatFn(null, mergeFloatOptions(this.setOptions, (val as Float).setOptions));
         gmp.mpfr_add(n.mpfr_t, this.mpfr_t, (val as Float).mpfr_t, this.rndMode);
@@ -183,6 +192,11 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       if (typeof val === 'number') {
         const n = FloatFn(null, this.options);
         gmp.mpfr_sub_d(n.mpfr_t, this.mpfr_t, val, this.rndMode);
+        return n;
+      }
+      if (typeof val === 'string') {
+        const n = FloatFn(val, this.options);
+        gmp.mpfr_sub(n.mpfr_t, this.mpfr_t, n.mpfr_t, this.rndMode);
         return n;
       }
       if (isFloat(val)) {
@@ -213,6 +227,11 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
         }
         return n;
       }
+      if (typeof val === 'string') {
+        const n = FloatFn(val, this.options);
+        gmp.mpfr_mul(n.mpfr_t, this.mpfr_t, n.mpfr_t, this.rndMode);
+        return n;
+      }
       if (isFloat(val)) {
         const n = FloatFn(null, mergeFloatOptions(this.setOptions, (val as Float).setOptions));
         gmp.mpfr_mul(n.mpfr_t, this.mpfr_t, (val as Float).mpfr_t, this.rndMode);
@@ -235,6 +254,11 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       if (typeof val === 'number') {
         const n = FloatFn(null, this.options);
         gmp.mpfr_div_d(n.mpfr_t, this.mpfr_t, val, this.rndMode);
+        return n;
+      }
+      if (typeof val === 'string') {
+        const n = FloatFn(val, this.options);
+        gmp.mpfr_div(n.mpfr_t, this.mpfr_t, n.mpfr_t, this.rndMode);
         return n;
       }
       if (isFloat(val)) {
@@ -661,7 +685,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
     },
 
     /** Rounds to the nearest representable integer, rounding halfway cases with the even-rounding rule */
-    roundeven(): Float {
+    roundEven(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_roundeven(n.mpfr_t, this.mpfr_t);
       return n;
