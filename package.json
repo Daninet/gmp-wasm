@@ -1,6 +1,6 @@
 {
   "name": "gmp-wasm",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Arbitrary-precision Integer, Rational and Float types based on the GMP and MPFR libraries",
   "main": "dist/index.umd.js",
   "module": "dist/index.esm.js",
