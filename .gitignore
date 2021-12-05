@@ -5,3 +5,4 @@ coverage
 docs
 .jest-cache
 gmp.wasm.ts
+gmpmini.wasm.ts

@@ -1,7 +1,6 @@
 # GMP-WASM
 
 [![npm package](https://img.shields.io/npm/v/gmp-wasm.svg)](http://npmjs.org/package/gmp-wasm)
-[![Bundle size](https://badgen.net/bundlephobia/minzip/gmp-wasm)](https://bundlephobia.com/result?p=gmp-wasm)
 [![codecov](https://codecov.io/gh/Daninet/gmp-wasm/branch/master/graph/badge.svg)](https://codecov.io/gh/Daninet/gmp-wasm)
 [![Build status](https://github.com/Daninet/gmp-wasm/workflows/Build/badge.svg?branch=master)](https://github.com/Daninet/gmp-wasm/actions)
 [![JSDelivr downloads](https://data.jsdelivr.com/v1/package/npm/gmp-wasm/badge)](https://www.jsdelivr.com/package/npm/gmp-wasm)
@@ -17,7 +16,8 @@ Arbitrary-precision **Integer**, **Rational** and **Float** types based on the [
 - Works even without Webpack or other bundlers
 - Includes TypeScript type definitions, check API [here](https://paka.dev/npm/gmp-wasm).
 - Zero dependencies
-- Minified and gzipped bundle has a size of [![Bundle size](https://badgen.net/bundlephobia/minzip/gmp-wasm)](https://bundlephobia.com/result?p=gmp-wasm)
+- Full minified and gzipped bundle has a size of ![Bundle size](https://img.badgesize.io/Daninet/gmp-wasm/binaries/index.umd.min.js?compression=gzip&label=minzipped%20size)
+- It also packages a mini bundle without Float/MPFR operations ![Bundle size](https://img.badgesize.io/Daninet/gmp-wasm/binaries/mini.umd.min.js?compression=gzip&label=minzipped%20size)
 - 100% open source & [transparent build process](https://github.com/Daninet/gmp-wasm/actions)
 
 ## Installation
@@ -29,11 +29,14 @@ npm i gmp-wasm
 It can also be used directly from HTML (via [jsDelivr](https://www.jsdelivr.com/package/npm/gmp-wasm)):
 
 ```html
-<!-- loads the minified library into the global `gmp` variable -->
+<!-- loads the full, minified library into the global `gmp` variable -->
 <script src="https://cdn.jsdelivr.net/npm/gmp-wasm"></script>
 
-<!-- or the non-minified library -->
+<!-- or loads the non-minified library -->
 <script src="https://cdn.jsdelivr.net/npm/gmp-wasm/dist/index.umd.js"></script>
+
+<!-- or loads the minified library without Float/MPFR functions -->
+<script src="https://cdn.jsdelivr.net/npm/gmp-wasm/dist/mini.umd.min.js"></script>
 ```
 
 ## Usage

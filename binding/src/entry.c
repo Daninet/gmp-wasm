@@ -230,6 +230,7 @@ EMSCRIPTEN_KEEPALIVE int q_sgn (mpq_ptr p1) { return mpq_sgn(p1); }
 EMSCRIPTEN_KEEPALIVE void q_sub (mpq_ptr p1, mpq_srcptr p2, mpq_srcptr p3) { mpq_sub(p1, p2, p3); }
 EMSCRIPTEN_KEEPALIVE void q_swap (mpq_ptr p1, mpq_ptr p2) { mpq_swap(p1, p2); }
 
+#ifdef GMP_WASM_FULL_LIB
 
 /**************** MPFR  ****************/
 
@@ -575,3 +576,5 @@ EMSCRIPTEN_KEEPALIVE void r_custom_init_set (mpfr_ptr p1, int p2, mpfr_exp_t p3,
 EMSCRIPTEN_KEEPALIVE int r_custom_get_kind (mpfr_srcptr p1) { return mpfr_custom_get_kind(p1); }
 
 EMSCRIPTEN_KEEPALIVE int r_total_order_p (mpfr_srcptr p1, mpfr_srcptr p2) { return mpfr_total_order_p(p1, p2); }
+
+#endif

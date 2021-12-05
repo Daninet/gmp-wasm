@@ -1,6 +1,6 @@
 import { inflateSync } from 'fflate';
 import { decodeBase64 } from './base64';
-import { gmpWasmLength, gmpWasm } from '../gmp.wasm';
+import { gmpWasmLength, gmpWasm } from 'gmpwasmts';
 
 let instance: any = null;
 let compiledModule: WebAssembly.Module = null;
