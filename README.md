@@ -78,7 +78,7 @@ gmp.init().then(({ getContext }) => {
 The precision and the rounding modes can be set by passing a parameter to the context or to the Float constructor.
 
 ```js
-const roundingMode = gmp.FloatRoundingMode.ROUND_TOWARD_NEG_INF;
+const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
 const options = { precisionBits: 10, roundingMode };
 
 const result = calculate(g => g.Float(1).div(3), options);
