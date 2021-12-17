@@ -1,7 +1,7 @@
 import type { GMPFunctions } from './functions';
 import { Float } from './float';
 import { Rational } from './rational';
-import { assertArray, assertInt32, assertUint32 } from './util';
+import {assertArray, assertInt32, assertUint32, assertValidRadix} from './util';
 
 const decoder = new TextDecoder();
 
@@ -569,9 +569,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     if (num === undefined) {
       gmp.mpz_init(instance.mpz_t);
     } else if (typeof num === 'string') {
-      if (!Number.isSafeInteger(radix) || radix < 2 || radix > 36) {
-        throw new Error('radix must have a value between 2 and 36');
-      }
+      assertValidRadix(radix);
       const strPtr = gmp.malloc_cstr(num);
       const res = gmp.mpz_init_set_str(instance.mpz_t, strPtr, radix);
       gmp.free(strPtr);

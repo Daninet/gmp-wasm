@@ -23,3 +23,13 @@ export function assertArray(arr: any[]) {
     throw new Error('Invalid parameter specified. Array is required!');
   }
 }
+
+export function isValidRadix(radix: number) {
+  return Number.isSafeInteger(radix) && radix >= 2 && radix <= 36;
+}
+
+export function assertValidRadix(radix: number) {
+  if (!isValidRadix(radix)) {
+    throw new Error('radix must have a value between 2 and 36');
+  }
+}

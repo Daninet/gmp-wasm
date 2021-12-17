@@ -1,7 +1,7 @@
 import type { GMPFunctions, mpfr_rnd_t } from './functions';
 import { Integer } from './integer';
 import { Rational } from './rational';
-import { assertInt32, assertUint32, isInt32 } from './util';
+import {assertInt32, assertUint32, assertValidRadix, isInt32} from './util';
 
 const decoder = new TextDecoder();
 
@@ -43,6 +43,7 @@ const SPECIAL_VALUE_KEYS = Object.keys(SPECIAL_VALUES);
 export interface FloatOptions {
   precisionBits?: number;
   roundingMode?: FloatRoundingMode;
+  radix?: number;
 };
 
 const trimTrailingZeros = (num: string) => {
@@ -106,7 +107,10 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
 
   const globalRndMode = (ctxOptions.roundingMode ?? FloatRoundingMode.ROUND_NEAREST) as number as mpfr_rnd_t;
   const globalPrecisionBits = ctxOptions.precisionBits ?? 52;
+  const globalRadix = ctxOptions.radix ?? 10;
+
   assertUint32(globalPrecisionBits);
+  assertValidRadix(globalRadix);
 
   const compare = (mpfr_t: number, val: AllTypes): number => {
     if (typeof val === 'number') {
@@ -114,7 +118,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return gmp.mpfr_cmp_si(mpfr_t, val);
     }
     if (typeof val === 'string') {
-      const f = FloatFn(val);
+      const f = FloatFn(val, ctxOptions);
       return gmp.mpfr_cmp(mpfr_t, f.mpfr_t);
     }
     if (isInteger(val)) {
@@ -136,6 +140,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
     return {
       precisionBits: Math.max(precisionBits1, precisionBits2),
       roundingMode: options2?.roundingMode ?? options1.roundingMode ?? ctxOptions.roundingMode,
+      radix: options2?.radix ?? options1.radix ?? ctxOptions.radix,
     };
   };
 
@@ -143,12 +148,14 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
     mpfr_t: 0,
     precisionBits: -1,
     rndMode: -1,
+    radix: -1,
     type: 'float',
 
     get options(): FloatOptions {
       return {
         precisionBits: this.precisionBits ?? globalPrecisionBits,
         roundingMode: this.rndMode ?? globalRndMode,
+        radix: this.radix ?? globalRadix,
       };
     },
 
@@ -156,6 +163,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return {
         precisionBits: this.precisionBits,
         roundingMode: this.rndMode,
+        radix: this.radix,
       };
     },
 
@@ -757,9 +765,12 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return gmp.mpfr_get_exp(this.mpfr_t);
     },
 
-    toString() {
+    toString(radix?: number) {
+      radix = radix ?? this.options.radix;
+      assertValidRadix(radix);
+
       const mpfr_exp_t_ptr = gmp.malloc(4);
-      const strptr = gmp.mpfr_get_str(0, mpfr_exp_t_ptr, 10, 0, this.mpfr_t, this.rndMode);
+      const strptr = gmp.mpfr_get_str(0, mpfr_exp_t_ptr, radix, 0, this.mpfr_t, this.rndMode);
       const endptr = gmp.mem.indexOf(0, strptr);
       let ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
 
@@ -776,19 +787,31 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return ret;
     },
 
-    toFixed(digits = 0) {
+    toFixed(digits = 0, radix?: number) {
       assertUint32(digits);
-      const str = this.toString();
+      radix = radix ?? this.options.radix;
+      assertValidRadix(radix);
+
+      const str = this.toString(radix);
       if (Object.values(SPECIAL_VALUES).includes(str)) {
         return str;
       }
       if (digits === 0) {
-        return ctx.intContext.Integer(this).toString();
+        return ctx.intContext.Integer(this).toString(radix);
       }
-      const multiplied = this.mul(FloatFn(digits).exp10());
+
+      let multiplier = null;
+      if (radix === 2) {
+        multiplier = FloatFn(digits).exp2();
+      } else if (radix === 10) {
+        multiplier = FloatFn(digits).exp10();
+      } else {
+        multiplier = FloatFn(radix).pow(digits);
+      }
+      const multiplied = this.mul(multiplier);
       const int = ctx.intContext.Integer(multiplied);
       const isNegative = int.sign() === -1;
-      let intStr = int.abs().toString();
+      let intStr = int.abs().toString(radix);
       if (intStr.length < digits + 1) {
         intStr = '0'.repeat(digits + 1 - intStr.length) + intStr;
       }
@@ -804,11 +827,14 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
     },
   };
 
-  const setValue = (mpfr_t: number, rndMode: mpfr_rnd_t, val: string | number | Float | Rational | Integer) => {
+  const setValue = (mpfr_t: number, rndMode: mpfr_rnd_t, radix: number, val: string | number | Float | Rational | Integer) => {
     if (typeof val === 'string') {
       const strPtr = gmp.malloc_cstr(val);
-      gmp.mpfr_set_str(mpfr_t, strPtr, 10, rndMode);
+      const res = gmp.mpfr_set_str(mpfr_t, strPtr, radix, rndMode);
       gmp.free(strPtr);
+      if (res !== 0) {
+        throw new Error('Invalid number provided!');
+      }
       return;
     }
     if (typeof val === 'number') {
@@ -840,15 +866,18 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
   const FloatFn = (val?: null | undefined | string | number | Float | Rational | Integer, options?: FloatOptions) => {
     const rndMode = (options?.roundingMode ?? globalRndMode) as number as mpfr_rnd_t;
     const precisionBits = options?.precisionBits ?? globalPrecisionBits;
+    const radix = options?.radix ?? globalRadix;
+    assertValidRadix(radix);
 
     const instance = Object.create(FloatPrototype) as typeof FloatPrototype;
     instance.rndMode = rndMode;
     instance.precisionBits = precisionBits;
+    instance.radix = radix;
     instance.mpfr_t = gmp.mpfr_t();
     gmp.mpfr_init2(instance.mpfr_t, precisionBits);
 
     if (val !== undefined && val !== null) {
-      setValue(instance.mpfr_t, rndMode, val);
+      setValue(instance.mpfr_t, rndMode, radix, val);
     }
 
     mpfr_t_arr.push(instance.mpfr_t);
