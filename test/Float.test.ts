@@ -1,4 +1,4 @@
-import { CalculateTypeWithDestroy, FloatRoundingMode, init as initGMP } from '../src';
+import {CalculateTypeWithDestroy, FloatRoundingMode, FloatType, init as initGMP, IntegerType, RationalType} from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
@@ -14,8 +14,8 @@ afterAll(() => {
   ctx.destroy();
 });
 
-const compare = (int: ReturnType<typeof ctx.Float>, res: string) => {
-  expect(int.toString()).toBe(res);
+const compare = (int: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
+  expect(int.toString(radix)).toBe(res);
 }
 
 test('parse strings', () => {
@@ -28,6 +28,12 @@ test('parse strings', () => {
   compare(ctx.Float('0.002'), '0.00199997');
   compare(ctx.Float('1000000'), '1000000');
   compare(ctx.Float('10000.000'), '10000');
+  compare(ctx.Float('110', { radix: 2 }), '6')
+  compare(ctx.Float('1a', { radix: 16 }), '26');
+  compare(ctx.Float('-1A', { radix: 16 }), '-26');
+  compare(ctx.Float('0.1', { radix: 2 }), '0.5');
+  compare(ctx.Float('-0.1', { radix: 2 }), '-0.5');
+  compare(ctx.Float('0.10000', { radix: 2 }), '0.5');
 });
 
 test('parse numbers', () => {
@@ -72,6 +78,8 @@ test('add()', () => {
   compare(ctx.Float(0.4).add(ctx.Float(0.6)), '1');
   compare(ctx.Float(0.4).add(ctx.Integer(2)), '2.40002');
   compare(ctx.Float(0.4).add(ctx.Rational(1, 2)), '0.899994');
+  compare(ctx.Float('1.01', { radix: 2 }).add('10.1'), '3.75');
+  compare(ctx.Float('1.01', { radix: 2 }).add(10.1), '11.3501');
 });
 
 test('sub()', () => {
@@ -82,6 +90,8 @@ test('sub()', () => {
   compare(ctx.Float(0.6).sub(ctx.Float(0.4)), '0.200005');
   compare(ctx.Float(0.4).sub(ctx.Integer(2)), '-1.60001');
   compare(ctx.Float(0.4).sub(ctx.Rational(1, 2)), '-0.0999985');
+  compare(ctx.Float('1.01', { radix: 2 }).sub('10.1'), '-1.25');
+  compare(ctx.Float('1.01', { radix: 2 }).sub(10.1), '-8.8501');
 });
 
 test('mul()', () => {
@@ -92,6 +102,8 @@ test('mul()', () => {
   compare(ctx.Float(6).mul(ctx.Float(2)), '12');
   compare(ctx.Float(0.4).mul(ctx.Integer(2)), '0.800003');
   compare(ctx.Float(0.4).mul(ctx.Rational(1, 2)), '0.200001');
+  compare(ctx.Float('1.01', { radix: 2 }).mul('10.1'), '3.125');
+  compare(ctx.Float('1.01', { radix: 2 }).mul(10.1), '12.625');
 });
 
 test('div()', () => {
@@ -102,6 +114,8 @@ test('div()', () => {
   compare(ctx.Float(7).div(ctx.Float(2)), '3.5');
   compare(ctx.Float(6).div(ctx.Integer(2)), '3');
   compare(ctx.Float(6).div(ctx.Rational(4, 2)), '3');
+  compare(ctx.Float('1.01', { radix: 2 }).div('10.1'), '0.5');
+  compare(ctx.Float('1.01', { radix: 2 }).div(10.1), '0.123762');
 });
 
 test('sqrt()', () => {
@@ -198,6 +212,9 @@ test('lessThan()', () => {
   expect(ctx.Float(0).lessThan(ctx.Float(0))).toBe(false);
   expect(ctx.Float(1).lessThan(ctx.Float(0))).toBe(false);
   expect(ctx.Float(1).lessThan(ctx.Float(2))).toBe(true);
+  const binaryCtx = gmp.getContext({ radix: 2 });
+  expect(binaryCtx.Float('101').lessThan(100)).toBe(true);
+  expect(binaryCtx.Float('101').lessThan('100')).toBe(false);
 });
 
 test('lessOrEqual()', () => {
@@ -220,6 +237,9 @@ test('greaterThan()', () => {
   expect(ctx.Float(0).greaterThan(ctx.Float(0))).toBe(false);
   expect(ctx.Float(1).greaterThan(ctx.Float(0))).toBe(true);
   expect(ctx.Float(1).greaterThan(ctx.Float(2))).toBe(false);
+  const binaryCtx = gmp.getContext({ radix: 2 });
+  expect(binaryCtx.Float('101').greaterThan(100)).toBe(false);
+  expect(binaryCtx.Float('101').greaterThan('100')).toBe(true);
 });
 
 test('greaterOrEqual()', () => {
@@ -425,6 +445,12 @@ test('.toFixed()', () => {
   expect(ctx.Float('123.5000').toFixed(0)).toBe('124');
   expect(ctx.Float('123.56789').toFixed(2)).toBe('123.57');
   expect(ctx.Float('0.1').mul(ctx.Float('0.2')).toFixed(2)).toBe('0.02');
+  expect(ctx.Float('123.5000').toFixed(0, 16)).toBe('7c');
+  expect(ctx.Float('123.5000').toFixed(1, 16)).toBe('7b.8');
+  expect(ctx.Float('0.1', { radix: 3 }).toFixed(3)).toBe('0.100');
+  expect(ctx.Float('0.1', { radix: 3 }).toFixed(3, 10)).toBe('0.333');
+  expect(ctx.Float('0.1', { radix: 3 }).toFixed(3, 4)).toBe('0.111');
+  expect(ctx.Float('10.110101', { radix: 2 }).toFixed(3)).toBe('10.111');
 });
 
 test('toRational()', () => {
@@ -462,6 +488,10 @@ test('FloatOptions', () => {
   const { ROUND_UP } = FloatRoundingMode;
   expect(gmp.calculate(g => g.Float(1, { roundingMode: ROUND_UP }).div(g.Float(3)), options)).toBe('0.33349');
   expect(gmp.calculate(g => g.Float(1).div(g.Float(3, { roundingMode: ROUND_UP })), options)).toBe('0.33301');
+  // merge radix
+  expect(gmp.calculate(g => g.Float('3', { radix: 4 }).div('21'),{})).toBe('0.111111111111111111111111112');
+  expect(gmp.calculate(g => g.Float('3').div('21'),{ radix: 4 })).toBe('0.111111111111111111111111112');
+  expect(gmp.calculate(g => g.Float('3').div(g.Float('21', { radix: 4 })),{})).toBe('0.111111111111111111111111112');
 });
 
 test('FloatOptions constants', () => {
