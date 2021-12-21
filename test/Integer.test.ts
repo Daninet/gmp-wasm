@@ -446,6 +446,7 @@ test('init from Float', () => {
   compare(ctx.Integer(ctx.Float('-1.50')), '-2');
   compare(ctx.Integer(ctx.Float('1.49')), '1');
   compare(ctx.Integer(ctx.Float('1.50')), '2');
+  compare(ctx.Integer(ctx.Float('1.11111111')), '1');
 });
 
 test('toString()', () => {

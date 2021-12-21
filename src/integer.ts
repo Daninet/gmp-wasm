@@ -585,14 +585,17 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       if (!(num instanceof Uint8Array)) {
         throw new Error('Only Uint8Array is supported!');
       }
+      gmp.mpz_init(instance.mpz_t);
       const wasmBufPtr = gmp.malloc(num.length);
       gmp.mem.set(num, wasmBufPtr);
       gmp.mpz_import(instance.mpz_t, num.length, 1, 1, 1, 0, wasmBufPtr);
       gmp.free(wasmBufPtr);
     } else if (isRational(num)) {
+      gmp.mpz_init(instance.mpz_t);
       const f = ctx.floatContext.Float(num);
       gmp.mpfr_get_z(instance.mpz_t, f.mpfr_t, 0);
     } else if (isFloat(num)) {
+      gmp.mpz_init(instance.mpz_t);
       gmp.mpfr_get_z(instance.mpz_t, (num as Float).mpfr_t, (num as Float).rndMode);
     } else {
       gmp.mpz_t_free(instance.mpz_t);
