@@ -1,3 +1,6 @@
+## 0.9.4 (Dec 21, 2021)
+* Fix uninitialized usage of mpz_t (by Yuri Stuken)
+
 ## 0.9.3 (Dec 17, 2021)
 * Support setting radix for Float string operations (by Yuri Stuken)
 
