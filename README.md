@@ -157,21 +157,21 @@ PI = 3
 ```
 
 | Test                                                                                | Avg. time | Speedup  |
-|-------------------------------------------------------------------------------------|-----------|----------|
-| With JS built-in `BigInt` type                                                      | 130.20 ms | 1x       |
-| **gmp-wasm** `Integer()` high-level wrapper                                         | 87.90 ms  | 1.48x    |
-| Same as previous with delayed memory deallocation                                   | 78.88 ms  | 1.65x    |
-| **gmp-wasm** `MPZ` low-level functions                                              | 53.93 ms  | 2.41x    |
-| [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with integer division | 426.99 ms | 0.30x    |
-| [big-integer](https://www.npmjs.com/package/big-integer) 1.6.51                     | 129.98 ms | 1x       |
+| ----------------------------------------------------------------------------------- | --------- | -------- |
+| With JS built-in `BigInt` type                                                      | 129 ms    | 1x       |
+| **gmp-wasm** `Integer()` high-level wrapper                                         | 88 ms     | 1.47x    |
+| Same as previous with delayed memory deallocation                                   | 78 ms     | 1.65x    |
+| **gmp-wasm** `MPZ` low-level functions                                              | 53 ms     | 2.43x    |
+| [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with integer division | 443 ms    | 0.29x    |
+| [big-integer](https://www.npmjs.com/package/big-integer) 1.6.51                     | 129 ms    | 1x       |
 | ----------------------------                                                        | --------  | -------- |
-| **gmp-wasm** `Float()` high-level wrapper                                           | 198.31 ms | 0.66x    |
-| Same as previous with delayed memory deallocation                                   | 191.94 ms | 0.68x    |
-| **gmp-wasm** `MPFR` low-level functions                                             | 135.49 ms | 0.96x    |
-| [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with float division   | 764.15 ms | 0.17x    |
+| **gmp-wasm** `Float()` high-level wrapper                                           | 175 ms    | 0.74x    |
+| Same as previous with delayed memory deallocation                                   | 169 ms    | 0.76x    |
+| **gmp-wasm** `MPFR` low-level functions                                             | 118 ms    | 1.09x    |
+| [decimal.js](https://www.npmjs.com/package/decimal.js) 10.3.1 with float division   | 785 ms    | 0.16x    |
 | ----------------------------                                                        | --------  | -------- |
-| **gmp-wasm** `Float(1).atan().mul(4)`                                               | 0.65 ms   | 200.31x  |
-| **gmp-wasm** `Float('0.5').asin().mul(6)`                                           | 17.21 ms  | 7.57x    |
+| **gmp-wasm** `Float(1).atan().mul(4)`                                               | 0.6 ms    | 215x     |
+| **gmp-wasm** `Float('0.5').asin().mul(6)`                                           | 17 ms     | 7.59x    |
 
 
-\* These measurements were made with `Node.js v16.13` on an Intel Kaby Lake desktop CPU. Source code is [here](https://github.com/Daninet/gmp-wasm/blob/master/benchmark/calcpi.js).
+\* These measurements were made with `Node.js v16.14` on an Intel Kaby Lake desktop CPU. Source code is [here](https://github.com/Daninet/gmp-wasm/blob/master/benchmark/calcpi.js).
