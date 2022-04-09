@@ -14,7 +14,7 @@ Arbitrary-precision **Integer**, **Rational** and **Float** types based on the [
 - Has a lot more features, and in some cases, [it's faster](#performance) than the built-in **BigInt** type
 - The WASM binary is bundled as a compressed base64 string (no problems with linking)
 - Works even without Webpack or other bundlers
-- Includes TypeScript type definitions, check API [here](https://paka.dev/npm/gmp-wasm).
+- Includes TypeScript type definitions, check API [here](https://daninet.github.io/gmp-wasm).
 - Zero dependencies
 - Full minified and gzipped bundle has a size of ![Bundle size](https://img.badgesize.io/Daninet/gmp-wasm/binaries/index.umd.min.js?compression=gzip&label=minzipped%20size)
 - It also packages a mini bundle without Float/MPFR operations ![Bundle size](https://img.badgesize.io/Daninet/gmp-wasm/binaries/mini.umd.min.js?compression=gzip&label=minzipped%20size)
