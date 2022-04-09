@@ -1,4 +1,4 @@
-import type { GMPFunctions, mpfr_rnd_t } from './functions';
+import { mpfr_rnd_t } from './bindingTypes';
 import { Integer } from './integer';
 import { Rational } from './rational';
 import {assertInt32, assertUint32, assertValidRadix, isInt32} from './util';

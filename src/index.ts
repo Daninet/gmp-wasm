@@ -3,6 +3,8 @@ import { getGMPInterface, GMPFunctions } from './functions';
 import { DivMode, getIntegerContext, Integer, IntegerFactory } from './integer';
 import { getRationalContext, Rational, RationalFactory } from './rational';
 
+export * from './bindingTypes';
+
 export {
   DivMode,
   FloatRoundingMode,

@@ -15,7 +15,8 @@
     "build-types": "tsc --project types.tsconfig.json",
     "build": "npm run build-bindings && npm run build-rollup && npm run build-types",
     "test": "jest --coverage",
-    "typedoc": "typedoc ./src/index.ts"
+    "typedoc": "typedoc ./src/index.ts",
+    "typedoc-serve": "npm run typedoc && npx serve -n docs"
   },
   "keywords": [
     "gmp",
@@ -69,6 +70,7 @@
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-license": "^2.6.1",
     "rollup-plugin-terser": "^7.0.2",
+    "serve": "^13.0.2",
     "ts-jest": "^27.1.4",
     "ts-node": "^10.7.0",
     "tslib": "^2.3.1",

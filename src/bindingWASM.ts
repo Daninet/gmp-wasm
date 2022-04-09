@@ -29,7 +29,7 @@ export const getBinding = async (reset = false) => {
 
   await decompressAndCompile();
 
-  let heap = { HEAP8: null };
+  const heap = { HEAP8: new Uint8Array(0) };
   
   const errorHandler = () => {
     throw new Error('Fatal error in gmp-wasm');
