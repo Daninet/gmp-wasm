@@ -1,3 +1,6 @@
+## 1.0.1 (Apr 9, 2022)
+* Fix path of TS type declarations
+
 ## 1.0.0 (Apr 9, 2022)
 * **BREAKING CHANGES**:
   * exponent2() was renamed to exponent()
