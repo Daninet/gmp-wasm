@@ -99,6 +99,7 @@ export async function init(): Promise<GMPLib> {
       };
     },
 
+    /** Resets the WASM instance (clears all previously allocated objects) */
     reset: async () => {
       return binding.reset();
     },

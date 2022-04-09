@@ -239,13 +239,14 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    /** Returns the integer square root number of this number, rounded down. */
+    /** Returns the integer square root number, rounded down. */
     sqrt(): Integer {
       const n = IntegerFn();
       gmp.mpz_sqrt(n.mpz_t, this.mpz_t);
       return n;
     },
 
+    /** Returns the truncated integer part of the nth root */
     nthRoot(nth: number): Integer {
       const n = IntegerFn();
       assertUint32(nth);
@@ -253,6 +254,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns the factorial */
     factorial(): Integer {
       if (gmp.mpz_fits_ulong_p(this.mpz_t) === 0) {
         throw new Error('Out of bounds!');
@@ -263,6 +265,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns the double factorial */
     doubleFactorial(): Integer {
       if (gmp.mpz_fits_ulong_p(this.mpz_t) === 0) {
         throw new Error('Out of bounds!');
@@ -273,7 +276,8 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
-    isPrime(reps: number = 20): boolean | 'probably-prime' {
+    /** Determines whether a number is prime using some trial divisions, then reps Miller-Rabin probabilistic primality tests. */
+    isProbablyPrime(reps: number = 20): boolean | 'probably-prime' {
       assertUint32(reps);
       const ret = gmp.mpz_probab_prime_p(this.mpz_t, reps);
       if (ret === 0) return false; // definitely non-prime
@@ -281,6 +285,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       if (ret === 2) return true; // definitely prime
     },
 
+    /** Identifies primes using a probabilistic algorithm; the chance of a composite passing will be extremely small. */
     nextPrime(): Integer {
       const n = IntegerFn();
       gmp.mpz_nextprime(n.mpz_t, this.mpz_t);
@@ -302,6 +307,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the least common multiple of this number and the given one. */
     lcm(val: Integer | number): Integer {
       const n = IntegerFn();
       if (typeof val === 'number') {
@@ -316,12 +322,14 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns the one's complement. */
     complement1(): Integer {
       const n = IntegerFn();
       gmp.mpz_com(n.mpz_t, this.mpz_t);
       return n;
     },
 
+    /** Returns the two's complement. */
     complement2(): Integer {
       const n = IntegerFn();
       gmp.mpz_com(n.mpz_t, this.mpz_t);
@@ -451,7 +459,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     },
 
     // Returns the position of the most significant bit. The least significant bit is number 0.
-    msbPosition() {
+    msbPosition(): number {
       return gmp.mpz_sizeinbase(this.mpz_t, 2) - 1;
     },
 
@@ -480,7 +488,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
     },
 
     /** Creates new integer with the copy of binary representation of num to position offset. Optionally bitCount can be used to zero-pad the number to a specific number of bits. The least significant bit is number 0 */
-    writeTo(num: Integer, offset = 0, bitCount?: number) {
+    writeTo(num: Integer, offset = 0, bitCount?: number): Integer {
       assertUint32(offset);
       if (!isInteger(num)) throw new Error('Only Integers are supported');
       if (bitCount === undefined) {
@@ -499,31 +507,38 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns true if the current number is equal to the provided number */
     isEqual(val: AllTypes): boolean {
       return compare(this.mpz_t, val) === 0;
     },
 
+    /** Returns true if the current number is less than the provided number */
     lessThan(val: AllTypes): boolean {
       return compare(this.mpz_t, val) < 0;
     },
 
+    /** Returns true if the current number is less than or equal to the provided number */
     lessOrEqual(val: AllTypes): boolean {
       return compare(this.mpz_t, val) <= 0;
     },
 
+    /** Returns true if the current number is greater than the provided number */
     greaterThan(val: AllTypes): boolean {
       return compare(this.mpz_t, val) > 0;
     },
 
+    /** Returns true if the current number is greater than or equal to the provided number */
     greaterOrEqual(val: AllTypes): boolean {
       return compare(this.mpz_t, val) >= 0;
     },
 
-    sign() {
-      return gmp.mpz_sgn(this.mpz_t);
+    /** Returns the sign of the current value (-1 or 0 or 1) */
+    sign(): -1 | 0 | 1 {
+      return gmp.mpz_sgn(this.mpz_t) as -1 | 0 | 1;
     },
 
-    toNumber() {
+    /** Converts current value into a JavaScript number */
+    toNumber(): number {
       if (gmp.mpz_fits_slong_p(this.mpz_t) === 0) {
         return gmp.mpz_get_d(this.mpz_t);
       }
@@ -542,7 +557,8 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return buf;
     },
 
-    toString(radix: number = 10) {
+    /** Converts the number to string */
+    toString(radix: number = 10): string {
       if (!Number.isSafeInteger(radix) || radix < 2 || radix > 62) {
         throw new Error('radix must have a value between 2 and 62');
       }
@@ -553,10 +569,12 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       return str;
     },
 
+    /** Converts the number to a rational number */
     toRational(): Rational {
       return ctx.rationalContext.Rational(this);
     },
 
+    /** Converts the number to a floating-point number */
     toFloat(): Float {
       return ctx.floatContext.Float(this);
     },

@@ -129,6 +129,7 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       return n;
     },
 
+    /** Returns the inverse of the number. */
     invert(): Rational {
       const n = RationalFn(0, 1);
       gmp.mpq_inv(n.mpq_t, this.mpq_t);
@@ -165,6 +166,7 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns true if the current number is equal to the provided number */
     isEqual(val: AllTypes): boolean {
       if (typeof val === 'number' || isInteger(val)) {
         return gmp.mpq_equal(this.mpq_t, RationalFn(val as number | Integer).mpq_t) !== 0;
@@ -182,43 +184,52 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
+    /** Returns true if the current number is less than the provided number */
     lessThan(val: AllTypes): boolean {
       return compare(this.mpq_t, val) < 0;
     },
 
+    /** Returns true if the current number is less than or equal to the provided number */
     lessOrEqual(val: AllTypes): boolean {
       return compare(this.mpq_t, val) <= 0;
     },
 
+    /** Returns true if the current number is greater than the provided number */
     greaterThan(val: AllTypes): boolean {
       return compare(this.mpq_t, val) > 0;
     },
 
+    /** Returns true if the current number is greater than or equal to the provided number */
     greaterOrEqual(val: AllTypes): boolean {
       return compare(this.mpq_t, val) >= 0;
     },
 
+    /** Returns the numerator of the number */
     numerator(): Integer {
       const n = ctx.intContext.Integer() as Integer;
       gmp.mpq_get_num(n.mpz_t, this.mpq_t);
       return n;
     },
 
+    /** Returns the denominator of the number */
     denominator(): Integer {
       const n = ctx.intContext.Integer() as Integer;
       gmp.mpq_get_den(n.mpz_t, this.mpq_t);
       return n;
     },
 
-    sign() {
-      return gmp.mpq_sgn(this.mpq_t);
+    /** Returns the sign of the current value (-1 or 0 or 1) */
+    sign(): -1 | 0 | 1 {
+      return gmp.mpq_sgn(this.mpq_t) as -1 | 0 | 1;
     },
 
-    toNumber() {
+    /** Converts current value to a JavaScript number */
+    toNumber(): number {
       return gmp.mpq_get_d(this.mpq_t);
     },
 
-    toString() {
+    /** Converts the number to string */
+    toString(): string {
       const strptr = gmp.mpq_get_str(0, 10, this.mpq_t);
       const endptr = gmp.mem.indexOf(0, strptr);
       const str = decoder.decode(gmp.mem.subarray(strptr, endptr));
@@ -226,10 +237,12 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
       return str;
     },
 
+    /** Converts the number to an integer */
     toInteger(): Integer {
       return ctx.intContext.Integer(this);
     },
 
+    /** Converts the number to a floating-point number */
     toFloat(): Float {
       return ctx.floatContext.Float(this);
     },

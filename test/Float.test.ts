@@ -410,11 +410,11 @@ test('nextAbove()', () => {
   compare(ctx.Float('1').nextAbove(), '1.00003');
 });
 
-test('exponent2()', () => {
-  expect(ctx.Float(1).exponent2()).toBe(1);
-  expect(ctx.Float(0b1000).exponent2()).toBe(4);
-  expect(ctx.Float(0.375).exponent2()).toBe(-1); // 0.011
-  expect(ctx.Float(0.1875).exponent2()).toBe(-2); // 0.0011
+test('exponent()', () => {
+  expect(ctx.Float(1).exponent()).toBe(1);
+  expect(ctx.Float(0b1000).exponent()).toBe(4);
+  expect(ctx.Float(0.375).exponent()).toBe(-1); // 0.011
+  expect(ctx.Float(0.1875).exponent()).toBe(-2); // 0.0011
 });
 
 test('special values', () => {

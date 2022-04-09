@@ -292,25 +292,28 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       throw new Error(INVALID_PARAMETER_ERROR);
     },
 
-    /** Returns the integer square root number of this number. */
+    /** Returns the square root. */
     sqrt(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_sqrt(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the reciprocal square root. */
     invSqrt(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_rec_sqrt(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the cube root. */
     cbrt(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_cbrt(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the n-th root. */
     nthRoot(nth: number): Float {
       const n = FloatFn(null, this.options);
       assertUint32(nth);
@@ -325,14 +328,15 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return n;
     },
 
-    /** Returns the absolute value of this number. */
+    /** Returns the absolute value. */
     abs(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_abs(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
-    factorial() {
+    /** Returns the factorial */
+    factorial(): Float {
       const n = FloatFn(null, this.options);
       if (gmp.mpfr_fits_uint_p(this.mpfr_t, this.rndMode) === 0) {
         throw new Error('Invalid value for factorial()');
@@ -342,80 +346,97 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return n;
     },
 
-    isInteger() {
+    /** Returns true if the number is an integer */
+    isInteger(): boolean {
       return gmp.mpfr_integer_p(this.mpfr_t) !== 0;
     },
 
-    isZero() {
+    /** Returns true if the number is zero */
+    isZero(): boolean {
       return gmp.mpfr_zero_p(this.mpfr_t) !== 0;
     },
 
-    isRegular() {
+    /** Returns true if the number is a regular number (i.e., neither NaN, nor an infinity nor zero) */
+    isRegular(): boolean {
       return gmp.mpfr_regular_p(this.mpfr_t) !== 0;
     },
 
-    isNumber() {
+    /** Return true if the number is an ordinary number (i.e., neither NaN nor an infinity) */
+    isNumber(): boolean {
       return gmp.mpfr_number_p(this.mpfr_t) !== 0;
     },
 
-    isInfinite() {
+    /** Returns true if the number is an infinity */
+    isInfinite(): boolean {
       return gmp.mpfr_inf_p(this.mpfr_t) !== 0;
     },
 
-    isNaN() {
+    /** Returns true if the number is NaN */
+    isNaN(): boolean {
       return gmp.mpfr_nan_p(this.mpfr_t) !== 0;
     },
 
+    /** Returns true if the current number is equal to the provided number */
     isEqual(val: AllTypes): boolean {
       return compare(this.mpfr_t, val) === 0;
     },
 
+    /** Returns true if the current number is less than the provided number */
     lessThan(val: AllTypes): boolean {
       return compare(this.mpfr_t, val) < 0;
     },
-
+    
+    /** Returns true if the current number is less than or equal to the provided number */
     lessOrEqual(val: AllTypes): boolean {
       return compare(this.mpfr_t, val) <= 0;
     },
-
+    
+    /** Returns true if the current number is greater than the provided number */
     greaterThan(val: AllTypes): boolean {
       return compare(this.mpfr_t, val) > 0;
     },
-
+    
+    /** Returns true if the current number is greater than or equal to the provided number */
     greaterOrEqual(val: AllTypes): boolean {
       return compare(this.mpfr_t, val) >= 0;
     },
 
+    /** Returns the natural logarithm */
     ln(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_log(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the base 2 logarithm */
     log2(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_log2(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the base 10 logarithm */
     log10(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_log10(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the exponential (e^x) */
     exp(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_exp(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns 2 to the power of current number (2^x) */
     exp2(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_exp2(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns 10 to the power of current number (10^x) */
     exp10(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_exp10(n.mpfr_t, this.mpfr_t, this.rndMode);
@@ -437,108 +458,126 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return n;
     },
 
+    /** Returns the sine */
     sin(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_sin(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the cosine */
     cos(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_cos(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the tangent */
     tan(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_tan(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the secant */
     sec(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_sec(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the cosecant */
     csc(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_csc(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the cotangent */
     cot(): Float{
       const n = FloatFn(null, this.options);
       gmp.mpfr_cot(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the arc-cosine */
     acos(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_acos(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the arc-sine */
     asin(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_asin(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the arc-tangent */
     atan(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_atan(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the hyperbolic sine */
     sinh(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_sinh(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the hyperbolic cosine */
     cosh(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_cosh(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the hyperbolic tangent */
     tanh(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_tanh(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the hyperbolic secant */
     sech(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_sech(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the hyperbolic cosecant */
     csch(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_csch(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the hyperbolic cotangent */
     coth(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_coth(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the inverse hyperbolic cosine */
     acosh(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_acosh(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the inverse hyperbolic sine */
     asinh(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_asinh(n.mpfr_t, this.mpfr_t, this.rndMode);
       return n;
     },
 
+    /** Returns the inverse hyperbolic tangent */
     atanh(): Float {
       const n = FloatFn(null, this.options);
       gmp.mpfr_atanh(n.mpfr_t, this.mpfr_t, this.rndMode);
@@ -672,11 +711,13 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return n;
     },
 
-    sign() {
-      return gmp.mpfr_sgn(this.mpfr_t);
+    /** Returns the sign of the current value (-1 or 0 or 1) */
+    sign(): -1 | 0 | 1 {
+      return gmp.mpfr_sgn(this.mpfr_t) as -1 | 0 | 1;
     },
 
-    toNumber() {
+    /** Converts current value into a JavaScript number */
+    toNumber(): number {
       return gmp.mpfr_get_d(this.mpfr_t, this.rndMode);
     },
 
@@ -750,23 +791,27 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return n;
     },
 
+    /** Return next value towards +∞ */
     nextAbove(): Float {
       const n = FloatFn(this, this.options);
       gmp.mpfr_nextabove(n.mpfr_t);
       return n;
     },
 
+    /** Return next value towards -∞ */
     nextBelow(): Float {
       const n = FloatFn(this, this.options);
       gmp.mpfr_nextbelow(n.mpfr_t);
       return n;
     },
 
-    exponent2() {
+    /** Returns the exponent of x, assuming that x is a non-zero ordinary number and the significand is considered in [1/2, 1). */
+    exponent(): number {
       return gmp.mpfr_get_exp(this.mpfr_t);
     },
 
-    toString(radix?: number) {
+    /** Converts the number to string */
+    toString(radix?: number): string {
       radix = radix ?? this.options.radix;
       assertValidRadix(radix);
 
@@ -788,7 +833,8 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return ret;
     },
 
-    toFixed(digits = 0, radix?: number) {
+    /** Formats the number using fixed-point notation */
+    toFixed(digits = 0, radix?: number): string {
       assertUint32(digits);
       radix = radix ?? this.options.radix;
       assertValidRadix(radix);
@@ -819,10 +865,12 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       return `${isNegative ? '-' : ''}${intStr.slice(0, -digits)}.${intStr.slice(-digits)}`;
     },
 
+    /** Converts the number to an integer */
     toInteger(): Integer {
       return ctx.intContext.Integer(this);
     },
 
+    /** Converts the number to a rational number */
     toRational(): Rational {
       return ctx.rationalContext.Rational(this);
     },

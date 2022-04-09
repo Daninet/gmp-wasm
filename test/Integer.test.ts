@@ -164,11 +164,11 @@ test('doubleFactorial()', () => {
   compare(ctx.Integer(4).doubleFactorial(), '8');
 });
 
-test('isPrime()', () => {
-  expect(ctx.Integer(9).isPrime()).toBe(false);
-  expect(ctx.Integer(50).isPrime()).toBe(false);
-  // expect(ctx.Integer('1795265022').isPrime(2)).toBe(true);
-  expect(ctx.Integer(53).isPrime()).toBe(true);
+test('isProbablyPrime()', () => {
+  expect(ctx.Integer(9).isProbablyPrime()).toBe(false);
+  expect(ctx.Integer(50).isProbablyPrime()).toBe(false);
+  // expect(ctx.Integer('1795265022').isProbablyPrime(2)).toBe(true);
+  expect(ctx.Integer(53).isProbablyPrime()).toBe(true);
 });
 
 test('nextPrime()', () => {
