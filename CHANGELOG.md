@@ -1,3 +1,11 @@
+## 1.0.0 (Apr 9, 2022)
+* **BREAKING CHANGES**:
+  * exponent2() was renamed to exponent()
+  * isPrime() was renamed to isProbablyPrime()
+* New documentation based on TypeDoc
+* More strict TS types
+* Update all dependencies
+
 ## 0.9.4 (Dec 21, 2021)
 * Fix uninitialized usage of mpz_t (by Yuri Stuken)
 
