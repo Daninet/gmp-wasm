@@ -1,4 +1,4 @@
-FROM emscripten/emsdk:2.0.32
+FROM emscripten/emsdk:3.1.8
 
 # warm up emscripten cache
 RUN embuilder.py build MINIMAL --lto
