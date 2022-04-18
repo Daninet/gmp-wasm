@@ -33,3 +33,61 @@ export function assertValidRadix(radix: number) {
     throw new Error('radix must have a value between 2 and 36');
   }
 }
+
+export const FLOAT_SPECIAL_VALUES = {
+  '@NaN@': 'NaN',
+  '@Inf@': 'Infinity',
+  '-@Inf@': '-Infinity',
+} as const;
+
+export const FLOAT_SPECIAL_VALUE_KEYS = Object.keys(FLOAT_SPECIAL_VALUES);
+
+export const trimTrailingZeros = (num: string): string => {
+  let pos = num.length - 1;
+  while (pos >= 0) {
+    if (num[pos] === '.') {
+      pos--;
+      break;
+    } else if (num[pos] === '0') {
+      pos--;
+    } else {
+      break;
+    }
+  }
+
+  if (pos !== num.length - 1) {
+    return num.slice(0, pos + 1);
+  }
+
+  if (num.length === 0) {
+    return '0';
+  }
+
+  return num;
+};
+
+export const insertDecimalPoint = (mantissa: string, pointPos: number): string => {
+  const isNegative = mantissa.startsWith('-');
+
+  const mantissaWithoutSign = isNegative ? mantissa.slice(1) : mantissa;
+  const sign = isNegative ? '-' : '';
+  let hasDecimalPoint = false;
+
+  if (pointPos <= 0) {
+    const zeros = '0'.repeat(-pointPos);
+    mantissa = `${sign}0.${zeros}${mantissaWithoutSign}`;
+    hasDecimalPoint = true;
+  } else if (pointPos < mantissaWithoutSign.length) {
+    mantissa = `${sign}${mantissaWithoutSign.slice(0, pointPos)}.${mantissaWithoutSign.slice(pointPos)}`;
+    hasDecimalPoint = true;
+  } else {
+    const zeros = '0'.repeat(pointPos - mantissaWithoutSign.length);
+    mantissa = `${mantissa}${zeros}`;
+  }
+
+  // trim trailing zeros after decimal point
+  if (hasDecimalPoint) {
+    mantissa = trimTrailingZeros(mantissa);
+  }
+  return mantissa;
+}

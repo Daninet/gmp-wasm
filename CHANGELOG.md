@@ -1,3 +1,7 @@
+## 1.0.2 (Apr 18, 2022)
+* Add missing mpq_numref(), mpq_denref() functions
+* Add mpfr_get_pretty_string() function
+
 ## 1.0.1 (Apr 9, 2022)
 * Fix path of TS type declarations
 

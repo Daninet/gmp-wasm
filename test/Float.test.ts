@@ -508,3 +508,10 @@ test('FloatOptions constants', () => {
   expect(gmp.calculate(g => g.Log2(), options)).toBe('0.69238');
   expect(gmp.calculate(g => g.Log2(options))).toBe('0.69238');
 });
+
+test('mpfr_get_pretty_string()', () => {
+  const roundingMode = FloatRoundingMode.ROUND_NEAREST;
+  const options = { precisionBits: 16, roundingMode };
+  const val = ctx.Float('-123.456789000', options);
+  expect(gmp.binding.mpfr_get_pretty_string(val.mpfr_t, 10, roundingMode as number)).toBe('-123.457');
+});

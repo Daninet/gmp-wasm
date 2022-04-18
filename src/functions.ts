@@ -37,11 +37,13 @@ import {
 } from './bindingTypes';
 
 import { getBinding } from './bindingWASM';
+import { FLOAT_SPECIAL_VALUES, FLOAT_SPECIAL_VALUE_KEYS, insertDecimalPoint } from './util';
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 type GMPFunctionsType = Awaited<ReturnType<typeof getGMPInterface>>;
 export interface GMPFunctions extends GMPFunctionsType {}
 
+const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
 export async function getGMPInterface() {
@@ -1125,5 +1127,26 @@ export async function getGMPInterface() {
     mpfr_custom_get_kind: (x: mpfr_srcptr): c_int => gmp.r_custom_get_kind(x),
     /** This function implements the totalOrder predicate from IEEE 754-2008, where -NaN < -Inf < negative finite numbers < -0 < +0 < positive finite numbers < +Inf < +NaN. It returns a non-zero value (true) when x is smaller than or equal to y for this order relation, and zero (false) otherwise */
     mpfr_total_order_p: (x: mpfr_srcptr, y: mpfr_srcptr): c_int => gmp.r_total_order_p(x, y),
+
+    /**************** Helper functions  ****************/
+    /** Converts MPFR float into string */
+    mpfr_get_pretty_string(x: mpfr_ptr, radix: number, rnd: mpfr_rnd_t): string {
+      const mpfr_exp_t_ptr = this.malloc(4);
+      const strptr = this.mpfr_get_str(0, mpfr_exp_t_ptr, radix, 0, x, rnd);
+      const endptr = this.mem.indexOf(0, strptr);
+      let ret = decoder.decode(this.mem.subarray(strptr, endptr));
+
+      if (FLOAT_SPECIAL_VALUE_KEYS.includes(ret)) {
+        ret = FLOAT_SPECIAL_VALUES[ret];
+      } else {
+        // decimal point needs to be inserted
+        const pointPos = this.memView.getInt32(mpfr_exp_t_ptr, true);
+        ret = insertDecimalPoint(ret, pointPos);
+      }
+
+      this.mpfr_free_str(strptr);
+      this.free(mpfr_exp_t_ptr);
+      return ret;
+    }
   };
 };

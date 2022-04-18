@@ -2,9 +2,7 @@ import { mpfr_rnd_t } from './bindingTypes';
 import { GMPFunctions } from './functions';
 import { Integer } from './integer';
 import { Rational } from './rational';
-import {assertInt32, assertUint32, assertValidRadix, isInt32} from './util';
-
-const decoder = new TextDecoder();
+import { assertInt32, assertUint32, assertValidRadix, FLOAT_SPECIAL_VALUES, isInt32 } from './util';
 
 type FloatFactoryReturn = ReturnType<typeof getFloatContext>['Float'];
 export interface FloatFactory extends FloatFactoryReturn {};
@@ -32,70 +30,11 @@ export enum FloatRoundingMode {
   // /** (Experimental) Round to nearest, with ties away from zero. MPFR_RNDNA */
   // ROUND_TO_NEAREST_AWAY_FROM_ZERO = -1,
 };
-
-const SPECIAL_VALUES = {
-  '@NaN@': 'NaN',
-  '@Inf@': 'Infinity',
-  '-@Inf@': '-Infinity',
-} as const;
-
-const SPECIAL_VALUE_KEYS = Object.keys(SPECIAL_VALUES);
-
 export interface FloatOptions {
   precisionBits?: number;
   roundingMode?: FloatRoundingMode;
   radix?: number;
 };
-
-const trimTrailingZeros = (num: string) => {
-  let pos = num.length - 1;
-  while (pos >= 0) {
-    if (num[pos] === '.') {
-      pos--;
-      break;
-    } else if (num[pos] === '0') {
-      pos--;
-    } else {
-      break;
-    }
-  }
-
-  if (pos !== num.length - 1) {
-    return num.slice(0, pos + 1);
-  }
-
-  if (num.length === 0) {
-    return '0';
-  }
-
-  return num;
-};
-
-const insertDecimalPoint = (mantissa: string, pointPos: number) => {
-  const isNegative = mantissa.startsWith('-');
-
-  const mantissaWithoutSign = isNegative ? mantissa.slice(1) : mantissa;
-  const sign = isNegative ? '-' : '';
-  let hasDecimalPoint = false;
-
-  if (pointPos <= 0) {
-    const zeros = '0'.repeat(-pointPos);
-    mantissa = `${sign}0.${zeros}${mantissaWithoutSign}`;
-    hasDecimalPoint = true;
-  } else if (pointPos < mantissaWithoutSign.length) {
-    mantissa = `${sign}${mantissaWithoutSign.slice(0, pointPos)}.${mantissaWithoutSign.slice(pointPos)}`;
-    hasDecimalPoint = true;
-  } else {
-    const zeros = '0'.repeat(pointPos - mantissaWithoutSign.length);
-    mantissa = `${mantissa}${zeros}`;
-  }
-
-  // trim trailing zeros after decimal point
-  if (hasDecimalPoint) {
-    mantissa = trimTrailingZeros(mantissa);
-  }
-  return mantissa;
-}
 
 const INVALID_PARAMETER_ERROR = 'Invalid parameter!';
 
@@ -815,22 +754,8 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       radix = radix ?? this.options.radix;
       assertValidRadix(radix);
 
-      const mpfr_exp_t_ptr = gmp.malloc(4);
-      const strptr = gmp.mpfr_get_str(0, mpfr_exp_t_ptr, radix, 0, this.mpfr_t, this.rndMode);
-      const endptr = gmp.mem.indexOf(0, strptr);
-      let ret = decoder.decode(gmp.mem.subarray(strptr, endptr));
-
-      if (SPECIAL_VALUE_KEYS.includes(ret)) {
-        ret = SPECIAL_VALUES[ret];
-      } else {
-        // decimal point needs to be inserted
-        const pointPos = gmp.memView.getInt32(mpfr_exp_t_ptr, true);
-        ret = insertDecimalPoint(ret, pointPos);
-      }
-
-      gmp.mpfr_free_str(strptr);
-      gmp.free(mpfr_exp_t_ptr);
-      return ret;
+      const str = gmp.mpfr_get_pretty_string(this.mpfr_t, radix, this.rndMode);
+      return str;
     },
 
     /** Formats the number using fixed-point notation */
@@ -840,7 +765,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       assertValidRadix(radix);
 
       const str = this.toString(radix);
-      if (Object.values(SPECIAL_VALUES).includes(str)) {
+      if (Object.values(FLOAT_SPECIAL_VALUES).includes(str)) {
         return str;
       }
       if (digits === 0) {
