@@ -12,6 +12,13 @@ test('has 64 bit binding', () => {
   expect(gmp.binding.mp_bits_per_limb()).toBe(64);
 });
 
+test('binding has macros', () => {
+  const ctx = gmp.getContext();
+  const { mpq_t } = ctx.Rational(3, 4);
+  expect(gmp.binding.mpz_get_si(gmp.binding.mpq_numref(mpq_t))).toBe(3);
+  expect(gmp.binding.mpz_get_si(gmp.binding.mpq_denref(mpq_t))).toBe(4);
+});
+
 test('calculate()', () => {
   expect(gmp.calculate(g => g.Float('2').sqrt())).toBe('1.4142135623730949');
   expect(gmp.calculate(g => g.Float('2').sqrt(), {})).toBe('1.4142135623730949');

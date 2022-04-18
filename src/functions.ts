@@ -515,6 +515,10 @@ export async function getGMPInterface() {
     mpq_sub: (difference: mpq_ptr, minuend: mpq_srcptr, subtrahend: mpq_srcptr): void => { gmp.q_sub(difference, minuend, subtrahend); },
     /** Swap the values rop1 and rop2 efficiently. */
     mpq_swap: (rop1: mpq_ptr, rop2: mpq_ptr): void => { gmp.q_swap(rop1, rop2); },
+    /** Return a reference to the numerator of op. */
+    mpq_numref: (op: mpq_ptr): mpz_ptr => gmp.q_numref(op),
+    /** Return a reference to the denominator of op. */
+    mpq_denref: (op: mpq_ptr): mpz_ptr => gmp.q_denref(op),
 
     /**************** MPFR  ****************/
     /** Allocates memory for the mpfr_t C struct and returns pointer */
