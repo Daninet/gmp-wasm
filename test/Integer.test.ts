@@ -453,6 +453,7 @@ test('toString()', () => {
   expect(ctx.Integer('2').toString()).toBe('2');
   expect(ctx.Integer('-2').toString()).toBe('-2');
   expect(ctx.Integer('999 999 999 999').toString()).toBe('999999999999');
+  expect(ctx.Integer('1'.repeat(8000)).toString()).toBe('1'.repeat(8000));
   expect(ctx.Integer(0b1101100).toString(2)).toBe('1101100');
   expect(ctx.Integer(-0b1101100).toString(2)).toBe('-1101100');
   expect(ctx.Integer(0b1101100).toString(16)).toBe('6c');

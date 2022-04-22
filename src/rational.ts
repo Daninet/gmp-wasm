@@ -3,8 +3,6 @@ import { Float } from './float';
 import { Integer } from './integer';
 import { assertInt32 } from './util';
 
-const decoder = new TextDecoder();
-
 type RationalFactoryReturn = ReturnType<typeof getRationalContext>['Rational'];
 export interface RationalFactory extends RationalFactoryReturn {};
 type RationalReturn = ReturnType<RationalFactoryReturn>;
@@ -229,12 +227,11 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
     },
 
     /** Converts the number to string */
-    toString(): string {
-      const strptr = gmp.mpq_get_str(0, 10, this.mpq_t);
-      const endptr = gmp.mem.indexOf(0, strptr);
-      const str = decoder.decode(gmp.mem.subarray(strptr, endptr));
-      gmp.free(strptr);
-      return str;
+    toString(radix: number = 10): string {
+      if (!Number.isSafeInteger(radix) || radix < 2 || radix > 62) {
+        throw new Error('radix must have a value between 2 and 62');
+      }
+      return gmp.mpq_to_string(this.mpq_t, radix);
     },
 
     /** Converts the number to an integer */
@@ -274,9 +271,10 @@ export function getRationalContext(gmp: GMPFunctions, ctx: any) {
     }
 
     const finalString = p2 !== undefined ? `${p1.toString()}/${p2.toString()}` : p1.toString();
-    const strPtr = gmp.malloc_cstr(finalString);
-    gmp.mpq_set_str(mpq_t, strPtr, 10);
-    gmp.free(strPtr);
+    const res = gmp.mpq_set_string(mpq_t, finalString, 10);
+    if (res !== 0) {
+      throw new Error('Invalid number provided!');
+    }
   }
 
   const RationalFn = (p1: string | number | Rational | Integer, p2?: string | number | Integer) => {

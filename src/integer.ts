@@ -3,8 +3,6 @@ import { Float } from './float';
 import { Rational } from './rational';
 import {assertArray, assertInt32, assertUint32, assertValidRadix} from './util';
 
-const decoder = new TextDecoder();
-
 type IntegerFactoryReturn = ReturnType<typeof getIntegerContext>['Integer'];
 export interface IntegerFactory extends IntegerFactoryReturn {};
 type IntegerReturn = ReturnType<IntegerFactoryReturn>;
@@ -562,11 +560,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       if (!Number.isSafeInteger(radix) || radix < 2 || radix > 62) {
         throw new Error('radix must have a value between 2 and 62');
       }
-      const strptr = gmp.mpz_get_str(0, radix, this.mpz_t);
-      const endptr = gmp.mem.indexOf(0, strptr);
-      const str = decoder.decode(gmp.mem.subarray(strptr, endptr));
-      gmp.free(strptr);
-      return str;
+      return gmp.mpz_to_string(this.mpz_t, radix);
     },
 
     /** Converts the number to a rational number */
@@ -588,9 +582,7 @@ export function getIntegerContext(gmp: GMPFunctions, ctx: any) {
       gmp.mpz_init(instance.mpz_t);
     } else if (typeof num === 'string') {
       assertValidRadix(radix);
-      const strPtr = gmp.malloc_cstr(num);
-      const res = gmp.mpz_init_set_str(instance.mpz_t, strPtr, radix);
-      gmp.free(strPtr);
+      const res = gmp.mpz_init_set_string(instance.mpz_t, num, radix);
       if (res !== 0) {
         throw new Error('Invalid number provided!');
       }

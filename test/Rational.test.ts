@@ -180,3 +180,14 @@ test('toFloat()', () => {
 test('toInteger()', () => {
   expect(ctx.Rational('2').toInteger().toString()).toBe('2');
 });
+
+test('toString()', () => {
+  expect(ctx.Rational('2/3').toString()).toBe('2/3');
+  expect(ctx.Rational('-2/3').toString()).toBe('-2/3');
+  expect(ctx.Rational('999 999 999 999/123').toString()).toBe('333333333333/41');
+  expect(ctx.Rational('1'.repeat(8000)).toString()).toBe('1'.repeat(8000));
+  expect(ctx.Rational(0b1101100, 5).toString(2)).toBe('1101100/101');
+  expect(ctx.Rational(-0b1101100, -7).toString(2)).toBe('1101100/111');
+  expect(ctx.Rational(0b1101101, 16).toString(16)).toBe('6d/10');
+  expect(ctx.Rational(-0b1101101, 15).toString(16)).toBe('-6d/f');
+});

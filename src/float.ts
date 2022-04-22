@@ -754,7 +754,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       radix = radix ?? this.options.radix;
       assertValidRadix(radix);
 
-      const str = gmp.mpfr_get_pretty_string(this.mpfr_t, radix, this.rndMode);
+      const str = gmp.mpfr_to_string(this.mpfr_t, radix, this.rndMode);
       return str;
     },
 
@@ -803,9 +803,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
 
   const setValue = (mpfr_t: number, rndMode: mpfr_rnd_t, radix: number, val: string | number | Float | Rational | Integer) => {
     if (typeof val === 'string') {
-      const strPtr = gmp.malloc_cstr(val);
-      const res = gmp.mpfr_set_str(mpfr_t, strPtr, radix, rndMode);
-      gmp.free(strPtr);
+      const res =  gmp.mpfr_set_string(mpfr_t, val, radix, rndMode);
       if (res !== 0) {
         throw new Error('Invalid number provided!');
       }

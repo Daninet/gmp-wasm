@@ -461,6 +461,10 @@ test('toInteger()', () => {
   expect(ctx.Float('2').toInteger().toString()).toBe('2');
 });
 
+test('toString()', () => {
+  expect(ctx.Float('1'.repeat(8000), { precisionBits: 32000 }).toString()).toBe('1'.repeat(8000));
+});
+
 test('special values to JS types', () => {
   expect(ctx.Float(0).toNumber()).toBe(0);
   expect(ctx.Float(-0).toNumber()).toBe(-0);
@@ -507,11 +511,4 @@ test('FloatOptions constants', () => {
   expect(gmp.calculate(g => g.EulerNumber(options))).toBe('2.7148');
   expect(gmp.calculate(g => g.Log2(), options)).toBe('0.69238');
   expect(gmp.calculate(g => g.Log2(options))).toBe('0.69238');
-});
-
-test('mpfr_get_pretty_string()', () => {
-  const roundingMode = FloatRoundingMode.ROUND_NEAREST;
-  const options = { precisionBits: 16, roundingMode };
-  const val = ctx.Float('-123.456789000', options);
-  expect(gmp.binding.mpfr_get_pretty_string(val.mpfr_t, 10, roundingMode as number)).toBe('-123.457');
 });

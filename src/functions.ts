@@ -46,11 +46,30 @@ export interface GMPFunctions extends GMPFunctionsType {}
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
+const PREALLOCATED_STR_SIZE = 2 * 1024;
+
 export async function getGMPInterface() {
   let gmp = await getBinding();
+  let strBuf = gmp.g_malloc(PREALLOCATED_STR_SIZE);
+  let mpfr_exp_t_ptr = gmp.g_malloc(4);
+
+  const getStringPointer = (input: string) => {
+    const data = encoder.encode(input);
+    let srcPtr = strBuf;
+    if (data.length + 1 > PREALLOCATED_STR_SIZE) {
+      srcPtr = gmp.g_malloc(data.length + 1);
+    }
+    gmp.heap.HEAP8.set(data, srcPtr);
+    gmp.heap.HEAP8[srcPtr + data.length] = 0;
+    return srcPtr;
+  };
 
   return {
-    reset: async () => { gmp = await getBinding(true); },
+    reset: async () => {
+      gmp = await getBinding(true);
+      strBuf = gmp.g_malloc(PREALLOCATED_STR_SIZE);
+      mpfr_exp_t_ptr = gmp.g_malloc(4);
+    },
     malloc: (size: c_size_t): c_void_ptr => gmp.g_malloc(size),
     malloc_cstr: (str: string): number => {
       const buf = encoder.encode(str);
@@ -1129,24 +1148,120 @@ export async function getGMPInterface() {
     mpfr_total_order_p: (x: mpfr_srcptr, y: mpfr_srcptr): c_int => gmp.r_total_order_p(x, y),
 
     /**************** Helper functions  ****************/
-    /** Converts MPFR float into string */
-    mpfr_get_pretty_string(x: mpfr_ptr, radix: number, rnd: mpfr_rnd_t): string {
-      const mpfr_exp_t_ptr = this.malloc(4);
-      const strptr = this.mpfr_get_str(0, mpfr_exp_t_ptr, radix, 0, x, rnd);
-      const endptr = this.mem.indexOf(0, strptr);
-      let ret = decoder.decode(this.mem.subarray(strptr, endptr));
 
-      if (FLOAT_SPECIAL_VALUE_KEYS.includes(ret)) {
-        ret = FLOAT_SPECIAL_VALUES[ret];
+    /** Converts JS string into MPZ integer */
+    mpz_set_string(mpz: mpz_ptr, input: string, base: number): number {
+      const srcPtr = getStringPointer(input);
+      const res = gmp.z_set_str(mpz, srcPtr, base);
+
+      if (srcPtr !== strBuf) {
+        gmp.g_free(srcPtr);
+      }
+      return res;
+    },
+
+    /** Initializes new MPFR float from JS string */
+    mpz_init_set_string(mpz: mpz_ptr, input: string, base: number): number {
+      const srcPtr = getStringPointer(input);
+      const res = gmp.z_init_set_str(mpz, srcPtr, base);
+
+      if (srcPtr !== strBuf) {
+        gmp.g_free(srcPtr);
+      }
+      return res;
+    },
+
+    /** Converts MPZ int into JS string */
+    mpz_to_string(x: mpz_ptr, base: number): string {
+      let destPtr = 0;
+      if (gmp.z_sizeinbase(x, base) + 2 < PREALLOCATED_STR_SIZE) {
+        destPtr = strBuf;
+      }
+
+      const strPtr = gmp.z_get_str(destPtr, base, x);
+      const endPtr = this.mem.indexOf(0, strPtr);
+      const str = decoder.decode(this.mem.subarray(strPtr, endPtr));
+      if (destPtr !== strBuf) {
+        gmp.g_free(strPtr);
+      }
+      return str;
+    },
+
+    /** Converts JS string into MPQ rational */
+    mpq_set_string(mpq: mpq_ptr, input: string, base: number): number {
+      const srcPtr = getStringPointer(input);
+      const res = gmp.q_set_str(mpq, srcPtr, base);
+
+      if (srcPtr !== strBuf) {
+        gmp.g_free(srcPtr);
+      }
+      return res;
+    },
+
+    /** Converts MPQ rational into JS string */
+    mpq_to_string(x: mpz_ptr, base: number): string {
+      let destPtr = 0;
+      const requiredSize = gmp.z_sizeinbase(gmp.q_numref(x), base) + gmp.z_sizeinbase(gmp.q_denref(x), base) + 3;
+      if (requiredSize < PREALLOCATED_STR_SIZE) {
+        destPtr = strBuf;
+      }
+
+      const strPtr = gmp.q_get_str(destPtr, base, x);
+      const endPtr = this.mem.indexOf(0, strPtr);
+      const str = decoder.decode(this.mem.subarray(strPtr, endPtr));
+      if (destPtr !== strBuf) {
+        gmp.g_free(strPtr);
+      }
+      return str;
+    },
+
+    /** Converts JS string into MPFR float */
+    mpfr_set_string(mpfr: mpfr_t, input: string, base: number, rnd: mpfr_rnd_t): number {
+      const srcPtr = getStringPointer(input);
+      const res = gmp.r_set_str(mpfr, srcPtr, base, rnd);
+
+      if (srcPtr !== strBuf) {
+        gmp.g_free(srcPtr);
+      }
+      return res;
+    },
+
+    /** Initializes new MPFR float from JS string */
+    mpfr_init_set_string(mpfr: mpfr_t, input: string, base: number, rnd: mpfr_rnd_t): number {
+      const srcPtr = getStringPointer(input);
+      const res = gmp.r_init_set_str(mpfr, srcPtr, base, rnd);
+
+      if (srcPtr !== strBuf) {
+        gmp.g_free(srcPtr);
+      }
+      return res;
+    },
+
+    /** Converts MPFR float into JS string */
+    mpfr_to_string(x: mpfr_ptr, base: number, rnd: mpfr_rnd_t): string {
+      let destPtr = 0;
+      const n = gmp.r_get_str_ndigits(base, gmp.r_get_prec(x));
+      const requiredSize = Math.max(7, n + 2);
+      if (requiredSize < PREALLOCATED_STR_SIZE) {
+        destPtr = strBuf;
+      }
+
+      const strPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, rnd);
+      const endPtr = this.mem.indexOf(0, strPtr);
+      let str = decoder.decode(this.mem.subarray(strPtr, endPtr));
+
+      if (FLOAT_SPECIAL_VALUE_KEYS.includes(str)) {
+        str = FLOAT_SPECIAL_VALUES[str];
       } else {
         // decimal point needs to be inserted
         const pointPos = this.memView.getInt32(mpfr_exp_t_ptr, true);
-        ret = insertDecimalPoint(ret, pointPos);
+        str = insertDecimalPoint(str, pointPos);
       }
 
-      this.mpfr_free_str(strptr);
-      this.free(mpfr_exp_t_ptr);
-      return ret;
+      if (destPtr !== strBuf) {
+        gmp.r_free_str(strPtr);
+      }
+      return str;
     }
   };
 };
