@@ -1,3 +1,9 @@
+## 1.1.0 (Apr 22, 2022)
+* Rename mpfr_get_pretty_string() to mpfr_to_string()
+* Add mpz_to_string() and mpq_to_string() helpers
+* Add mpz_set_string(), mpz_init_set_string(), mpq_set_string(), mpfr_set_string(), mpfr_init_set_string() helpers
+* Add radix parameter to Rational.toString()
+
 ## 1.0.2 (Apr 18, 2022)
 * Add missing mpq_numref(), mpq_denref() functions
 * Add mpfr_get_pretty_string() function
