@@ -16,16 +16,18 @@ ENV EMCC_FLAGS="${LDFLAGS} \
   -s STANDALONE_WASM=1 \
   -s ERROR_ON_UNDEFINED_SYMBOLS=1 \
   -s AUTO_JS_LIBRARIES=0 \
-  -s FILESYSTEM=0 \
   -s ASSERTIONS=0 \
-  --no-entry \
-  --emit-symbol-map"
+  -s FILESYSTEM=0 \
+  --no-entry"
+
+# --emit-symbol-map
+# -mbulk-memory -msign-ext
 
 # -s STANDALONE_WASM=1 \
 # -s MINIMAL_RUNTIME=1
 
-ADD ./src /builder/src
-ADD ./mpfr/dist /builder/libdist
+COPY ./src /builder/src
+COPY ./mpfr/dist /builder/libdist
 
 RUN emcc ${CXXFLAGS} -c src/entry.c -o src/entrymini.o
 RUN emcc ${CXXFLAGS} -DGMP_WASM_FULL_LIB -c src/entry.c -o src/entry.o

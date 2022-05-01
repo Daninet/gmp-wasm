@@ -1,2 +1,4 @@
+gmp/src
+mpfr/src
 dist
 *.o

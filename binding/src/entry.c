@@ -1,5 +1,4 @@
 #include <gmp.h>
-#include <mpfr.h>
 #include <stdio.h>
 #include <emscripten.h>
 #include <math.h>
@@ -9,6 +8,30 @@
 #ifdef _MSC_VER
 #define EMSCRIPTEN_KEEPALIVE;
 #endif
+
+// void *__gmp_allocate (size_t size) {
+//   void *ret = malloc(size);
+//   if (ret == 0) {
+//     abort ();
+//   }
+//   return ret;
+// }
+
+// void *__gmp_reallocate (void *oldptr, size_t old_size, size_t new_size) {
+//   void *ret = realloc (oldptr, new_size);
+//   if (ret == 0) {
+//     abort ();
+//   }
+//   return ret;
+// }
+
+// void __gmp_free (void *blk_ptr, size_t blk_size) {
+//   free(blk_ptr);
+// }
+
+// int main() {
+//   mp_set_memory_functions(__gmp_allocate, __gmp_reallocate, __gmp_free);
+// }
 
 EMSCRIPTEN_KEEPALIVE void* g_malloc (size_t bytes) { return malloc(bytes); }
 EMSCRIPTEN_KEEPALIVE void g_free (void *ptr) { free(ptr); }
@@ -234,8 +257,8 @@ EMSCRIPTEN_KEEPALIVE mpz_ptr q_numref (mpq_ptr p1) { return mpq_numref(p1); }
 EMSCRIPTEN_KEEPALIVE mpz_ptr q_denref (mpq_ptr p1) { return mpq_denref(p1); }
 
 #ifdef GMP_WASM_FULL_LIB
-
 /**************** MPFR  ****************/
+#include <mpfr.h>
 
 EMSCRIPTEN_KEEPALIVE mpfr_ptr r_t () { return (mpfr_ptr)malloc(sizeof(mpfr_t)); }
 EMSCRIPTEN_KEEPALIVE void r_t_free (mpfr_ptr p1) { free(p1); }

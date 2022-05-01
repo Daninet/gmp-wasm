@@ -2,6 +2,7 @@ const DecimalJs = require('decimal.js');
 const Big = require('big.js');
 const BigInteger = require('big-integer');
 const { init: initGMP, DivMode } = require('../dist/index.umd.js');
+// const { init: initGMP, DivMode } = require('gmp-wasm');
 const piDecimals = require("pi-decimals");
 const mpzjs = require("mpzjs");
 
