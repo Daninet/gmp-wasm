@@ -46,7 +46,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
   const isFloat = (val): boolean => ctx.floatContext.isFloat(val);
 
   const globalRndMode = (ctxOptions.roundingMode ?? FloatRoundingMode.ROUND_NEAREST) as number as mpfr_rnd_t;
-  const globalPrecisionBits = ctxOptions.precisionBits ?? 52;
+  const globalPrecisionBits = ctxOptions.precisionBits ?? 53; // double precision by default
   const globalRadix = ctxOptions.radix ?? 10;
 
   assertUint32(globalPrecisionBits);
