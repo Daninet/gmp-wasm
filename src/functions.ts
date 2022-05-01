@@ -324,7 +324,7 @@ export async function getGMPInterface() {
     /** Set r to n mod d. */
     mpz_mod: (r: mpz_ptr, n: mpz_srcptr, d: mpz_srcptr): void => { gmp.z_mod(r, n, d); },
     /** Set r to n mod d. */
-    mpz_mod_ui: (r: mpz_ptr, n: mpz_srcptr, d: mpz_srcptr): void => { gmp.z_mod_ui(r, n, d); },
+    mpz_mod_ui: (r: mpz_ptr, n: mpz_srcptr, d: c_unsigned_long_int): void => { gmp.z_mod_ui(r, n, d); },
     /** Set rop to op1 * op2. */
     mpz_mul: (rop: mpz_ptr, op1: mpz_srcptr, op2: mpz_srcptr): void => { gmp.z_mul(rop, op1, op2); },
     /** Set rop to op1 * 2^op2. */
@@ -558,19 +558,19 @@ export async function getGMPInterface() {
     /** Return the MPFR version, as a null-terminated string. */
     mpfr_get_version: (): c_str_ptr => gmp.r_get_version(),
     /** Return a null-terminated string containing the ids of the patches applied to the MPFR library (contents of the PATCHES file), separated by spaces. */
-    mpfr_get_patches: (): c_str_ptr => gmp.r_get_patches(),
+    // mpfr_get_patches: (): c_str_ptr => gmp.r_get_patches(),
     /** Return a non-zero value if MPFR was compiled as thread safe using compiler-level Thread Local Storage, return zero otherwise. */
-    mpfr_buildopt_tls_p: (): c_int => gmp.r_buildopt_tls_p(),
+    // mpfr_buildopt_tls_p: (): c_int => gmp.r_buildopt_tls_p(),
     /** Return a non-zero value if MPFR was compiled with ‘__float128’ support, return zero otherwise. */
-    mpfr_buildopt_float128_p: (): c_int => gmp.r_buildopt_float128_p(),
+    // mpfr_buildopt_float128_p: (): c_int => gmp.r_buildopt_float128_p(),
     /** Return a non-zero value if MPFR was compiled with decimal float support, return zero otherwise. */
-    mpfr_buildopt_decimal_p: (): c_int => gmp.r_buildopt_decimal_p(),
+    // mpfr_buildopt_decimal_p: (): c_int => gmp.r_buildopt_decimal_p(),
     /** Return a non-zero value if MPFR was compiled with GMP internals, return zero otherwise. */
-    mpfr_buildopt_gmpinternals_p: (): c_int => gmp.r_buildopt_gmpinternals_p(),
+    // mpfr_buildopt_gmpinternals_p: (): c_int => gmp.r_buildopt_gmpinternals_p(),
     /** Return a non-zero value if MPFR was compiled so that all threads share the same cache for one MPFR constant, return zero otherwise. */
-    mpfr_buildopt_sharedcache_p: (): c_int => gmp.r_buildopt_sharedcache_p(),
+    // mpfr_buildopt_sharedcache_p: (): c_int => gmp.r_buildopt_sharedcache_p(),
     /** Return a string saying which thresholds file has been used at compile time. */
-    mpfr_buildopt_tune_case: (): c_str_ptr => gmp.r_buildopt_tune_case(),
+    // mpfr_buildopt_tune_case: (): c_str_ptr => gmp.r_buildopt_tune_case(),
     /** Return the (current) smallest exponent allowed for a floating-point variable. */
     mpfr_get_emin: (): mpfr_exp_t => gmp.r_get_emin(),
     /** Set the smallest exponent allowed for a floating-point variable. */
@@ -592,7 +592,7 @@ export async function getGMPInterface() {
     /** Get the default rounding mode. */
     mpfr_get_default_rounding_mode: (): mpfr_rnd_t => gmp.r_get_default_rounding_mode(),
     /** Return a string ("MPFR_RNDD", "MPFR_RNDU", "MPFR_RNDN", "MPFR_RNDZ", "MPFR_RNDA") corresponding to the rounding mode rnd, or a null pointer if rnd is an invalid rounding mode. */
-    mpfr_print_rnd_mode: (rnd: mpfr_rnd_t): c_str_ptr => gmp.r_print_rnd_mode(rnd),
+    // mpfr_print_rnd_mode: (rnd: mpfr_rnd_t): c_str_ptr => gmp.r_print_rnd_mode(rnd),
     /** Clear (lower) all global flags (underflow, overflow, divide-by-zero, invalid, inexact, erange). */
     mpfr_clear_flags: (): void => { gmp.r_clear_flags(); },
     /** Clear (lower) the underflow flag. */
@@ -974,8 +974,6 @@ export async function getGMPInterface() {
     mpfr_fits_intmax_p: (op: mpfr_srcptr, rnd: mpfr_rnd_t): c_int => gmp.r_fits_intmax_p(op, rnd),
     /** Swap the structures pointed to by x and y. */
     mpfr_swap: (x: mpfr_ptr, y: mpfr_ptr): void => { gmp.r_swap(x, y); },
-    /** Output op on stdout in some unspecified format, then a newline character. This function is mainly for debugging purpose. Thus invalid data may be supported. */
-    mpfr_dump: (op: mpfr_srcptr): void => { gmp.r_dump(op); },
     /** Return non-zero if op is NaN. Return zero otherwise. */
     mpfr_nan_p: (op: mpfr_srcptr): c_int => gmp.r_nan_p(op),
     /** Return non-zero if op is an infinity. Return zero otherwise. */
@@ -1126,25 +1124,25 @@ export async function getGMPInterface() {
     /** Free the pools used by MPFR internally. */
     mpfr_free_pool: (): void => { gmp.r_free_pool(); },
     /** This function should be called before calling mp_set_memory_functions(allocate_function, reallocate_function, free_function). */
-    mpfr_mp_memory_cleanup: (): c_int => gmp.r_mp_memory_cleanup(),
+    // mpfr_mp_memory_cleanup: (): c_int => gmp.r_mp_memory_cleanup(),
     /** This function rounds x emulating subnormal number arithmetic. */
     mpfr_subnormalize: (x: mpfr_ptr, t: c_int, rnd: mpfr_rnd_t): c_int => gmp.r_subnormalize(x, t, rnd),
     /** Read a floating-point number from a string nptr in base base, rounded in the direction rnd. */
     mpfr_strtofr: (rop: mpfr_ptr, nptr: c_str_ptr, endptr: c_str_ptr_ptr, base: c_int, rnd: mpfr_rnd_t): c_int => gmp.r_strtofr(rop, nptr, endptr, base, rnd),
     /** Return the needed size in bytes to store the significand of a floating-point number of precision prec. */
-    mpfr_custom_get_size: (prec: mpfr_prec_t): c_size_t => gmp.r_custom_get_size(prec),
+    // mpfr_custom_get_size: (prec: mpfr_prec_t): c_size_t => gmp.r_custom_get_size(prec),
     /** Initialize a significand of precision prec. */
-    mpfr_custom_init: (significand: c_void_ptr, prec: mpfr_prec_t): void => { gmp.r_custom_init(significand, prec); },
+    // mpfr_custom_init: (significand: c_void_ptr, prec: mpfr_prec_t): void => { gmp.r_custom_init(significand, prec); },
     /** Return a pointer to the significand used by a mpfr_t initialized with mpfr_custom_init_set. */
-    mpfr_custom_get_significand: (x: mpfr_srcptr): c_void_ptr => gmp.r_custom_get_significand(x),
+    // mpfr_custom_get_significand: (x: mpfr_srcptr): c_void_ptr => gmp.r_custom_get_significand(x),
     /** Return the exponent of x */
-    mpfr_custom_get_exp: (x: mpfr_srcptr): mpfr_exp_t => gmp.r_custom_get_exp(x),
+    // mpfr_custom_get_exp: (x: mpfr_srcptr): mpfr_exp_t => gmp.r_custom_get_exp(x),
     /** Inform MPFR that the significand of x has moved due to a garbage collect and update its new position to new_position. */
-    mpfr_custom_move: (x: mpfr_ptr, new_position: c_void_ptr): void => { gmp.r_custom_move(x, new_position); },
+    // mpfr_custom_move: (x: mpfr_ptr, new_position: c_void_ptr): void => { gmp.r_custom_move(x, new_position); },
     /** Perform a dummy initialization of a mpfr_t. */
-    mpfr_custom_init_set: (x: mpfr_ptr, kind: c_int, exp: mpfr_exp_t, prec: mpfr_prec_t, significand: c_void_ptr): void => { gmp.r_custom_init_set(x, kind, exp, prec, significand); },
+    // mpfr_custom_init_set: (x: mpfr_ptr, kind: c_int, exp: mpfr_exp_t, prec: mpfr_prec_t, significand: c_void_ptr): void => { gmp.r_custom_init_set(x, kind, exp, prec, significand); },
     /** Return the current kind of a mpfr_t as created by mpfr_custom_init_set. */
-    mpfr_custom_get_kind: (x: mpfr_srcptr): c_int => gmp.r_custom_get_kind(x),
+    // mpfr_custom_get_kind: (x: mpfr_srcptr): c_int => gmp.r_custom_get_kind(x),
     /** This function implements the totalOrder predicate from IEEE 754-2008, where -NaN < -Inf < negative finite numbers < -0 < +0 < positive finite numbers < +Inf < +NaN. It returns a non-zero value (true) when x is smaller than or equal to y for this order relation, and zero (false) otherwise */
     mpfr_total_order_p: (x: mpfr_srcptr, y: mpfr_srcptr): c_int => gmp.r_total_order_p(x, y),
 

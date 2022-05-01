@@ -264,13 +264,13 @@ EMSCRIPTEN_KEEPALIVE mpfr_ptr r_t () { return (mpfr_ptr)malloc(sizeof(mpfr_t)); 
 EMSCRIPTEN_KEEPALIVE void r_t_free (mpfr_ptr p1) { free(p1); }
 
 EMSCRIPTEN_KEEPALIVE const char * r_get_version () { return mpfr_get_version(); }
-EMSCRIPTEN_KEEPALIVE const char * r_get_patches () { return mpfr_get_patches(); }
-EMSCRIPTEN_KEEPALIVE int r_buildopt_tls_p () { return mpfr_buildopt_tls_p(); }
-EMSCRIPTEN_KEEPALIVE int r_buildopt_float128_p () { return mpfr_buildopt_float128_p(); }
-EMSCRIPTEN_KEEPALIVE int r_buildopt_decimal_p () { return mpfr_buildopt_decimal_p(); }
-EMSCRIPTEN_KEEPALIVE int r_buildopt_gmpinternals_p () { return mpfr_buildopt_gmpinternals_p(); }
-EMSCRIPTEN_KEEPALIVE int r_buildopt_sharedcache_p () { return mpfr_buildopt_sharedcache_p(); }
-EMSCRIPTEN_KEEPALIVE const char * r_buildopt_tune_case () { return mpfr_buildopt_tune_case(); }
+// EMSCRIPTEN_KEEPALIVE const char * r_get_patches () { return mpfr_get_patches(); }
+// EMSCRIPTEN_KEEPALIVE int r_buildopt_tls_p () { return mpfr_buildopt_tls_p(); }
+// EMSCRIPTEN_KEEPALIVE int r_buildopt_float128_p () { return mpfr_buildopt_float128_p(); }
+// EMSCRIPTEN_KEEPALIVE int r_buildopt_decimal_p () { return mpfr_buildopt_decimal_p(); }
+// EMSCRIPTEN_KEEPALIVE int r_buildopt_gmpinternals_p () { return mpfr_buildopt_gmpinternals_p(); }
+// EMSCRIPTEN_KEEPALIVE int r_buildopt_sharedcache_p () { return mpfr_buildopt_sharedcache_p(); }
+// EMSCRIPTEN_KEEPALIVE const char * r_buildopt_tune_case () { return mpfr_buildopt_tune_case(); }
 EMSCRIPTEN_KEEPALIVE mpfr_exp_t r_get_emin () { return mpfr_get_emin(); }
 EMSCRIPTEN_KEEPALIVE int r_set_emin (mpfr_exp_t p1) { return mpfr_set_emin(p1); }
 EMSCRIPTEN_KEEPALIVE mpfr_exp_t r_get_emin_min () { return mpfr_get_emin_min(); }
@@ -281,7 +281,7 @@ EMSCRIPTEN_KEEPALIVE mpfr_exp_t r_get_emax_min () { return mpfr_get_emax_min(); 
 EMSCRIPTEN_KEEPALIVE mpfr_exp_t r_get_emax_max () { return mpfr_get_emax_max(); }
 EMSCRIPTEN_KEEPALIVE void r_set_default_rounding_mode (mpfr_rnd_t p1) { mpfr_set_default_rounding_mode(p1); }
 EMSCRIPTEN_KEEPALIVE mpfr_rnd_t r_get_default_rounding_mode () { return mpfr_get_default_rounding_mode(); }
-EMSCRIPTEN_KEEPALIVE const char * r_print_rnd_mode (mpfr_rnd_t p1) { return mpfr_print_rnd_mode(p1); }
+// EMSCRIPTEN_KEEPALIVE const char * r_print_rnd_mode (mpfr_rnd_t p1) { return mpfr_print_rnd_mode(p1); }
 EMSCRIPTEN_KEEPALIVE void r_clear_flags () { mpfr_clear_flags(); }
 EMSCRIPTEN_KEEPALIVE void r_clear_underflow () { mpfr_clear_underflow(); }
 EMSCRIPTEN_KEEPALIVE void r_clear_overflow () { mpfr_clear_overflow(); }
@@ -501,7 +501,7 @@ EMSCRIPTEN_KEEPALIVE int r_fits_uintmax_p (mpfr_srcptr p1, mpfr_rnd_t p2) { retu
 EMSCRIPTEN_KEEPALIVE int r_fits_intmax_p (mpfr_srcptr p1, mpfr_rnd_t p2) { return mpfr_fits_intmax_p(p1, p2); }
 
 EMSCRIPTEN_KEEPALIVE void r_swap (mpfr_ptr p1, mpfr_ptr p2) { mpfr_swap(p1, p2); }
-EMSCRIPTEN_KEEPALIVE void r_dump (mpfr_srcptr p1) { mpfr_dump(p1); }
+// EMSCRIPTEN_KEEPALIVE void r_dump (mpfr_srcptr p1) { mpfr_dump(p1); }
 
 EMSCRIPTEN_KEEPALIVE int r_nan_p (mpfr_srcptr p1) { return mpfr_nan_p(p1); }
 EMSCRIPTEN_KEEPALIVE int r_inf_p (mpfr_srcptr p1) { return mpfr_inf_p(p1); }
@@ -587,19 +587,19 @@ EMSCRIPTEN_KEEPALIVE int r_dot (mpfr_ptr p1, const mpfr_ptr *p2, const mpfr_ptr 
 EMSCRIPTEN_KEEPALIVE void r_free_cache () { mpfr_free_cache(); }
 EMSCRIPTEN_KEEPALIVE void r_free_cache2 (mpfr_free_cache_t p1) { mpfr_free_cache2(p1); }
 EMSCRIPTEN_KEEPALIVE void r_free_pool () { mpfr_free_pool(); }
-EMSCRIPTEN_KEEPALIVE int r_mp_memory_cleanup () { return mpfr_mp_memory_cleanup(); }
+// EMSCRIPTEN_KEEPALIVE int r_mp_memory_cleanup () { return mpfr_mp_memory_cleanup(); }
 
 EMSCRIPTEN_KEEPALIVE int r_subnormalize (mpfr_ptr p1, int p2, mpfr_rnd_t p3) { return mpfr_subnormalize(p1, p2, p3); }
 
 EMSCRIPTEN_KEEPALIVE int r_strtofr (mpfr_ptr p1, const char * p2, char ** p3, int p4, mpfr_rnd_t p5) { return mpfr_strtofr(p1, p2, p3, p4, p5); }
 
-EMSCRIPTEN_KEEPALIVE size_t r_custom_get_size (mpfr_prec_t p1) { return mpfr_custom_get_size(p1); }
-EMSCRIPTEN_KEEPALIVE void r_custom_init (void * p1, mpfr_prec_t p2) { mpfr_custom_init(p1, p2); }
-EMSCRIPTEN_KEEPALIVE void * r_custom_get_significand (mpfr_srcptr p1) { return mpfr_custom_get_significand(p1); }
-EMSCRIPTEN_KEEPALIVE mpfr_exp_t r_custom_get_exp (mpfr_srcptr p1) { return mpfr_custom_get_exp(p1); }
-EMSCRIPTEN_KEEPALIVE void r_custom_move (mpfr_ptr p1, void *p2) { mpfr_custom_move(p1, p2); }
-EMSCRIPTEN_KEEPALIVE void r_custom_init_set (mpfr_ptr p1, int p2, mpfr_exp_t p3, mpfr_prec_t p4, void *p5) { mpfr_custom_init_set(p1, p2, p3, p4, p5); }
-EMSCRIPTEN_KEEPALIVE int r_custom_get_kind (mpfr_srcptr p1) { return mpfr_custom_get_kind(p1); }
+// EMSCRIPTEN_KEEPALIVE size_t r_custom_get_size (mpfr_prec_t p1) { return mpfr_custom_get_size(p1); }
+// EMSCRIPTEN_KEEPALIVE void r_custom_init (void * p1, mpfr_prec_t p2) { mpfr_custom_init(p1, p2); }
+// EMSCRIPTEN_KEEPALIVE void * r_custom_get_significand (mpfr_srcptr p1) { return mpfr_custom_get_significand(p1); }
+// EMSCRIPTEN_KEEPALIVE mpfr_exp_t r_custom_get_exp (mpfr_srcptr p1) { return mpfr_custom_get_exp(p1); }
+// EMSCRIPTEN_KEEPALIVE void r_custom_move (mpfr_ptr p1, void *p2) { mpfr_custom_move(p1, p2); }
+// EMSCRIPTEN_KEEPALIVE void r_custom_init_set (mpfr_ptr p1, int p2, mpfr_exp_t p3, mpfr_prec_t p4, void *p5) { mpfr_custom_init_set(p1, p2, p3, p4, p5); }
+// EMSCRIPTEN_KEEPALIVE int r_custom_get_kind (mpfr_srcptr p1) { return mpfr_custom_get_kind(p1); }
 
 EMSCRIPTEN_KEEPALIVE int r_total_order_p (mpfr_srcptr p1, mpfr_srcptr p2) { return mpfr_total_order_p(p1, p2); }
 

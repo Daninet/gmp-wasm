@@ -2,6 +2,7 @@
 * Add truncate parameter to Float().toString() and mpfr_to_string()
 * Change default float precision to 53 (previously it was 52) to match double type
 * Performance improvements. Custom tuning for GMP
+* Remove some rarely used functions like mpfr_get_patches() to make the bundle smaller
 
 ## 1.1.0 (Apr 22, 2022)
 * Rename mpfr_get_pretty_string() to mpfr_to_string()
