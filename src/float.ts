@@ -750,11 +750,12 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
     },
 
     /** Converts the number to string */
-    toString(radix?: number): string {
+    /** if truncate = true it truncates the potential incorrect digits from the end */
+    toString(radix?: number, truncate = false): string {
       radix = radix ?? this.options.radix;
       assertValidRadix(radix);
 
-      const str = gmp.mpfr_to_string(this.mpfr_t, radix, this.rndMode);
+      const str = gmp.mpfr_to_string(this.mpfr_t, radix, this.rndMode, truncate);
       return str;
     },
 

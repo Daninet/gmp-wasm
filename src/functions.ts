@@ -1239,15 +1239,22 @@ export async function getGMPInterface() {
     },
 
     /** Converts MPFR float into JS string */
-    mpfr_to_string(x: mpfr_ptr, base: number, rnd: mpfr_rnd_t): string {
-      let destPtr = 0;
-      const n = gmp.r_get_str_ndigits(base, gmp.r_get_prec(x));
+    /** if truncate = true it truncates the potential incorrect digits from the end */
+    mpfr_to_string(x: mpfr_ptr, base: number, rnd: mpfr_rnd_t, truncate = false): string {
+      if (truncate && rnd !== mpfr_rnd_t.MPFR_RNDZ) throw new Error('Only MPFR_RNDZ is supported in truncate mode!');
+      const prec = gmp.r_get_prec(x);
+
+      const n = truncate
+        ? Math.floor(prec * Math.log2(2) / Math.log2(base))
+        : gmp.r_get_str_ndigits(base, prec);
+
       const requiredSize = Math.max(7, n + 2);
+      let destPtr = 0;
       if (requiredSize < PREALLOCATED_STR_SIZE) {
         destPtr = strBuf;
       }
 
-      const strPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, rnd);
+      const strPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, truncate ? mpfr_rnd_t.MPFR_RNDZ : rnd);
       const endPtr = this.mem.indexOf(0, strPtr);
       let str = decoder.decode(this.mem.subarray(strPtr, endPtr));
 

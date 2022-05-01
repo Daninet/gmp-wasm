@@ -15,7 +15,11 @@ afterAll(() => {
 });
 
 const compare = (int: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
-  expect(int.toString(radix)).toBe(res);
+  expect(int.toString(radix, true)).toBe(res);
+}
+
+const compareExact = (int: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
+  expect(int.toString(radix, false)).toBe(res);
 }
 
 test('parse strings', () => {
@@ -25,7 +29,7 @@ test('parse strings', () => {
   compare(ctx.Float('-1'), '-1');
   compare(ctx.Float('0.5'), '0.5');
   compare(ctx.Float('-0.5'), '-0.5');
-  compare(ctx.Float('0.002'), '0.00199997');
+  compare(ctx.Float('0.002'), '0.001999');
   compare(ctx.Float('1000000'), '1000000');
   compare(ctx.Float('10000.000'), '10000');
   compare(ctx.Float('110', { radix: 2 }), '6')
@@ -63,35 +67,35 @@ test('construct from other types', () => {
 });
 
 test('Constants', () => {
-  compare(ctx.Pi(), '3.1416');
-  compare(ctx.Log2(), '0.693146');
-  compare(ctx.Catalan(), '0.91597');
-  compare(ctx.EulerConstant(), '0.577209');
-  compare(ctx.EulerNumber(), '2.71826');
+  compare(ctx.Pi(), '3.141');
+  compare(ctx.Log2(), '0.6931');
+  compare(ctx.Catalan(), '0.9159');
+  compare(ctx.EulerConstant(), '0.5772');
+  compare(ctx.EulerNumber(), '2.718');
 });
 
 test('add()', () => {
   compare(ctx.Float(0.5).add(1), '1.5');
   compare(ctx.Float(0.4).add(0.6), '1');
-  compare(ctx.Float(0.4).add('0.7'), '1.10001');
+  compare(ctx.Float(0.4).add('0.7'), '1.1');
   compare(ctx.Float(0.5).add(ctx.Float(1)), '1.5');
   compare(ctx.Float(0.4).add(ctx.Float(0.6)), '1');
-  compare(ctx.Float(0.4).add(ctx.Integer(2)), '2.40002');
-  compare(ctx.Float(0.4).add(ctx.Rational(1, 2)), '0.899994');
+  compare(ctx.Float(0.4).add(ctx.Integer(2)), '2.4');
+  compare(ctx.Float(0.4).add(ctx.Rational(1, 2)), '0.8999');
   compare(ctx.Float('1.01', { radix: 2 }).add('10.1'), '3.75');
-  compare(ctx.Float('1.01', { radix: 2 }).add(10.1), '11.3501');
+  compare(ctx.Float('1.01', { radix: 2 }).add(10.1), '11.35');
 });
 
 test('sub()', () => {
   compare(ctx.Float(1).sub(0.5), '0.5');
-  compare(ctx.Float(0.6).sub(0.4), '0.200005');
-  compare(ctx.Float(0.6).sub('0.4'), '0.200005');
+  compare(ctx.Float(0.6).sub(0.4), '0.2');
+  compare(ctx.Float(0.6).sub('0.4'), '0.2');
   compare(ctx.Float(1).sub(ctx.Float(0.5)), '0.5');
-  compare(ctx.Float(0.6).sub(ctx.Float(0.4)), '0.200005');
-  compare(ctx.Float(0.4).sub(ctx.Integer(2)), '-1.60001');
-  compare(ctx.Float(0.4).sub(ctx.Rational(1, 2)), '-0.0999985');
+  compare(ctx.Float(0.6).sub(ctx.Float(0.4)), '0.2');
+  compare(ctx.Float(0.4).sub(ctx.Integer(2)), '-1.6');
+  compare(ctx.Float(0.4).sub(ctx.Rational(1, 2)), '-0.09999');
   compare(ctx.Float('1.01', { radix: 2 }).sub('10.1'), '-1.25');
-  compare(ctx.Float('1.01', { radix: 2 }).sub(10.1), '-8.8501');
+  compare(ctx.Float('1.01', { radix: 2 }).sub(10.1), '-8.85');
 });
 
 test('mul()', () => {
@@ -100,10 +104,10 @@ test('mul()', () => {
   compare(ctx.Float(3).mul('0.5'), '1.5');
   compare(ctx.Float(3).mul(ctx.Float(0.5)), '1.5');
   compare(ctx.Float(6).mul(ctx.Float(2)), '12');
-  compare(ctx.Float(0.4).mul(ctx.Integer(2)), '0.800003');
-  compare(ctx.Float(0.4).mul(ctx.Rational(1, 2)), '0.200001');
+  compare(ctx.Float(0.4).mul(ctx.Integer(2)), '0.8');
+  compare(ctx.Float(0.4).mul(ctx.Rational(1, 2)), '0.2');
   compare(ctx.Float('1.01', { radix: 2 }).mul('10.1'), '3.125');
-  compare(ctx.Float('1.01', { radix: 2 }).mul(10.1), '12.625');
+  compare(ctx.Float('1.01', { radix: 2 }).mul(10.1), '12.62');
 });
 
 test('div()', () => {
@@ -115,27 +119,27 @@ test('div()', () => {
   compare(ctx.Float(6).div(ctx.Integer(2)), '3');
   compare(ctx.Float(6).div(ctx.Rational(4, 2)), '3');
   compare(ctx.Float('1.01', { radix: 2 }).div('10.1'), '0.5');
-  compare(ctx.Float('1.01', { radix: 2 }).div(10.1), '0.123762');
+  compare(ctx.Float('1.01', { radix: 2 }).div(10.1), '0.1237');
 });
 
 test('sqrt()', () => {
   compare(ctx.Float(4).sqrt(), '2');
-  compare(ctx.Float(2).sqrt(), '1.41422');
+  compare(ctx.Float(2).sqrt(), '1.414');
 });
 
 test('invSqrt()', () => {
   compare(ctx.Float(4).invSqrt(), '0.5');
-  compare(ctx.Float(2).invSqrt(), '0.707108');
+  compare(ctx.Float(2).invSqrt(), '0.7071');
 });
 
 test('cbrt()', () => {
   compare(ctx.Float(27).cbrt(), '3');
-  compare(ctx.Float(3).cbrt(), '1.44226');
+  compare(ctx.Float(3).cbrt(), '1.442');
 });
 
 test('nthRoot()', () => {
-  compare(ctx.Float(2).nthRoot(2), '1.41422');
-  compare(ctx.Float(3).nthRoot(3), '1.44226');
+  compare(ctx.Float(2).nthRoot(2), '1.414');
+  compare(ctx.Float(3).nthRoot(3), '1.442');
 });
 
 test('neg()', () => {
@@ -260,7 +264,7 @@ test('logarithms', () => {
 });
 
 test('exponentials', () => {
-  compare(ctx.Float(1).exp(), '2.71826');
+  compare(ctx.Float(1).exp(), '2.718');
   compare(ctx.Float(3).exp2(), '8');
   compare(ctx.Float(3).exp10(), '1000');
 });
@@ -276,73 +280,73 @@ test('pow()', () => {
 test('sin()', () => {
   compare(ctx.Float(0).sin(), '0');
   compare(ctx.Pi().div(6).sin(), '0.5');
-  compare(ctx.Pi().div(4).sin(), ctx.Float(2).sqrt().div(2).toString());
-  compare(ctx.Pi().div(3).sin(), ctx.Float(3).sqrt().div(2).toString());
+  compare(ctx.Pi().div(4).sin(), ctx.Float(2).sqrt().div(2).toString(10, true));
+  compare(ctx.Pi().div(3).sin(), ctx.Float(3).sqrt().div(2).toString(10, true));
   compare(ctx.Pi().div(2).sin(), '1');
-  compare(ctx.Pi().mul(4).sin(), '0.0000356352');
+  compare(ctx.Pi().mul(4).sin(), '0.00003563');
 });
 
 test('cos()', () => {
   compare(ctx.Float(0).cos(), '1');
-  compare(ctx.Pi().div(6).cos(), ctx.Float(3).sqrt().div(2).toString());
-  compare(ctx.Pi().div(4).cos(), ctx.Float(2).sqrt().div(2).toString());
-  compare(ctx.Pi().div(3).cos(), '0.499992');
-  compare(ctx.Pi().div(2).cos(), '-0.0000044544');
+  compare(ctx.Pi().div(6).cos(), ctx.Float(3).sqrt().div(2).toString(10, true));
+  compare(ctx.Pi().div(4).cos(), ctx.Float(2).sqrt().div(2).toString(10, true));
+  compare(ctx.Pi().div(3).cos(), '0.4999');
+  compare(ctx.Pi().div(2).cos(), '-0.000004454');
   compare(ctx.Pi().mul(4).cos(), '1');
 });
 
 test('tan()', () => {
   compare(ctx.Float(0).tan(), '0');
-  compare(ctx.Pi().div(6).tan(), '0.577362');
+  compare(ctx.Pi().div(6).tan(), '0.5773');
   compare(ctx.Pi().div(4).tan(), '1');
-  compare(ctx.Pi().div(3).tan(), '1.73212');
+  compare(ctx.Pi().div(3).tan(), '1.732');
 });
 
 test('asin()', () => {
   compare(ctx.Float(0).asin(), '0');
-  compare(ctx.Float(ctx.Float(1).div(2)).asin(), ctx.Pi().div(6).toString());
-  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).asin(), ctx.Pi().div(4).toString());
-  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).asin(), ctx.Pi().div(3).toString());
-  compare(ctx.Float(1).asin(), ctx.Pi().div(2).toString());
+  compare(ctx.Float(ctx.Float(1).div(2)).asin(), ctx.Pi().div(6).toString(10, true));
+  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).asin(), ctx.Pi().div(4).toString(10, true));
+  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).asin(), ctx.Pi().div(3).toString(10, true));
+  compare(ctx.Float(1).asin(), ctx.Pi().div(2).toString(10, true));
 });
 
 test('acos()', () => {
-  compare(ctx.Float(0).acos(), ctx.Pi().div(2).toString());
-  compare(ctx.Float(ctx.Float(1).div(2)).acos(), ctx.Pi().div(3).toString());
-  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).acos(), ctx.Pi().div(4).toString());
-  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).acos(), '0.52359');
+  compare(ctx.Float(0).acos(), ctx.Pi().div(2).toString(10, true));
+  compare(ctx.Float(ctx.Float(1).div(2)).acos(), ctx.Pi().div(3).toString(10, true));
+  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).acos(), ctx.Pi().div(4).toString(10, true));
+  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).acos(), '0.5235');
   compare(ctx.Float(1).acos(), '0');
 });
 
 test('atan()', () => {
   compare(ctx.Float(0).atan(), '0');
-  compare(ctx.Float(ctx.Float(3).sqrt().div(3)).atan(), '0.52359');
-  compare(ctx.Float(ctx.Float(1)).atan(), ctx.Pi().div(4).toString());
-  compare(ctx.Float(ctx.Float(3).sqrt()).atan(), ctx.Pi().div(3).toString());
+  compare(ctx.Float(ctx.Float(3).sqrt().div(3)).atan(), '0.5235');
+  compare(ctx.Float(ctx.Float(1)).atan(), ctx.Pi().div(4).toString(10, true));
+  compare(ctx.Float(ctx.Float(3).sqrt()).atan(), ctx.Pi().div(3).toString(10, true));
 });
 
 test('csc()', () => {
-  compare(ctx.Float(ctx.Pi().div(3)).csc(), ctx.Float(3).sqrt().mul(2).div(3).toString());
+  compare(ctx.Float(ctx.Pi().div(3)).csc(), ctx.Float(3).sqrt().mul(2).div(3).toString(10, true));
 });
 
 test('sec()', () => {
-  compare(ctx.Float(ctx.Pi().div(3)).sec(), '2.00006');
+  compare(ctx.Float(ctx.Pi().div(3)).sec(), '2');
 });
 
 test('cot()', () => {
-  compare(ctx.Float(ctx.Pi().div(3)).cot(), '0.577332');
+  compare(ctx.Float(ctx.Pi().div(3)).cot(), '0.5773');
 });
 
 test('sinh()', () => {
-  compare(ctx.Float('1.5').sinh(), '2.12927');
+  compare(ctx.Float('1.5').sinh(), '2.129');
 });
 
 test('cosh()', () => {
-  compare(ctx.Float('1.5').cosh(), '2.35242');
+  compare(ctx.Float('1.5').cosh(), '2.352');
 });
 
 test('tanh()', () => {
-  compare(ctx.Float('1.5').tanh(), '0.905151');
+  compare(ctx.Float('1.5').tanh(), '0.9051');
 });
 
 test('asinh()', () => {
@@ -354,7 +358,7 @@ test('acosh()', () => {
 });
 
 test('atanh()', () => {
-  compare(ctx.Float('0.905151').atanh(), '1.50003');
+  compare(ctx.Float('0.905151').atanh(), '1.5');
 });
 
 test('sign()', () => {
@@ -398,16 +402,16 @@ test('roundEven()', () => {
 });
 
 test('frac()', () => {
-  compare(ctx.Float('1.234').frac(), '0.234009');
-  compare(ctx.Float('-1.234').frac(), '-0.234009');
+  compare(ctx.Float('1.234').frac(), '0.234');
+  compare(ctx.Float('-1.234').frac(), '-0.234');
 });
 
 test('nextBelow()', () => {
-  compare(ctx.Float('1').nextBelow(), '0.999985');
+  compareExact(ctx.Float('1').nextBelow(), '0.999985');
 });
 
 test('nextAbove()', () => {
-  compare(ctx.Float('1').nextAbove(), '1.00003');
+  compareExact(ctx.Float('1').nextAbove(), '1.00003');
 });
 
 test('exponent()', () => {
@@ -477,8 +481,8 @@ test('special values to JS types', () => {
 test('FloatOptions', () => {
   const roundingMode = FloatRoundingMode.ROUND_DOWN;
   const options = { precisionBits: 10, roundingMode };
-  expect(gmp.calculate(g => g.Float(1).div(3), {})).toBe('0.33333333333333337');
-  expect(gmp.calculate(g => g.Float(1, {}).div(3))).toBe('0.33333333333333337');
+  expect(gmp.calculate(g => g.Float(1).div(3), {})).toBe('0.33333333333333331');
+  expect(gmp.calculate(g => g.Float(1, {}).div(3))).toBe('0.33333333333333331');
   expect(gmp.calculate(g => g.Float(1).div(3), options)).toBe('0.333');
   expect(gmp.calculate(g => g.Float(1, options).div(3))).toBe('0.333');
   expect(gmp.calculate(g => g.Float(1, options).div(3), {})).toBe('0.333');
@@ -493,22 +497,36 @@ test('FloatOptions', () => {
   expect(gmp.calculate(g => g.Float(1, { roundingMode: ROUND_UP }).div(g.Float(3)), options)).toBe('0.33349');
   expect(gmp.calculate(g => g.Float(1).div(g.Float(3, { roundingMode: ROUND_UP })), options)).toBe('0.33301');
   // merge radix
-  expect(gmp.calculate(g => g.Float('3', { radix: 4 }).div('21'),{})).toBe('0.111111111111111111111111112');
-  expect(gmp.calculate(g => g.Float('3').div('21'),{ radix: 4 })).toBe('0.111111111111111111111111112');
-  expect(gmp.calculate(g => g.Float('3').div(g.Float('21', { radix: 4 })),{})).toBe('0.111111111111111111111111112');
+  expect(gmp.calculate(g => g.Float('3', { radix: 4 }).div('21'),{})).toBe('0.111111111111111111111111111');
+  expect(gmp.calculate(g => g.Float('3').div('21'),{ radix: 4 })).toBe('0.111111111111111111111111111');
+  expect(gmp.calculate(g => g.Float('3').div(g.Float('21', { radix: 4 })),{})).toBe('0.111111111111111111111111111');
+});
+
+test('toString()', () => {
+  const options = { precisionBits: 16 };
+  const optionsZero = { precisionBits: 16, roundingMode: FloatRoundingMode.ROUND_TO_ZERO };
+  expect(ctx.Pi(optionsZero).toString()).toBe('3.14154');
+  expect(ctx.Pi(optionsZero).toString(10)).toBe('3.14154');
+  expect(ctx.Pi(optionsZero).toString(10, false)).toBe('3.14154');
+  expect(ctx.Pi(optionsZero).toString(10, true)).toBe('3.141');
+  expect(ctx.Pi(optionsZero).toString(2)).toBe('11.00100100001111');
+  expect(ctx.Pi(optionsZero).toString(2, true)).toBe('11.00100100001111');
+  expect(ctx.Pi(optionsZero).toString(2, false)).toBe('11.00100100001111');
+  expect(ctx.Pi(options).toString(5)).toBe('3.0323223');
+  expect(ctx.Pi(options).toString(5, false)).toBe('3.0323223');
+  expect(ctx.Pi(options).toString(5, true)).toBe('3.03232');
 });
 
 test('FloatOptions constants', () => {
-  const roundingMode = FloatRoundingMode.ROUND_DOWN;
-  const options = { precisionBits: 10, roundingMode };
-  expect(gmp.calculate(g => g.Pi(), options)).toBe('3.1406');
-  expect(gmp.calculate(g => g.Pi(options))).toBe('3.1406');
-  expect(gmp.calculate(g => g.Catalan(), options)).toBe('0.91503');
-  expect(gmp.calculate(g => g.Catalan(options))).toBe('0.91503');
-  expect(gmp.calculate(g => g.EulerConstant(), options)).toBe('0.57714');
-  expect(gmp.calculate(g => g.EulerConstant(options))).toBe('0.57714');
-  expect(gmp.calculate(g => g.EulerNumber(), options)).toBe('2.7148');
-  expect(gmp.calculate(g => g.EulerNumber(options))).toBe('2.7148');
-  expect(gmp.calculate(g => g.Log2(), options)).toBe('0.69238');
-  expect(gmp.calculate(g => g.Log2(options))).toBe('0.69238');
+  const options = { precisionBits: 15 };
+  expect(gmp.calculate(g => g.Pi(), options)).toBe('3.1416');
+  expect(gmp.calculate(g => g.Pi(options))).toBe('3.1416');
+  expect(gmp.calculate(g => g.Catalan(), options)).toBe('0.915955');
+  expect(gmp.calculate(g => g.Catalan(options))).toBe('0.915955');
+  expect(gmp.calculate(g => g.EulerConstant(), options)).toBe('0.577209');
+  expect(gmp.calculate(g => g.EulerConstant(options))).toBe('0.577209');
+  expect(gmp.calculate(g => g.EulerNumber(), options)).toBe('2.71826');
+  expect(gmp.calculate(g => g.EulerNumber(options))).toBe('2.71826');
+  expect(gmp.calculate(g => g.Log2(), options)).toBe('0.693146');
+  expect(gmp.calculate(g => g.Log2(options))).toBe('0.693146');
 });

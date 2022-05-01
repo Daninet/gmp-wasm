@@ -35,7 +35,7 @@ export interface CalculateTypeWithDestroy extends CalculateType {
 
 export interface GMPLib {
   binding: GMPFunctions;
-  calculate: (fn: (gmp: CalculateType) => Integer | Rational | Float, options?: CalculateOptions) => void;
+  calculate: (fn: (gmp: CalculateType) => Integer | Rational | Float | string, options?: CalculateOptions) => void;
   getContext: (options?: CalculateOptions) => CalculateTypeWithDestroy;
   reset: () => Promise<void>;
 };
@@ -79,7 +79,7 @@ export async function init(): Promise<GMPLib> {
   return {
     binding,
 
-    calculate: (fn: (gmp: CalculateType) => Integer | Rational | Float, options: CalculateOptions = {}): string => {
+    calculate: (fn: (gmp: CalculateType) => Integer | Rational | Float | string, options: CalculateOptions = {}): string => {
       const context = createContext(options);
       if (typeof fn !== 'function') {
         throw new Error('calculate() requires a callback function');

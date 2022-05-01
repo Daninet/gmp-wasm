@@ -1,4 +1,4 @@
-import { init as initGMP } from '../src';
+import { FloatRoundingMode, init as initGMP, mpfr_rnd_t } from '../src';
 /* global test, expect */
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
@@ -49,4 +49,24 @@ test('binding has macros', () => {
   const { mpq_t } = ctx.Rational(3, 4);
   expect(gmp.binding.mpz_get_si(gmp.binding.mpq_numref(mpq_t))).toBe(3);
   expect(gmp.binding.mpz_get_si(gmp.binding.mpq_denref(mpq_t))).toBe(4);
+});
+
+test('mpfr_to_string()', () => {
+  const ctx = gmp.getContext();
+
+  const getPi = (prec) => {
+    const pi = ctx.Pi({ precisionBits: prec, roundingMode: FloatRoundingMode.ROUND_TO_ZERO });
+    console.log(Math.floor(prec * Math.log2(2) / Math.log2(10)));
+    console.log(pi.nextBelow().toString());
+    console.log(pi.toString());
+    console.log(pi.toString(10, true));
+    console.log(pi.nextAbove().toString());
+    return gmp.binding.mpfr_to_string(pi.mpfr_t, 10, mpfr_rnd_t.MPFR_RNDZ, true);
+  }
+
+  const max = 10000;
+  const ref = getPi(max);
+  for (let i = 10; i < max; i++) {
+    expect(ref).toContain(getPi(i));
+  }
 });

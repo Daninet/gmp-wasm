@@ -9,14 +9,14 @@ beforeAll(async () => {
 });
 
 test('calculate()', () => {
-  expect(gmp.calculate(g => g.Float('2').sqrt())).toBe('1.4142135623730949');
-  expect(gmp.calculate(g => g.Float('2').sqrt(), {})).toBe('1.4142135623730949');
+  expect(gmp.calculate(g => g.Float('2').sqrt())).toBe(Math.sqrt(2).toString());
+  expect(gmp.calculate(g => g.Float('2').sqrt(), {})).toBe(Math.sqrt(2).toString());
   expect(gmp.calculate(g => g.Float('2').sqrt(), { precisionBits: 16 })).toBe('1.41422');
 });
 
 test('getContext()', () => {
   const calcDefault = gmp.getContext();
-  expect(calcDefault.Float('2').sqrt().toString()).toBe('1.4142135623730949');
+  expect(calcDefault.Float('2').sqrt().toString()).toBe(Math.sqrt(2).toString());
   expect(calcDefault.destroy()).toBe(undefined);
   const calcPrecision = gmp.getContext({ precisionBits: 16 });
   expect(calcPrecision.Float('2').sqrt().toString()).toBe('1.41422');
