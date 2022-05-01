@@ -36,6 +36,7 @@ import {
   mpfr_free_cache_t,
 } from './bindingTypes';
 
+// import { getBinding } from './bindingEmscripten';
 import { getBinding } from './bindingWASM';
 import { FLOAT_SPECIAL_VALUES, FLOAT_SPECIAL_VALUE_KEYS, insertDecimalPoint } from './util';
 

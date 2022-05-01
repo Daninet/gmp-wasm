@@ -1,16 +1,16 @@
-import GMPModule from '../binding/dist/gmp';
+import GMPModule from '../binding/dist/gmpmini';
 
 let instance: any = null;
 
-export const getBinding = async (wasmPath: string) => {
+export const getBinding = async (reset = false) => {
   if (instance !== null) {
     return instance;
   }
   const binding = await GMPModule({
     locateFile: function (path) {
-      return wasmPath;
+      return '/root/gmp-wasm/binding/dist/gmpmini.wasm';
     },
   });
-  instance = binding;
+  instance = { ...binding.asm, heap: { HEAP8: binding.HEAP8 } };
   return instance;
 };
