@@ -1240,11 +1240,9 @@ export async function getGMPInterface() {
     /** if truncate = true it truncates the potential incorrect digits from the end */
     mpfr_to_string(x: mpfr_ptr, base: number, rnd: mpfr_rnd_t, truncate = false): string {
       if (truncate && rnd !== mpfr_rnd_t.MPFR_RNDZ) throw new Error('Only MPFR_RNDZ is supported in truncate mode!');
-      const prec = gmp.r_get_prec(x);
 
-      const n = truncate
-        ? Math.floor(prec * Math.log2(2) / Math.log2(base))
-        : gmp.r_get_str_ndigits(base, prec);
+      const prec = gmp.r_get_prec(x);
+      const n = gmp.r_get_str_ndigits(base, prec);
 
       const requiredSize = Math.max(7, n + 2);
       let destPtr = 0;
@@ -1252,9 +1250,39 @@ export async function getGMPInterface() {
         destPtr = strBuf;
       }
 
-      const strPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, truncate ? mpfr_rnd_t.MPFR_RNDZ : rnd);
+      const strPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, rnd);
       const endPtr = this.mem.indexOf(0, strPtr);
       let str = decoder.decode(this.mem.subarray(strPtr, endPtr));
+
+      if (truncate) {
+        // increase to next val toward +-infinity
+        if (gmp.r_signbit(x) === 0) { // positive
+          gmp.r_nextabove(x);
+        } else {
+          gmp.r_nextbelow(x);
+        }
+
+        const refstrPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, rnd);
+        const refEndPtr = this.mem.indexOf(0, refstrPtr);
+        let refStr = decoder.decode(this.mem.subarray(refstrPtr, refEndPtr));
+        if (refstrPtr !== strBuf) {
+          gmp.r_free_str(refstrPtr);
+        }
+
+        for (let i = 0; i < str.length; i++) {
+          if (str.charAt(i) !== refStr.charAt(i)) {
+            str = str.slice(0, i);
+            break;
+          }
+        }
+        
+        // undo increase
+        if (gmp.r_signbit(x) === 0) { // positive
+          gmp.r_nextbelow(x);
+        } else {
+          gmp.r_nextabove(x);
+        }
+      }
 
       if (FLOAT_SPECIAL_VALUE_KEYS.includes(str)) {
         str = FLOAT_SPECIAL_VALUES[str];

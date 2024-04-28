@@ -54,14 +54,9 @@ test('binding has macros', () => {
 test('mpfr_to_string()', () => {
   const ctx = gmp.getContext();
 
-  const getPi = (prec) => {
+  const getPi = (prec, base = 10) => {
     const pi = ctx.Pi({ precisionBits: prec, roundingMode: FloatRoundingMode.ROUND_TO_ZERO });
-    console.log(Math.floor(prec * Math.log2(2) / Math.log2(10)));
-    console.log(pi.nextBelow().toString());
-    console.log(pi.toString());
-    console.log(pi.toString(10, true));
-    console.log(pi.nextAbove().toString());
-    return gmp.binding.mpfr_to_string(pi.mpfr_t, 10, mpfr_rnd_t.MPFR_RNDZ, true);
+    return gmp.binding.mpfr_to_string(pi.mpfr_t, base, mpfr_rnd_t.MPFR_RNDZ, true);
   }
 
   const max = 10000;
