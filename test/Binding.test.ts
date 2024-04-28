@@ -1,3 +1,4 @@
+import { trimTrailingZeros } from '../src/util';
 import { FloatRoundingMode, init as initGMP, mpfr_rnd_t } from '../src';
 /* global test, expect */
 
@@ -64,4 +65,17 @@ test('mpfr_to_string()', () => {
   for (let i = 10; i < max; i++) {
     expect(ref).toContain(getPi(i));
   }
+});
+
+test('trimTrailingZeros()', () => {
+  expect(trimTrailingZeros('0')).toBe('0');
+  expect(trimTrailingZeros('0.')).toBe('0');
+  expect(trimTrailingZeros('-0')).toBe('-0');
+  expect(trimTrailingZeros('-0.')).toBe('-0');
+  expect(trimTrailingZeros('0.0')).toBe('0');
+  expect(trimTrailingZeros('-0.00')).toBe('-0');
+  expect(trimTrailingZeros('-0.010')).toBe('-0.01');
+  expect(trimTrailingZeros('-123.000')).toBe('-123');
+  expect(trimTrailingZeros('-123.320000')).toBe('-123.32');
+  expect(trimTrailingZeros('-123.320001')).toBe('-123.320001');
 });
