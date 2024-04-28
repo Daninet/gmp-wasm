@@ -5,4 +5,7 @@ set -e
 cd "${0%/*}"
 
 docker build -f mpfr/Dockerfile . --tag=mpfr-builder
-docker run --rm -v $(pwd)/mpfr:/output mpfr-builder cp -R /builder/dist /output
+
+container_id=$(docker create mpfr-builder)
+docker cp "$container_id:/builder/dist/" "${cwd}mpfr"
+docker rm "$container_id"

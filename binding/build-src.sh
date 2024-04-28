@@ -5,4 +5,7 @@ set -e
 cd "${0%/*}"
 
 docker build -f src/Dockerfile . --tag=gmp-binding-builder
-docker run --rm -v $(pwd):/output gmp-binding-builder cp -R /builder/dist /output
+
+container_id=$(docker create gmp-binding-builder)
+docker cp "$container_id:/builder/dist/" .
+docker rm "$container_id"
