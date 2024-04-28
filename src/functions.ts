@@ -47,7 +47,7 @@ export interface GMPFunctions extends GMPFunctionsType {}
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-const PREALLOCATED_STR_SIZE = 2 * 1024;
+const PREALLOCATED_STR_SIZE = 4 * 1024;
 
 export async function getGMPInterface() {
   let gmp = await getBinding();
