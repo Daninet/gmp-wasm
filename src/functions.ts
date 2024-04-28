@@ -38,7 +38,7 @@ import {
 
 // import { getBinding } from './bindingEmscripten';
 import { getBinding } from './bindingWASM';
-import { FLOAT_SPECIAL_VALUES, FLOAT_SPECIAL_VALUE_KEYS, insertDecimalPoint } from './util';
+import { FLOAT_SPECIAL_VALUES, FLOAT_SPECIAL_VALUE_KEYS, insertDecimalPoint, trimTrailingZeros } from './util';
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 type GMPFunctionsType = Awaited<ReturnType<typeof getGMPInterface>>;
@@ -53,6 +53,7 @@ export async function getGMPInterface() {
   let gmp = await getBinding();
   let strBuf = gmp.g_malloc(PREALLOCATED_STR_SIZE);
   let mpfr_exp_t_ptr = gmp.g_malloc(4);
+  let memView = new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength);
 
   const getStringPointer = (input: string) => {
     const data = encoder.encode(input);
@@ -65,11 +66,33 @@ export async function getGMPInterface() {
     return srcPtr;
   };
 
+  const getMPFRString = (base: number, n: number, x: mpfr_ptr, rnd: mpfr_rnd_t) => {
+    const requiredSize = Math.max(7, n + 2);
+    const strPtr = gmp.r_get_str(requiredSize < PREALLOCATED_STR_SIZE ? strBuf : 0, mpfr_exp_t_ptr, base, n, x, rnd);
+    const mem = gmp.heap.HEAP8 as Uint8Array;
+    const endPtr = mem.indexOf(0, strPtr);
+    let str = decoder.decode(mem.subarray(strPtr, endPtr));
+    if (strPtr !== strBuf) {
+      gmp.r_free_str(strPtr);
+    }
+
+    if (FLOAT_SPECIAL_VALUE_KEYS.includes(str)) {
+      str = FLOAT_SPECIAL_VALUES[str];
+    } else {
+      // decimal point needs to be inserted
+      const pointPos = memView.getInt32(mpfr_exp_t_ptr, true);
+      str = insertDecimalPoint(str, pointPos);
+    }
+
+    return str;
+  };
+
   return {
     reset: async () => {
       gmp = await getBinding(true);
       strBuf = gmp.g_malloc(PREALLOCATED_STR_SIZE);
       mpfr_exp_t_ptr = gmp.g_malloc(4);
+      memView = new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength);
     },
     malloc: (size: c_size_t): c_void_ptr => gmp.g_malloc(size),
     malloc_cstr: (str: string): number => {
@@ -81,7 +104,7 @@ export async function getGMPInterface() {
     },
     free: (ptr: c_void_ptr): void => gmp.g_free(ptr),
     get mem() { return gmp.heap.HEAP8 as Uint8Array },
-    get memView() { return new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength) },
+    get memView() { return memView },
 
     /**************** Random number routines.  ****************/
     /** Initialize state with a default algorithm. */
@@ -1244,57 +1267,39 @@ export async function getGMPInterface() {
       const prec = gmp.r_get_prec(x);
       const n = gmp.r_get_str_ndigits(base, prec);
 
-      const requiredSize = Math.max(7, n + 2);
-      let destPtr = 0;
-      if (requiredSize < PREALLOCATED_STR_SIZE) {
-        destPtr = strBuf;
-      }
+      let str = getMPFRString(base, n, x, rnd);
 
-      const strPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, rnd);
-      const endPtr = this.mem.indexOf(0, strPtr);
-      let str = decoder.decode(this.mem.subarray(strPtr, endPtr));
-
+      const isNegative = str[0] === '-';
+      
       if (truncate) {
         // increase to next val toward +-infinity
-        if (gmp.r_signbit(x) === 0) { // positive
-          gmp.r_nextabove(x);
-        } else {
+        if (isNegative) {
           gmp.r_nextbelow(x);
+        } else {
+          gmp.r_nextabove(x);
         }
 
-        const refstrPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, rnd);
-        const refEndPtr = this.mem.indexOf(0, refstrPtr);
-        let refStr = decoder.decode(this.mem.subarray(refstrPtr, refEndPtr));
-        if (refstrPtr !== strBuf) {
-          gmp.r_free_str(refstrPtr);
-        }
+        const refStr = getMPFRString(base, n, x, rnd);
+        const refIsNegative = refStr[0] === '-';
 
-        for (let i = 0; i < str.length; i++) {
-          if (str.charAt(i) !== refStr.charAt(i)) {
-            str = str.slice(0, i);
-            break;
+        if (isNegative === refIsNegative) {
+          for (let i = 0; i < str.length; i++) {
+            if (str[i] !== refStr[i]) {
+              str = str.slice(0, i);
+              break;
+            }
           }
+          str = trimTrailingZeros(str);
         }
-        
+
         // undo increase
-        if (gmp.r_signbit(x) === 0) { // positive
-          gmp.r_nextbelow(x);
-        } else {
+        if (isNegative) {
           gmp.r_nextabove(x);
+        } else {
+          gmp.r_nextbelow(x);
         }
       }
 
-      if (FLOAT_SPECIAL_VALUE_KEYS.includes(str)) {
-        str = FLOAT_SPECIAL_VALUES[str];
-      } else {
-        // decimal point needs to be inserted
-        const pointPos = this.memView.getInt32(mpfr_exp_t_ptr, true);
-        str = insertDecimalPoint(str, pointPos);
-      }
-
-      if (destPtr !== strBuf) {
-        gmp.r_free_str(strPtr);
-      }
       return str;
     }
   };
