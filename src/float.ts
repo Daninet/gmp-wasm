@@ -755,7 +755,7 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
       radix = radix ?? this.options.radix;
       assertValidRadix(radix);
 
-      const str = gmp.mpfr_to_string(this.mpfr_t, radix, this.rndMode, truncate);
+      const str = gmp.mpfr_to_string(this.mpfr_t, radix, truncate ? FloatRoundingMode.ROUND_TO_ZERO : this.rndMode, truncate);
       return str;
     },
 
