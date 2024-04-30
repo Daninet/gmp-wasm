@@ -1260,46 +1260,11 @@ export async function getGMPInterface() {
     },
 
     /** Converts MPFR float into JS string */
-    /** if truncate = true it truncates the potential incorrect digits from the end */
-    mpfr_to_string(x: mpfr_ptr, base: number, rnd: mpfr_rnd_t, truncate = false): string {
-      if (truncate && rnd !== mpfr_rnd_t.MPFR_RNDZ) throw new Error('Only MPFR_RNDZ is supported in truncate mode!');
-
+    mpfr_to_string(x: mpfr_ptr, base: number, rnd: mpfr_rnd_t): string {
       const prec = gmp.r_get_prec(x);
       const n = gmp.r_get_str_ndigits(base, prec);
 
-      let str = getMPFRString(base, n, x, rnd);
-
-      const isNegative = str[0] === '-';
-      
-      if (truncate) {
-        // increase to next val toward +-infinity
-        if (isNegative) {
-          gmp.r_nextbelow(x);
-        } else {
-          gmp.r_nextabove(x);
-        }
-
-        const refStr = getMPFRString(base, n, x, rnd);
-        const refIsNegative = refStr[0] === '-';
-
-        if (isNegative === refIsNegative) {
-          for (let i = 0; i < str.length; i++) {
-            if (str[i] !== refStr[i]) {
-              str = str.slice(0, i);
-              break;
-            }
-          }
-          str = trimTrailingZeros(str);
-        }
-
-        // undo increase
-        if (isNegative) {
-          gmp.r_nextabove(x);
-        } else {
-          gmp.r_nextbelow(x);
-        }
-      }
-
+      const str = getMPFRString(base, n, x, rnd);
       return str;
     }
   };

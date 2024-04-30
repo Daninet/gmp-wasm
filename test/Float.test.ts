@@ -14,12 +14,15 @@ afterAll(() => {
   ctx.destroy();
 });
 
-const compare = (int: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
-  expect(int.toString(radix, true)).toBe(res);
+const compare = (x: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
+  const a = ctx.Float(x);
+  const b = ctx.Float(res, { precisionBits: a.precisionBits, roundingMode: a.rndMode });
+  if (!a.isEqual(b)) throw new Error(`Compare failed: received ${a.toString()} [${a.toInterval()}], expected: ${b.toString()} [${b.toInterval()}] provided as ${res} `);
+  expect(a.isEqual(b)).toBeTruthy();
 }
 
 const compareExact = (int: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
-  expect(int.toString(radix, false)).toBe(res);
+  expect(int.toString(radix)).toBe(res);
 }
 
 test('parse strings', () => {
@@ -29,7 +32,7 @@ test('parse strings', () => {
   compare(ctx.Float('-1'), '-1');
   compare(ctx.Float('0.5'), '0.5');
   compare(ctx.Float('-0.5'), '-0.5');
-  compare(ctx.Float('0.002'), '0.001999');
+  compare(ctx.Float('0.002'), '0.002');
   compare(ctx.Float('1000000'), '1000000');
   compare(ctx.Float('10000.000'), '10000');
   compare(ctx.Float('110', { radix: 2 }), '6')
@@ -93,7 +96,7 @@ test('sub()', () => {
   compare(ctx.Float(1).sub(ctx.Float(0.5)), '0.5');
   compare(ctx.Float(0.6).sub(ctx.Float(0.4)), '0.2');
   compare(ctx.Float(0.4).sub(ctx.Integer(2)), '-1.6');
-  compare(ctx.Float(0.4).sub(ctx.Rational(1, 2)), '-0.09999');
+  compare(ctx.Float(0.4).sub(ctx.Rational(1, 2)), '-0.1');
   compare(ctx.Float('1.01', { radix: 2 }).sub('10.1'), '-1.25');
   compare(ctx.Float('1.01', { radix: 2 }).sub(10.1), '-8.85');
 });
@@ -119,12 +122,12 @@ test('div()', () => {
   compare(ctx.Float(6).div(ctx.Integer(2)), '3');
   compare(ctx.Float(6).div(ctx.Rational(4, 2)), '3');
   compare(ctx.Float('1.01', { radix: 2 }).div('10.1'), '0.5');
-  compare(ctx.Float('1.01', { radix: 2 }).div(10.1), '0.1237');
+  compare(ctx.Float('1.01', { radix: 2 }).div(10.1), '0.12376');
 });
 
 test('sqrt()', () => {
   compare(ctx.Float(4).sqrt(), '2');
-  compare(ctx.Float(2).sqrt(), '1.414');
+  compare(ctx.Float(2).sqrt(), '1.4142');
 });
 
 test('invSqrt()', () => {
@@ -138,7 +141,7 @@ test('cbrt()', () => {
 });
 
 test('nthRoot()', () => {
-  compare(ctx.Float(2).nthRoot(2), '1.414');
+  compare(ctx.Float(2).nthRoot(2), '1.4142');
   compare(ctx.Float(3).nthRoot(3), '1.442');
 });
 
@@ -280,16 +283,16 @@ test('pow()', () => {
 test('sin()', () => {
   compare(ctx.Float(0).sin(), '0');
   compare(ctx.Pi().div(6).sin(), '0.5');
-  compare(ctx.Pi().div(4).sin(), ctx.Float(2).sqrt().div(2).toString(10, true));
-  compare(ctx.Pi().div(3).sin(), ctx.Float(3).sqrt().div(2).toString(10, true));
+  compare(ctx.Pi().div(4).sin(), ctx.Float(2).sqrt().div(2).toString(10));
+  compare(ctx.Pi().div(3).sin(), ctx.Float(3).sqrt().div(2).toString(10));
   compare(ctx.Pi().div(2).sin(), '1');
   compare(ctx.Pi().mul(4).sin(), '0.00003563');
 });
 
 test('cos()', () => {
   compare(ctx.Float(0).cos(), '1');
-  compare(ctx.Pi().div(6).cos(), ctx.Float(3).sqrt().div(2).toString(10, true));
-  compare(ctx.Pi().div(4).cos(), ctx.Float(2).sqrt().div(2).toString(10, true));
+  compare(ctx.Pi().div(6).cos(), ctx.Float(3).sqrt().div(2).toString(10));
+  compare(ctx.Pi().div(4).cos(), ctx.Float(2).sqrt().div(2).toString(10));
   compare(ctx.Pi().div(3).cos(), '0.4999');
   compare(ctx.Pi().div(2).cos(), '-0.000004454');
   compare(ctx.Pi().mul(4).cos(), '1');
@@ -304,29 +307,29 @@ test('tan()', () => {
 
 test('asin()', () => {
   compare(ctx.Float(0).asin(), '0');
-  compare(ctx.Float(ctx.Float(1).div(2)).asin(), ctx.Pi().div(6).toString(10, true));
-  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).asin(), ctx.Pi().div(4).toString(10, true));
-  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).asin(), ctx.Pi().div(3).toString(10, true));
-  compare(ctx.Float(1).asin(), ctx.Pi().div(2).toString(10, true));
+  compare(ctx.Float(ctx.Float(1).div(2)).asin(), ctx.Pi().div(6).toString(10));
+  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).asin(), ctx.Pi().div(4).toString(10));
+  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).asin(), ctx.Pi().div(3).toString(10));
+  compare(ctx.Float(1).asin(), ctx.Pi().div(2).toString(10));
 });
 
 test('acos()', () => {
-  compare(ctx.Float(0).acos(), ctx.Pi().div(2).toString(10, true));
-  compare(ctx.Float(ctx.Float(1).div(2)).acos(), ctx.Pi().div(3).toString(10, true));
-  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).acos(), ctx.Pi().div(4).toString(10, true));
-  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).acos(), '0.5235');
+  compare(ctx.Float(0).acos(), ctx.Pi().div(2).toString(10));
+  compare(ctx.Float(ctx.Float(1).div(2)).acos(), ctx.Pi().div(3).toString(10));
+  compare(ctx.Float(ctx.Float(2).sqrt().div(2)).acos(), ctx.Pi().div(4).toString(10));
+  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).acos(), '0.523');
   compare(ctx.Float(1).acos(), '0');
 });
 
 test('atan()', () => {
   compare(ctx.Float(0).atan(), '0');
-  compare(ctx.Float(ctx.Float(3).sqrt().div(3)).atan(), '0.5235');
-  compare(ctx.Float(ctx.Float(1)).atan(), ctx.Pi().div(4).toString(10, true));
-  compare(ctx.Float(ctx.Float(3).sqrt()).atan(), ctx.Pi().div(3).toString(10, true));
+  compare(ctx.Float(ctx.Float(3).sqrt().div(3)).atan(), '0.523');
+  compare(ctx.Float(ctx.Float(1)).atan(), ctx.Pi().div(4).toString(10));
+  compare(ctx.Float(ctx.Float(3).sqrt()).atan(), ctx.Pi().div(3).toString(10));
 });
 
 test('csc()', () => {
-  compare(ctx.Float(ctx.Pi().div(3)).csc(), ctx.Float(3).sqrt().mul(2).div(3).toString(10, true));
+  compare(ctx.Float(ctx.Pi().div(3)).csc(), ctx.Float(3).sqrt().mul(2).div(3).toString(10));
 });
 
 test('sec()', () => {
@@ -338,11 +341,11 @@ test('cot()', () => {
 });
 
 test('sinh()', () => {
-  compare(ctx.Float('1.5').sinh(), '2.129');
+  compare(ctx.Float('1.5').sinh(), '2.129279');
 });
 
 test('cosh()', () => {
-  compare(ctx.Float('1.5').cosh(), '2.352');
+  compare(ctx.Float('1.5').cosh(), '2.3524');
 });
 
 test('tanh()', () => {
@@ -507,14 +510,8 @@ test('toString()', () => {
   const optionsZero = { precisionBits: 16, roundingMode: FloatRoundingMode.ROUND_TO_ZERO };
   expect(ctx.Pi(optionsZero).toString()).toBe('3.14154');
   expect(ctx.Pi(optionsZero).toString(10)).toBe('3.14154');
-  expect(ctx.Pi(optionsZero).toString(10, false)).toBe('3.14154');
-  expect(ctx.Pi(optionsZero).toString(10, true)).toBe('3.141');
   expect(ctx.Pi(optionsZero).toString(2)).toBe('11.00100100001111');
-  expect(ctx.Pi(optionsZero).toString(2, true)).toBe('11.00100100001111');
-  expect(ctx.Pi(optionsZero).toString(2, false)).toBe('11.00100100001111');
   expect(ctx.Pi(options).toString(5)).toBe('3.0323223');
-  expect(ctx.Pi(options).toString(5, false)).toBe('3.0323223');
-  expect(ctx.Pi(options).toString(5, true)).toBe('3.03232');
 });
 
 test('FloatOptions constants', () => {

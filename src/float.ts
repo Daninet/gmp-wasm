@@ -750,12 +750,11 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
     },
 
     /** Converts the number to string */
-    /** if truncate = true it truncates the potential incorrect digits from the end */
-    toString(radix?: number, truncate = false): string {
+    toString(radix?: number): string {
       radix = radix ?? this.options.radix;
       assertValidRadix(radix);
 
-      const str = gmp.mpfr_to_string(this.mpfr_t, radix, truncate ? FloatRoundingMode.ROUND_TO_ZERO : this.rndMode, truncate);
+      const str = gmp.mpfr_to_string(this.mpfr_t, radix, this.rndMode);
       return str;
     },
 
@@ -794,6 +793,11 @@ export function getFloatContext(gmp: GMPFunctions, ctx: any, ctxOptions?: FloatO
     /** Converts the number to an integer */
     toInteger(): Integer {
       return ctx.intContext.Integer(this);
+    },
+
+    /** Get error intervals */
+    toInterval(): [Float, Float] {
+      return [this.nextBelow(), this.nextAbove()];
     },
 
     /** Converts the number to a rational number */

@@ -78,4 +78,6 @@ test('trimTrailingZeros()', () => {
   expect(trimTrailingZeros('-123.000')).toBe('-123');
   expect(trimTrailingZeros('-123.320000')).toBe('-123.32');
   expect(trimTrailingZeros('-123.320001')).toBe('-123.320001');
+  expect(trimTrailingZeros('1000')).toBe('1000');
+  expect(trimTrailingZeros('-1000')).toBe('-1000');
 });
