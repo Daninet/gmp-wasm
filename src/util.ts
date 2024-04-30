@@ -47,6 +47,8 @@ export const FLOAT_SPECIAL_VALUES = {
 export const FLOAT_SPECIAL_VALUE_KEYS = Object.keys(FLOAT_SPECIAL_VALUES);
 
 export const trimTrailingZeros = (num: string): string => {
+  if (num.indexOf('.') === -1) return num;
+
   let pos = num.length - 1;
   while (pos >= 0) {
     if (num[pos] === ".") {
