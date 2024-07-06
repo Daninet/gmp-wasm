@@ -1,3 +1,6 @@
+## 1.3.0 (May 1, 2022)
+* 
+
 ## 1.2.0 (May 1, 2022)
 * Add truncate parameter to Float().toString() and mpfr_to_string()
 * Change default float precision to 53 (previously it was 52) to match double type
