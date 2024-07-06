@@ -1,3 +1,6 @@
+## 1.3.1 (July 6, 2024)
+* Use Node.js v20
+
 ## 1.3.0 (July 6, 2024)
 * Removed truncate parameter from toString()
 * Added toInterval()
