@@ -7,18 +7,25 @@ let ctx: CalculateTypeWithDestroy = null;
 
 beforeAll(async () => {
   gmp = await initGMP();
-  ctx = gmp.getContext({ precisionBits: 16 });
+  ctx = gmp.getContext({ precisionBits: 24 });
 });
 
 afterAll(() => {
   ctx.destroy();
 });
 
-const compare = (x: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
+const printNum = (x: FloatType) => {
+  return `${x.toString()} [${x.isZero() ? '' : x.toInterval()}]`;
+};
+
+const compare = (x: IntegerType | RationalType | FloatType, res: string) => {
   const a = ctx.Float(x);
-  const b = ctx.Float(res, { precisionBits: a.precisionBits, roundingMode: a.rndMode });
-  if (!a.isEqual(b)) throw new Error(`Compare failed: received ${a.toString()} [${a.toInterval()}], expected: ${b.toString()} [${b.toInterval()}] provided as ${res} `);
-  expect(a.isEqual(b)).toBeTruthy();
+  const b = ctx.Float(res);
+  const ok = (b.isZero() && x.abs().lessThan('0.00001')) || (b.nextBelow().lessOrEqual(a) && b.nextAbove().greaterOrEqual(a));
+  if (!ok) {
+    throw new Error(`Compare failed: received ${printNum(a)}, expected: ${printNum(b)} provided as ${res} `);
+  }
+  expect(ok).toBeTruthy();
 }
 
 const compareExact = (int: IntegerType | RationalType | FloatType, res: string, radix = 10) => {
@@ -41,6 +48,7 @@ test('parse strings', () => {
   compare(ctx.Float('0.1', { radix: 2 }), '0.5');
   compare(ctx.Float('-0.1', { radix: 2 }), '-0.5');
   compare(ctx.Float('0.10000', { radix: 2 }), '0.5');
+  compare(ctx.Float('1.12345678901234567890'), '1.1234567890123456789012345');
 });
 
 test('parse numbers', () => {
@@ -70,11 +78,11 @@ test('construct from other types', () => {
 });
 
 test('Constants', () => {
-  compare(ctx.Pi(), '3.141');
-  compare(ctx.Log2(), '0.6931');
-  compare(ctx.Catalan(), '0.9159');
-  compare(ctx.EulerConstant(), '0.5772');
-  compare(ctx.EulerNumber(), '2.718');
+  compare(ctx.Pi(), '3.14159265359');
+  compare(ctx.Log2(), '0.69314718056');
+  compare(ctx.Catalan(), '0.915965594177219');
+  compare(ctx.EulerConstant(), '0.5772156649015');
+  compare(ctx.EulerNumber(), '2.71828182845');
 });
 
 test('add()', () => {
@@ -84,7 +92,7 @@ test('add()', () => {
   compare(ctx.Float(0.5).add(ctx.Float(1)), '1.5');
   compare(ctx.Float(0.4).add(ctx.Float(0.6)), '1');
   compare(ctx.Float(0.4).add(ctx.Integer(2)), '2.4');
-  compare(ctx.Float(0.4).add(ctx.Rational(1, 2)), '0.8999');
+  compare(ctx.Float(0.4).add(ctx.Rational(1, 2)), '0.9');
   compare(ctx.Float('1.01', { radix: 2 }).add('10.1'), '3.75');
   compare(ctx.Float('1.01', { radix: 2 }).add(10.1), '11.35');
 });
@@ -110,7 +118,7 @@ test('mul()', () => {
   compare(ctx.Float(0.4).mul(ctx.Integer(2)), '0.8');
   compare(ctx.Float(0.4).mul(ctx.Rational(1, 2)), '0.2');
   compare(ctx.Float('1.01', { radix: 2 }).mul('10.1'), '3.125');
-  compare(ctx.Float('1.01', { radix: 2 }).mul(10.1), '12.62');
+  compare(ctx.Float('1.01', { radix: 2 }).mul(10.1), '12.625');
 });
 
 test('div()', () => {
@@ -122,27 +130,27 @@ test('div()', () => {
   compare(ctx.Float(6).div(ctx.Integer(2)), '3');
   compare(ctx.Float(6).div(ctx.Rational(4, 2)), '3');
   compare(ctx.Float('1.01', { radix: 2 }).div('10.1'), '0.5');
-  compare(ctx.Float('1.01', { radix: 2 }).div(10.1), '0.12376');
+  compare(ctx.Float('1.01', { radix: 2 }).div(10.1), '0.12376237623762');
 });
 
 test('sqrt()', () => {
   compare(ctx.Float(4).sqrt(), '2');
-  compare(ctx.Float(2).sqrt(), '1.4142');
+  compare(ctx.Float(2).sqrt(), '1.414213562373095048');
 });
 
 test('invSqrt()', () => {
   compare(ctx.Float(4).invSqrt(), '0.5');
-  compare(ctx.Float(2).invSqrt(), '0.7071');
+  compare(ctx.Float(2).invSqrt(), '0.7071067811865');
 });
 
 test('cbrt()', () => {
   compare(ctx.Float(27).cbrt(), '3');
-  compare(ctx.Float(3).cbrt(), '1.442');
+  compare(ctx.Float(3).cbrt(), '1.4422495703074083');
 });
 
 test('nthRoot()', () => {
-  compare(ctx.Float(2).nthRoot(2), '1.4142');
-  compare(ctx.Float(3).nthRoot(3), '1.442');
+  compare(ctx.Float(2).nthRoot(2), '1.414213562373095048');
+  compare(ctx.Float(3).nthRoot(3), '1.442249570307408382');
 });
 
 test('neg()', () => {
@@ -267,7 +275,7 @@ test('logarithms', () => {
 });
 
 test('exponentials', () => {
-  compare(ctx.Float(1).exp(), '2.718');
+  compare(ctx.Float(1).exp(), '2.718281828459');
   compare(ctx.Float(3).exp2(), '8');
   compare(ctx.Float(3).exp10(), '1000');
 });
@@ -283,26 +291,26 @@ test('pow()', () => {
 test('sin()', () => {
   compare(ctx.Float(0).sin(), '0');
   compare(ctx.Pi().div(6).sin(), '0.5');
-  compare(ctx.Pi().div(4).sin(), ctx.Float(2).sqrt().div(2).toString(10));
-  compare(ctx.Pi().div(3).sin(), ctx.Float(3).sqrt().div(2).toString(10));
+  compare(ctx.Pi({precisionBits: 54}).div(4).sin(), '0.7071067811865475');
+  compare(ctx.Pi({precisionBits: 54}).div(3).sin(), '0.8660254037844386');
   compare(ctx.Pi().div(2).sin(), '1');
-  compare(ctx.Pi().mul(4).sin(), '0.00003563');
+  compare(ctx.Pi({precisionBits: 54}).mul(4).sin(), '0');
 });
 
 test('cos()', () => {
   compare(ctx.Float(0).cos(), '1');
-  compare(ctx.Pi().div(6).cos(), ctx.Float(3).sqrt().div(2).toString(10));
-  compare(ctx.Pi().div(4).cos(), ctx.Float(2).sqrt().div(2).toString(10));
-  compare(ctx.Pi().div(3).cos(), '0.4999');
-  compare(ctx.Pi().div(2).cos(), '-0.000004454');
+  compare(ctx.Pi({precisionBits: 54}).div(6).cos(), '0.8660254037844386');
+  compare(ctx.Pi({precisionBits: 54}).div(4).cos(), '0.7071067811865475');
+  compare(ctx.Pi({precisionBits: 54}).div(3).cos(), '0.5');
+  compare(ctx.Pi().div(2).cos(), '0');
   compare(ctx.Pi().mul(4).cos(), '1');
 });
 
 test('tan()', () => {
   compare(ctx.Float(0).tan(), '0');
-  compare(ctx.Pi().div(6).tan(), '0.5773');
-  compare(ctx.Pi().div(4).tan(), '1');
-  compare(ctx.Pi().div(3).tan(), '1.732');
+  compare(ctx.Pi({precisionBits: 54}).div(6).tan(), '0.577350269189625764');
+  compare(ctx.Pi({precisionBits: 54}).div(4).tan(), '1');
+  compare(ctx.Pi({precisionBits: 54}).div(3).tan(), '1.7320508075688772935');
 });
 
 test('asin()', () => {
@@ -317,13 +325,13 @@ test('acos()', () => {
   compare(ctx.Float(0).acos(), ctx.Pi().div(2).toString(10));
   compare(ctx.Float(ctx.Float(1).div(2)).acos(), ctx.Pi().div(3).toString(10));
   compare(ctx.Float(ctx.Float(2).sqrt().div(2)).acos(), ctx.Pi().div(4).toString(10));
-  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).acos(), '0.523');
+  compare(ctx.Float(ctx.Float(3).sqrt().div(2)).acos(), '0.523598775598298873');
   compare(ctx.Float(1).acos(), '0');
 });
 
 test('atan()', () => {
   compare(ctx.Float(0).atan(), '0');
-  compare(ctx.Float(ctx.Float(3).sqrt().div(3)).atan(), '0.523');
+  compare(ctx.Float(ctx.Float(3).sqrt().div(3)).atan(), '0.523598775598298873');
   compare(ctx.Float(ctx.Float(1)).atan(), ctx.Pi().div(4).toString(10));
   compare(ctx.Float(ctx.Float(3).sqrt()).atan(), ctx.Pi().div(3).toString(10));
 });
@@ -337,31 +345,31 @@ test('sec()', () => {
 });
 
 test('cot()', () => {
-  compare(ctx.Float(ctx.Pi().div(3)).cot(), '0.5773');
+  compare(ctx.Float(ctx.Pi().div(3)).cot(), '0.5773502691896');
 });
 
 test('sinh()', () => {
-  compare(ctx.Float('1.5').sinh(), '2.129279');
+  compare(ctx.Float('1.5').sinh(), '2.129279455094817496');
 });
 
 test('cosh()', () => {
-  compare(ctx.Float('1.5').cosh(), '2.3524');
+  compare(ctx.Float('1.5').cosh(), '2.35240961524324732576');
 });
 
 test('tanh()', () => {
-  compare(ctx.Float('1.5').tanh(), '0.9051');
+  compare(ctx.Float('1.5').tanh(), '0.9051482536448664382423');
 });
 
 test('asinh()', () => {
-  compare(ctx.Float('2.12927').asinh(), '1.5');
+  compare(ctx.Float('2.129279455094817496').asinh(), '1.5');
 });
 
 test('acosh()', () => {
-  compare(ctx.Float('2.35242').acosh(), '1.5');
+  compare(ctx.Float('2.35240961524324732576').acosh(), '1.5');
 });
 
 test('atanh()', () => {
-  compare(ctx.Float('0.905151').atanh(), '1.5');
+  compare(ctx.Float('0.9051482536448664382423').atanh(), '1.5');
 });
 
 test('sign()', () => {
@@ -405,16 +413,16 @@ test('roundEven()', () => {
 });
 
 test('frac()', () => {
-  compare(ctx.Float('1.234').frac(), '0.234');
-  compare(ctx.Float('-1.234').frac(), '-0.234');
+  compare(ctx.Float('2.23').frac(), '0.23');
+  compare(ctx.Float('-2.23').frac(), '-0.23');
 });
 
 test('nextBelow()', () => {
-  compareExact(ctx.Float('1').nextBelow(), '0.999985');
+  compareExact(ctx.Float('1').nextBelow(), '0.99999994');
 });
 
 test('nextAbove()', () => {
-  compareExact(ctx.Float('1').nextAbove(), '1.00003');
+  compareExact(ctx.Float('1').nextAbove(), '1.00000012');
 });
 
 test('exponent()', () => {

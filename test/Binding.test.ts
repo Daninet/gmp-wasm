@@ -57,13 +57,13 @@ test('mpfr_to_string()', () => {
 
   const getPi = (prec, base = 10) => {
     const pi = ctx.Pi({ precisionBits: prec, roundingMode: FloatRoundingMode.ROUND_TO_ZERO });
-    return gmp.binding.mpfr_to_string(pi.mpfr_t, base, mpfr_rnd_t.MPFR_RNDZ, true);
+    return gmp.binding.mpfr_to_string(pi.mpfr_t, base, mpfr_rnd_t.MPFR_RNDZ);
   }
 
   const max = 10000;
-  const ref = getPi(max);
+  const ref = getPi(max, 2);
   for (let i = 10; i < max; i++) {
-    expect(ref).toContain(getPi(i));
+    expect(ref).toContain(getPi(i, 2));
   }
 });
 
