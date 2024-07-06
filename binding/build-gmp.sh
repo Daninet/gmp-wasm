@@ -6,15 +6,17 @@ cd "${0%/*}"
 mkdir -p gmp/src
 mkdir -p gmp/tune
 
-if [ ! -f gmp/src/gmp-6.2.1.tar.xz ]
+if [ ! -f gmp/src/gmp-6.3.0.tar.xz ]
 then
-  wget -P gmp/src https://ftp.gnu.org/gnu/gmp/gmp-6.2.1.tar.xz
-  tar xmf gmp/src/gmp-6.2.1.tar.xz -C gmp/src
-  mv gmp/src/gmp-6.2.1/* gmp/src
+  wget -P gmp/src https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
+  tar xmf gmp/src/gmp-6.3.0.tar.xz -C gmp/src
+  mv gmp/src/gmp-6.3.0/* gmp/src
 fi
 
 docker build -f gmp/Dockerfile . --tag=gmp-builder:latest
-docker run --rm -v $(pwd)/gmp:/output gmp-builder:latest /bin/bash -c "
-  cp -R /builder/dist /output && \
-  cp /builder/lib/gmp/tune/tuneup /output/tune/tuneup.js && \
-  cp /builder/lib/gmp/tune/tuneup.wasm /output/tune/tuneup.wasm"
+
+container_id=$(docker create gmp-builder)
+docker cp "$container_id:/builder/dist/" "${cwd}gmp"
+docker cp "$container_id:/builder/lib/gmp/tune/tuneup" "${cwd}gmp/tune/tuneup.js"
+docker cp "$container_id:/builder/lib/gmp/tune/tuneup.wasm" "${cwd}gmp/tune/tuneup.wasm"
+docker rm "$container_id"

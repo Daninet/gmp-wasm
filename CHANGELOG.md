@@ -1,3 +1,11 @@
+## 1.3.0 (July 6, 2024)
+* Removed truncate parameter from toString()
+* Added toInterval()
+* Fixed bug with string formatting and removal of trailing zeros
+* Update GMP version to 6.3.0
+* Update MPFR version to 4.2.1
+* Update Emscripten
+
 ## 1.2.0 (May 1, 2022)
 * Add truncate parameter to Float().toString() and mpfr_to_string()
 * Change default float precision to 53 (previously it was 52) to match double type

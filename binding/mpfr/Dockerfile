@@ -1,10 +1,12 @@
-FROM emscripten/emsdk:3.1.8
+FROM emscripten/emsdk:3.1.58
+
+RUN apt-get update && apt-get install -y texinfo automake
 
 WORKDIR /builder
 
-RUN wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.1.0.tar.xz && \
-  tar xmf mpfr-4.1.0.tar.xz && \
-  mkdir -p lib/mpfr && mv mpfr-4.1.0/* lib/mpfr
+RUN wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz && \
+  tar xmf mpfr-4.2.1.tar.xz && \
+  mkdir -p lib/mpfr && mv mpfr-4.2.1/* lib/mpfr
 
 ENV CFLAGS="-O3 -Oz -fno-rtti -fno-exceptions"
 ENV CXXFLAGS="${CFLAGS} -std=c++11"

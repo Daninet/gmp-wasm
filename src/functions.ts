@@ -38,7 +38,7 @@ import {
 
 // import { getBinding } from './bindingEmscripten';
 import { getBinding } from './bindingWASM';
-import { FLOAT_SPECIAL_VALUES, FLOAT_SPECIAL_VALUE_KEYS, insertDecimalPoint } from './util';
+import { FLOAT_SPECIAL_VALUES, FLOAT_SPECIAL_VALUE_KEYS, insertDecimalPoint, trimTrailingZeros } from './util';
 
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
 type GMPFunctionsType = Awaited<ReturnType<typeof getGMPInterface>>;
@@ -47,12 +47,13 @@ export interface GMPFunctions extends GMPFunctionsType {}
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-const PREALLOCATED_STR_SIZE = 2 * 1024;
+const PREALLOCATED_STR_SIZE = 4 * 1024;
 
 export async function getGMPInterface() {
   let gmp = await getBinding();
   let strBuf = gmp.g_malloc(PREALLOCATED_STR_SIZE);
   let mpfr_exp_t_ptr = gmp.g_malloc(4);
+  let memView = new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength);
 
   const getStringPointer = (input: string) => {
     const data = encoder.encode(input);
@@ -65,11 +66,33 @@ export async function getGMPInterface() {
     return srcPtr;
   };
 
+  const getMPFRString = (base: number, n: number, x: mpfr_ptr, rnd: mpfr_rnd_t) => {
+    const requiredSize = Math.max(7, n + 2);
+    const strPtr = gmp.r_get_str(requiredSize < PREALLOCATED_STR_SIZE ? strBuf : 0, mpfr_exp_t_ptr, base, n, x, rnd);
+    const mem = gmp.heap.HEAP8 as Uint8Array;
+    const endPtr = mem.indexOf(0, strPtr);
+    let str = decoder.decode(mem.subarray(strPtr, endPtr));
+    if (strPtr !== strBuf) {
+      gmp.r_free_str(strPtr);
+    }
+
+    if (FLOAT_SPECIAL_VALUE_KEYS.includes(str)) {
+      str = FLOAT_SPECIAL_VALUES[str];
+    } else {
+      // decimal point needs to be inserted
+      const pointPos = memView.getInt32(mpfr_exp_t_ptr, true);
+      str = insertDecimalPoint(str, pointPos);
+    }
+
+    return str;
+  };
+
   return {
     reset: async () => {
       gmp = await getBinding(true);
       strBuf = gmp.g_malloc(PREALLOCATED_STR_SIZE);
       mpfr_exp_t_ptr = gmp.g_malloc(4);
+      memView = new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength);
     },
     malloc: (size: c_size_t): c_void_ptr => gmp.g_malloc(size),
     malloc_cstr: (str: string): number => {
@@ -81,7 +104,7 @@ export async function getGMPInterface() {
     },
     free: (ptr: c_void_ptr): void => gmp.g_free(ptr),
     get mem() { return gmp.heap.HEAP8 as Uint8Array },
-    get memView() { return new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength) },
+    get memView() { return memView },
 
     /**************** Random number routines.  ****************/
     /** Initialize state with a default algorithm. */
@@ -1237,36 +1260,11 @@ export async function getGMPInterface() {
     },
 
     /** Converts MPFR float into JS string */
-    /** if truncate = true it truncates the potential incorrect digits from the end */
-    mpfr_to_string(x: mpfr_ptr, base: number, rnd: mpfr_rnd_t, truncate = false): string {
-      if (truncate && rnd !== mpfr_rnd_t.MPFR_RNDZ) throw new Error('Only MPFR_RNDZ is supported in truncate mode!');
+    mpfr_to_string(x: mpfr_ptr, base: number, rnd: mpfr_rnd_t): string {
       const prec = gmp.r_get_prec(x);
+      const n = gmp.r_get_str_ndigits(base, prec);
 
-      const n = truncate
-        ? Math.floor(prec * Math.log2(2) / Math.log2(base))
-        : gmp.r_get_str_ndigits(base, prec);
-
-      const requiredSize = Math.max(7, n + 2);
-      let destPtr = 0;
-      if (requiredSize < PREALLOCATED_STR_SIZE) {
-        destPtr = strBuf;
-      }
-
-      const strPtr = gmp.r_get_str(destPtr, mpfr_exp_t_ptr, base, n, x, truncate ? mpfr_rnd_t.MPFR_RNDZ : rnd);
-      const endPtr = this.mem.indexOf(0, strPtr);
-      let str = decoder.decode(this.mem.subarray(strPtr, endPtr));
-
-      if (FLOAT_SPECIAL_VALUE_KEYS.includes(str)) {
-        str = FLOAT_SPECIAL_VALUES[str];
-      } else {
-        // decimal point needs to be inserted
-        const pointPos = this.memView.getInt32(mpfr_exp_t_ptr, true);
-        str = insertDecimalPoint(str, pointPos);
-      }
-
-      if (destPtr !== strBuf) {
-        gmp.r_free_str(strPtr);
-      }
+      const str = getMPFRString(base, n, x, rnd);
       return str;
     }
   };

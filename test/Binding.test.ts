@@ -1,3 +1,4 @@
+import { trimTrailingZeros } from '../src/util';
 import { FloatRoundingMode, init as initGMP, mpfr_rnd_t } from '../src';
 /* global test, expect */
 
@@ -54,19 +55,29 @@ test('binding has macros', () => {
 test('mpfr_to_string()', () => {
   const ctx = gmp.getContext();
 
-  const getPi = (prec) => {
+  const getPi = (prec, base = 10) => {
     const pi = ctx.Pi({ precisionBits: prec, roundingMode: FloatRoundingMode.ROUND_TO_ZERO });
-    console.log(Math.floor(prec * Math.log2(2) / Math.log2(10)));
-    console.log(pi.nextBelow().toString());
-    console.log(pi.toString());
-    console.log(pi.toString(10, true));
-    console.log(pi.nextAbove().toString());
-    return gmp.binding.mpfr_to_string(pi.mpfr_t, 10, mpfr_rnd_t.MPFR_RNDZ, true);
+    return gmp.binding.mpfr_to_string(pi.mpfr_t, base, mpfr_rnd_t.MPFR_RNDZ);
   }
 
   const max = 10000;
-  const ref = getPi(max);
+  const ref = getPi(max, 2);
   for (let i = 10; i < max; i++) {
-    expect(ref).toContain(getPi(i));
+    expect(ref).toContain(getPi(i, 2));
   }
+});
+
+test('trimTrailingZeros()', () => {
+  expect(trimTrailingZeros('0')).toBe('0');
+  expect(trimTrailingZeros('0.')).toBe('0');
+  expect(trimTrailingZeros('-0')).toBe('-0');
+  expect(trimTrailingZeros('-0.')).toBe('-0');
+  expect(trimTrailingZeros('0.0')).toBe('0');
+  expect(trimTrailingZeros('-0.00')).toBe('-0');
+  expect(trimTrailingZeros('-0.010')).toBe('-0.01');
+  expect(trimTrailingZeros('-123.000')).toBe('-123');
+  expect(trimTrailingZeros('-123.320000')).toBe('-123.32');
+  expect(trimTrailingZeros('-123.320001')).toBe('-123.320001');
+  expect(trimTrailingZeros('1000')).toBe('1000');
+  expect(trimTrailingZeros('-1000')).toBe('-1000');
 });
