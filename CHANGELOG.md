@@ -1,4 +1,4 @@
-## x
+## 1.3.2 (July 7, 2024)
 * Fix ArrayView being detached
 
 ## 1.3.1 (July 6, 2024)
