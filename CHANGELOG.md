@@ -1,3 +1,6 @@
+## x
+* Fix ArrayView being detached
+
 ## 1.3.1 (July 6, 2024)
 * Use Node.js v20
 

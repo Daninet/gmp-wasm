@@ -29,7 +29,7 @@ export const getBinding = async (reset = false) => {
 
   await decompressAndCompile();
 
-  const heap = { HEAP8: new Uint8Array(0) };
+  const heap = { HEAP8: new Uint8Array(0), memView: new DataView(new ArrayBuffer(0)) };
   
   const errorHandler = () => {
     throw new Error('Fatal error in gmp-wasm');
@@ -39,6 +39,7 @@ export const getBinding = async (reset = false) => {
     env: {
       emscripten_notify_memory_growth: () => {
         heap.HEAP8 = new Uint8Array((wasmInstance.exports as any).memory.buffer);
+        heap.memView = new DataView(heap.HEAP8.buffer, heap.HEAP8.byteOffset, heap.HEAP8.byteLength);
       },
     },
     wasi_snapshot_preview1: {
@@ -53,6 +54,7 @@ export const getBinding = async (reset = false) => {
   exports._initialize();
 
   heap.HEAP8 = new Uint8Array((wasmInstance.exports as any).memory.buffer);
+  heap.memView = new DataView(heap.HEAP8.buffer, heap.HEAP8.byteOffset, heap.HEAP8.byteLength);
 
   instance = { heap, ...exports };
   return instance;

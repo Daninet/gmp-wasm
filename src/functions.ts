@@ -53,7 +53,6 @@ export async function getGMPInterface() {
   let gmp = await getBinding();
   let strBuf = gmp.g_malloc(PREALLOCATED_STR_SIZE);
   let mpfr_exp_t_ptr = gmp.g_malloc(4);
-  let memView = new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength);
 
   const getStringPointer = (input: string) => {
     const data = encoder.encode(input);
@@ -80,7 +79,7 @@ export async function getGMPInterface() {
       str = FLOAT_SPECIAL_VALUES[str];
     } else {
       // decimal point needs to be inserted
-      const pointPos = memView.getInt32(mpfr_exp_t_ptr, true);
+      const pointPos = gmp.heap.memView.getInt32(mpfr_exp_t_ptr, true);
       str = insertDecimalPoint(str, pointPos);
     }
 
@@ -92,7 +91,6 @@ export async function getGMPInterface() {
       gmp = await getBinding(true);
       strBuf = gmp.g_malloc(PREALLOCATED_STR_SIZE);
       mpfr_exp_t_ptr = gmp.g_malloc(4);
-      memView = new DataView(gmp.heap.HEAP8.buffer, gmp.heap.HEAP8.byteOffset, gmp.heap.HEAP8.byteLength);
     },
     malloc: (size: c_size_t): c_void_ptr => gmp.g_malloc(size),
     malloc_cstr: (str: string): number => {
@@ -104,7 +102,7 @@ export async function getGMPInterface() {
     },
     free: (ptr: c_void_ptr): void => gmp.g_free(ptr),
     get mem() { return gmp.heap.HEAP8 as Uint8Array },
-    get memView() { return memView },
+    get memView() { return gmp.heap.memView as DataView },
 
     /**************** Random number routines.  ****************/
     /** Initialize state with a default algorithm. */
