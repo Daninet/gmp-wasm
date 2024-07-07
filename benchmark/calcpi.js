@@ -1,6 +1,7 @@
 const DecimalJs = require('decimal.js');
 const Big = require('big.js');
 const BigInteger = require('big-integer');
+const { ExactNumber } = require('exactnumber');
 const { init: initGMP, DivMode } = require('../dist/index.umd.js');
 // const { init: initGMP, DivMode } = require('gmp-wasm');
 const piDecimals = require("pi-decimals");
@@ -274,7 +275,19 @@ initGMP().then(gmp => {
         i = i.add(2);
         pi = pi.add(x.divToInt(i));
       }
-      return pi.toString().slice(0, precision + 1);
+      return '3.' + pi.toFixed(precision + 20).slice(1, precision + 1);
+    },
+
+    function ExactNumber_BigInt_Series (precision) {
+      let i = ExactNumber(1);
+      let x = ExactNumber(3).mul(ExactNumber(10).pow(precision + 20));
+      let pi = ExactNumber(x);
+      while (!x.isZero()) {
+        x = x.mul(i).divToInt(ExactNumber(i).add(1).mul(4));
+        i = i.add(2);
+        pi = pi.add(x.divToInt(i));
+      }
+      return '3.' + pi.toFixed(precision + 20).slice(1, precision + 1);
     },
 
     function GMP_Float_Series (precision) {
@@ -352,6 +365,20 @@ initGMP().then(gmp => {
       }
       return pi.toString();
     },
+
+    // function ExactNumber_Float_Series (precision) {
+    //   let i = 1;
+    //   let x = ExactNumber(3);
+    //   let pi = ExactNumber(x);
+    //   const endPrecision = ExactNumber(10).pow(-precision);
+    //   while (x.gt(endPrecision)) {
+    //     x = x.mul(i).div((i + 1) * 4);
+    //     i += 2;
+    //     pi = pi.add(x.div(i));
+    //     console.log(x.toExponential(10));
+    //   }
+    //   return pi.toString();
+    // },
 
     // function DecimalJsAtan1(precision) {
     //   DecimalJs.precision = precision;
