@@ -1,0 +1,165 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>gmp-wasm</title><meta name="description" content="Documentation for gmp-wasm"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">gmp-wasm</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>gmp-wasm </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#gmp-wasm" id="gmp-wasm" style="color: inherit; text-decoration: none;">
+  <h1>GMP-WASM</h1>
+</a>
+<p><a href="http://npmjs.org/package/gmp-wasm"><img src="https://img.shields.io/npm/v/gmp-wasm.svg" alt="npm package"></a>
+<a href="https://codecov.io/gh/Daninet/gmp-wasm"><img src="https://codecov.io/gh/Daninet/gmp-wasm/branch/master/graph/badge.svg" alt="codecov"></a>
+<a href="https://github.com/Daninet/gmp-wasm/actions"><img src="https://github.com/Daninet/gmp-wasm/workflows/Build/badge.svg?branch=master" alt="Build status"></a>
+<a href="https://www.jsdelivr.com/package/npm/gmp-wasm"><img src="https://data.jsdelivr.com/v1/package/npm/gmp-wasm/badge" alt="JSDelivr downloads"></a></p>
+<p>Arbitrary-precision <strong>Integer</strong>, <strong>Rational</strong> and <strong>Float</strong> types based on the <a href="https://gmplib.org/">GMP</a> and <a href="https://www.mpfr.org/">MPFR</a> libraries.</p>
+
+<a href="#features" id="features" style="color: inherit; text-decoration: none;">
+  <h2>Features</h2>
+</a>
+<ul>
+<li>Supports all modern browsers, web workers, Node.js and Deno</li>
+<li>Includes an easy-to-use, high-level wrapper, but low-level functions are also exposed</li>
+<li>Has a lot more features, and in some cases, <a href="#performance">it&#39;s faster</a> than the built-in <strong>BigInt</strong> type</li>
+<li>The WASM binary is bundled as a compressed base64 string (no problems with linking)</li>
+<li>Works even without Webpack or other bundlers</li>
+<li>Includes TypeScript type definitions, check API <a href="https://daninet.github.io/gmp-wasm">here</a>.</li>
+<li>Zero dependencies</li>
+<li>Full minified and gzipped bundle has a size of <img src="https://img.badgesize.io/Daninet/gmp-wasm/binaries/index.umd.min.js?compression=gzip&label=minzipped%20size" alt="Bundle size"></li>
+<li>It also packages a mini bundle without Float/MPFR operations <img src="https://img.badgesize.io/Daninet/gmp-wasm/binaries/mini.umd.min.js?compression=gzip&label=minzipped%20size" alt="Bundle size"></li>
+<li>100% open source &amp; <a href="https://github.com/Daninet/gmp-wasm/actions">transparent build process</a></li>
+</ul>
+
+<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+  <h2>Installation</h2>
+</a>
+<pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">i</span><span class="hl-1"> </span><span class="hl-0">gmp</span><span class="hl-1">-</span><span class="hl-0">wasm</span>
+</code></pre>
+<p>It can also be used directly from HTML (via <a href="https://www.jsdelivr.com/package/npm/gmp-wasm">jsDelivr</a>):</p>
+<pre><code class="language-html"><span class="hl-2">&lt;!-- loads the full, minified library into the global `gmp` variable --&gt;</span><br/><span class="hl-3">&lt;</span><span class="hl-4">script</span><span class="hl-5"> </span><span class="hl-6">src</span><span class="hl-5">=</span><span class="hl-7">&quot;https://cdn.jsdelivr.net/npm/gmp-wasm&quot;</span><span class="hl-3">&gt;&lt;/</span><span class="hl-4">script</span><span class="hl-3">&gt;</span><br/><br/><span class="hl-2">&lt;!-- or loads the non-minified library --&gt;</span><br/><span class="hl-3">&lt;</span><span class="hl-4">script</span><span class="hl-5"> </span><span class="hl-6">src</span><span class="hl-5">=</span><span class="hl-7">&quot;https://cdn.jsdelivr.net/npm/gmp-wasm/dist/index.umd.js&quot;</span><span class="hl-3">&gt;&lt;/</span><span class="hl-4">script</span><span class="hl-3">&gt;</span><br/><br/><span class="hl-2">&lt;!-- or loads the minified library without Float/MPFR functions --&gt;</span><br/><span class="hl-3">&lt;</span><span class="hl-4">script</span><span class="hl-5"> </span><span class="hl-6">src</span><span class="hl-5">=</span><span class="hl-7">&quot;https://cdn.jsdelivr.net/npm/gmp-wasm/dist/mini.umd.min.js&quot;</span><span class="hl-3">&gt;&lt;/</span><span class="hl-4">script</span><span class="hl-3">&gt;</span>
+</code></pre>
+
+<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+  <h2>Usage</h2>
+</a>
+<p><strong>gmp-wasm</strong> also provides a high-level wrapper over the GMP functions. There are three major components:</p>
+<ul>
+<li><code>g.Integer()</code> - Wraps integers (<em>MPZ</em>)</li>
+<li><code>g.Rational()</code> - Wraps rational numbers (<em>MPQ</em>)</li>
+<li><code>g.Float()</code> - Wraps floating-point numbers (<em>MPFR</em>)</li>
+</ul>
+<pre><code class="language-js"><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">gmp</span><span class="hl-1"> = </span><span class="hl-10">require</span><span class="hl-1">(</span><span class="hl-11">&#39;gmp-wasm&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-0">gmp</span><span class="hl-1">.</span><span class="hl-10">init</span><span class="hl-1">().</span><span class="hl-10">then</span><span class="hl-1">(({ </span><span class="hl-0">calculate</span><span class="hl-1"> }) </span><span class="hl-8">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-2">// calculate() automatically deallocates all objects created within the callback function</span><br/><span class="hl-1">  </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">result</span><span class="hl-1"> = </span><span class="hl-10">calculate</span><span class="hl-1">((</span><span class="hl-0">g</span><span class="hl-1">) </span><span class="hl-8">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">six</span><span class="hl-1"> = </span><span class="hl-0">g</span><span class="hl-1">.</span><span class="hl-10">Float</span><span class="hl-1">(</span><span class="hl-12">1</span><span class="hl-1">).</span><span class="hl-10">add</span><span class="hl-1">(</span><span class="hl-12">5</span><span class="hl-1">);</span><br/><span class="hl-1">    </span><span class="hl-13">return</span><span class="hl-1"> </span><span class="hl-0">g</span><span class="hl-1">.</span><span class="hl-10">Pi</span><span class="hl-1">().</span><span class="hl-10">div</span><span class="hl-1">(</span><span class="hl-0">six</span><span class="hl-1">).</span><span class="hl-10">sin</span><span class="hl-1">(); </span><span class="hl-2">// sin(Pi/6) = 0.5</span><br/><span class="hl-1">  });</span><br/><span class="hl-1">  </span><span class="hl-0">console</span><span class="hl-1">.</span><span class="hl-10">log</span><span class="hl-1">(</span><span class="hl-0">result</span><span class="hl-1">);</span><br/><span class="hl-1">});</span>
+</code></pre>
+<p>It is also possible to delay deallocation through the <code>getContext()</code> API:</p>
+<pre><code class="language-js"><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">gmp</span><span class="hl-1"> = </span><span class="hl-10">require</span><span class="hl-1">(</span><span class="hl-11">&#39;gmp-wasm&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-0">gmp</span><span class="hl-1">.</span><span class="hl-10">init</span><span class="hl-1">().</span><span class="hl-10">then</span><span class="hl-1">(({ </span><span class="hl-0">getContext</span><span class="hl-1"> }) </span><span class="hl-8">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">ctx</span><span class="hl-1"> = </span><span class="hl-10">getContext</span><span class="hl-1">();</span><br/><span class="hl-1">  </span><span class="hl-8">let</span><span class="hl-1"> </span><span class="hl-0">x</span><span class="hl-1"> = </span><span class="hl-0">ctx</span><span class="hl-1">.</span><span class="hl-10">Integer</span><span class="hl-1">(</span><span class="hl-12">1</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-13">for</span><span class="hl-1"> (</span><span class="hl-8">let</span><span class="hl-1"> </span><span class="hl-0">i</span><span class="hl-1"> = </span><span class="hl-12">2</span><span class="hl-1">; </span><span class="hl-0">i</span><span class="hl-1"> &lt; </span><span class="hl-12">16</span><span class="hl-1">; </span><span class="hl-0">i</span><span class="hl-1">++) {</span><br/><span class="hl-1">    </span><span class="hl-0">x</span><span class="hl-1"> = </span><span class="hl-0">x</span><span class="hl-1">.</span><span class="hl-10">add</span><span class="hl-1">(</span><span class="hl-0">i</span><span class="hl-1">);</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">  </span><span class="hl-0">console</span><span class="hl-1">.</span><span class="hl-10">log</span><span class="hl-1">(</span><span class="hl-0">x</span><span class="hl-1">.</span><span class="hl-10">toString</span><span class="hl-1">());</span><br/><span class="hl-1">  </span><span class="hl-10">setTimeout</span><span class="hl-1">(() </span><span class="hl-8">=&gt;</span><span class="hl-1"> </span><span class="hl-0">ctx</span><span class="hl-1">.</span><span class="hl-10">destroy</span><span class="hl-1">(), </span><span class="hl-12">50</span><span class="hl-1">);</span><br/><span class="hl-1">});</span>
+</code></pre>
+<p>The precision and the rounding modes can be set by passing a parameter to the context or to the Float constructor.</p>
+<pre><code class="language-js"><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">roundingMode</span><span class="hl-1"> = </span><span class="hl-0">gmp</span><span class="hl-1">.</span><span class="hl-0">FloatRoundingMode</span><span class="hl-1">.</span><span class="hl-9">ROUND_DOWN</span><span class="hl-1">;</span><br/><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">options</span><span class="hl-1"> = { </span><span class="hl-0">precisionBits:</span><span class="hl-1"> </span><span class="hl-12">10</span><span class="hl-1">, </span><span class="hl-0">roundingMode</span><span class="hl-1"> };</span><br/><br/><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">result</span><span class="hl-1"> = </span><span class="hl-10">calculate</span><span class="hl-1">(</span><span class="hl-0">g</span><span class="hl-1"> </span><span class="hl-8">=&gt;</span><span class="hl-1"> </span><span class="hl-0">g</span><span class="hl-1">.</span><span class="hl-10">Float</span><span class="hl-1">(</span><span class="hl-12">1</span><span class="hl-1">).</span><span class="hl-10">div</span><span class="hl-1">(</span><span class="hl-12">3</span><span class="hl-1">), </span><span class="hl-0">options</span><span class="hl-1">);</span><br/><span class="hl-2">// or</span><br/><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">result2</span><span class="hl-1"> = </span><span class="hl-10">calculate</span><span class="hl-1">(</span><span class="hl-0">g</span><span class="hl-1"> </span><span class="hl-8">=&gt;</span><span class="hl-1"> </span><span class="hl-0">g</span><span class="hl-1">.</span><span class="hl-10">Float</span><span class="hl-1">(</span><span class="hl-12">1</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">).</span><span class="hl-10">div</span><span class="hl-1">(</span><span class="hl-12">3</span><span class="hl-1">));</span><br/><span class="hl-2">// or</span><br/><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">ctx</span><span class="hl-1"> = </span><span class="hl-10">getContext</span><span class="hl-1">(</span><span class="hl-0">options</span><span class="hl-1">);</span><br/><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">result3</span><span class="hl-1"> = </span><span class="hl-0">ctx</span><span class="hl-1">.</span><span class="hl-10">Float</span><span class="hl-1">(</span><span class="hl-12">1</span><span class="hl-1">).</span><span class="hl-10">div</span><span class="hl-1">(</span><span class="hl-12">3</span><span class="hl-1">).</span><span class="hl-10">toString</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#predefined-constants" id="predefined-constants" style="color: inherit; text-decoration: none;">
+  <h2>Predefined constants</h2>
+</a>
+<ul>
+<li>Pi</li>
+<li>EulerConstant</li>
+<li>EulerNumber</li>
+<li>Log2</li>
+<li>Catalan</li>
+</ul>
+
+<a href="#advanced-usage" id="advanced-usage" style="color: inherit; text-decoration: none;">
+  <h2>Advanced usage</h2>
+</a>
+<p>High-level wrapper can be combined with low-level functions:</p>
+<pre><code class="language-js"><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">sum</span><span class="hl-1"> = </span><span class="hl-10">calculate</span><span class="hl-1">((</span><span class="hl-0">g</span><span class="hl-1">) </span><span class="hl-8">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">a</span><span class="hl-1"> = </span><span class="hl-0">g</span><span class="hl-1">.</span><span class="hl-10">Float</span><span class="hl-1">(</span><span class="hl-12">1</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">b</span><span class="hl-1"> = </span><span class="hl-0">g</span><span class="hl-1">.</span><span class="hl-10">Float</span><span class="hl-1">(</span><span class="hl-12">2</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">c</span><span class="hl-1"> = </span><span class="hl-0">g</span><span class="hl-1">.</span><span class="hl-10">Float</span><span class="hl-1">(</span><span class="hl-12">0</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-2">// c = a + b</span><br/><span class="hl-1">  </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpfr_add</span><span class="hl-1">(</span><span class="hl-0">c</span><span class="hl-1">.</span><span class="hl-0">mpfr_t</span><span class="hl-1">, </span><span class="hl-0">a</span><span class="hl-1">.</span><span class="hl-0">mpfr_t</span><span class="hl-1">, </span><span class="hl-0">b</span><span class="hl-1">.</span><span class="hl-0">mpfr_t</span><span class="hl-1">, </span><span class="hl-12">0</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-13">return</span><span class="hl-1"> </span><span class="hl-0">c</span><span class="hl-1">;</span><br/><span class="hl-1">});</span>
+</code></pre>
+<p>If you want more control and performance you can use the original GMP / MPFR functions even without high-level wrappers.</p>
+<pre><code class="language-js"><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">gmp</span><span class="hl-1"> = </span><span class="hl-10">require</span><span class="hl-1">(</span><span class="hl-11">&#39;gmp-wasm&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-0">gmp</span><span class="hl-1">.</span><span class="hl-10">init</span><span class="hl-1">().</span><span class="hl-10">then</span><span class="hl-1">(({ </span><span class="hl-0">binding</span><span class="hl-1"> }) </span><span class="hl-8">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-2">// Create first number and initialize it to 30</span><br/><span class="hl-1">  </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">num1Ptr</span><span class="hl-1"> = </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpz_t</span><span class="hl-1">();</span><br/><span class="hl-1">  </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpz_init_set_si</span><span class="hl-1">(</span><span class="hl-0">num1Ptr</span><span class="hl-1">, </span><span class="hl-12">30</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-2">// Create second number from string. The string needs to be copied into WASM memory</span><br/><span class="hl-1">  </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">num2Ptr</span><span class="hl-1"> = </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpz_t</span><span class="hl-1">();</span><br/><span class="hl-1">  </span><span class="hl-8">const</span><span class="hl-1"> </span><span class="hl-9">strPtr</span><span class="hl-1"> = </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">malloc_cstr</span><span class="hl-1">(</span><span class="hl-11">&#39;40&#39;</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpz_init_set_str</span><span class="hl-1">(</span><span class="hl-0">num2Ptr</span><span class="hl-1">, </span><span class="hl-0">strPtr</span><span class="hl-1">, </span><span class="hl-12">10</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-2">// Calculate num1Ptr + num2Ptr, store the result in num1Ptr</span><br/><span class="hl-1">  </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpz_add</span><span class="hl-1">(</span><span class="hl-0">num1Ptr</span><span class="hl-1">, </span><span class="hl-0">num1Ptr</span><span class="hl-1">, </span><span class="hl-0">num2Ptr</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-2">// Get result as integer</span><br/><span class="hl-1">  </span><span class="hl-0">console</span><span class="hl-1">.</span><span class="hl-10">log</span><span class="hl-1">(</span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpz_get_si</span><span class="hl-1">(</span><span class="hl-0">num1Ptr</span><span class="hl-1">));</span><br/><span class="hl-1">  </span><span class="hl-2">// Deallocate memory</span><br/><span class="hl-1">  </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">free</span><span class="hl-1">(</span><span class="hl-0">strPtr</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpz_clears</span><span class="hl-1">(</span><span class="hl-0">num1Ptr</span><span class="hl-1">, </span><span class="hl-0">num2Ptr</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">mpz_t_frees</span><span class="hl-1">(</span><span class="hl-0">num1Ptr</span><span class="hl-1">, </span><span class="hl-0">num2Ptr</span><span class="hl-1">);</span><br/><span class="hl-1">});</span>
+</code></pre>
+<p>Sometimes, it&#39;s easier and faster to deallocate everything by reinitializing the WASM bindings:</p>
+<pre><code class="language-js"><span class="hl-2">// Deallocate all memory objects created by gmp-wasm</span><br/><span class="hl-13">await</span><span class="hl-1"> </span><span class="hl-0">binding</span><span class="hl-1">.</span><span class="hl-10">reset</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#performance" id="performance" style="color: inherit; text-decoration: none;">
+  <h2>Performance</h2>
+</a>
+<p>In some cases, this library can provide better performance than the built-in <em>BigInt</em> type.</p>
+<p>For example, calculating 8000 digits of Pi using the following <a href="http://ajennings.net/blog/a-million-digits-of-pi-in-9-lines-of-javascript.html">formula</a> provides better results:</p>
+<pre><code><span class="hl-9">PI</span><span class="hl-1"> = </span><span class="hl-12">3</span><br/><span class="hl-1">  + </span><span class="hl-12">3</span><span class="hl-1"> * (</span><span class="hl-12">1</span><span class="hl-1">/</span><span class="hl-12">2</span><span class="hl-1">) * (</span><span class="hl-12">1</span><span class="hl-1">/</span><span class="hl-12">3</span><span class="hl-1">) * (</span><span class="hl-12">1</span><span class="hl-1">/</span><span class="hl-12">4</span><span class="hl-1">)</span><br/><span class="hl-1">  + </span><span class="hl-12">3</span><span class="hl-1"> * ((</span><span class="hl-12">1</span><span class="hl-1"> * </span><span class="hl-12">3</span><span class="hl-1">)/(</span><span class="hl-12">2</span><span class="hl-1"> * </span><span class="hl-12">4</span><span class="hl-1">)) * (</span><span class="hl-12">1</span><span class="hl-1">/</span><span class="hl-12">5</span><span class="hl-1">) * (</span><span class="hl-12">1</span><span class="hl-1"> / (</span><span class="hl-12">4</span><span class="hl-1">^</span><span class="hl-12">2</span><span class="hl-1">))</span><br/><span class="hl-1">  + </span><span class="hl-12">3</span><span class="hl-1"> * ((</span><span class="hl-12">1</span><span class="hl-1"> * </span><span class="hl-12">3</span><span class="hl-1"> * </span><span class="hl-12">5</span><span class="hl-1">) / (</span><span class="hl-12">2</span><span class="hl-1"> * </span><span class="hl-12">4</span><span class="hl-1"> * </span><span class="hl-12">6</span><span class="hl-1">)) * (</span><span class="hl-12">1</span><span class="hl-1">/</span><span class="hl-12">7</span><span class="hl-1">) * (</span><span class="hl-12">1</span><span class="hl-1"> / (</span><span class="hl-12">4</span><span class="hl-1">^</span><span class="hl-12">3</span><span class="hl-1">))</span><br/><span class="hl-1">  + ...</span>
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Avg. time</th>
+<th>Speedup</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>With JS built-in <code>BigInt</code> type</td>
+<td>129 ms</td>
+<td>1x</td>
+</tr>
+<tr>
+<td><strong>gmp-wasm</strong> <code>Integer()</code> high-level wrapper</td>
+<td>88 ms</td>
+<td>1.47x</td>
+</tr>
+<tr>
+<td>Same as previous with delayed memory deallocation</td>
+<td>78 ms</td>
+<td>1.65x</td>
+</tr>
+<tr>
+<td><strong>gmp-wasm</strong> <code>MPZ</code> low-level functions</td>
+<td>53 ms</td>
+<td>2.43x</td>
+</tr>
+<tr>
+<td><a href="https://www.npmjs.com/package/decimal.js">decimal.js</a> 10.3.1 with integer division</td>
+<td>443 ms</td>
+<td>0.29x</td>
+</tr>
+<tr>
+<td><a href="https://www.npmjs.com/package/big-integer">big-integer</a> 1.6.51</td>
+<td>129 ms</td>
+<td>1x</td>
+</tr>
+<tr>
+<td>----------------------------</td>
+<td>--------</td>
+<td>--------</td>
+</tr>
+<tr>
+<td><strong>gmp-wasm</strong> <code>Float()</code> high-level wrapper</td>
+<td>175 ms</td>
+<td>0.74x</td>
+</tr>
+<tr>
+<td>Same as previous with delayed memory deallocation</td>
+<td>169 ms</td>
+<td>0.76x</td>
+</tr>
+<tr>
+<td><strong>gmp-wasm</strong> <code>MPFR</code> low-level functions</td>
+<td>118 ms</td>
+<td>1.09x</td>
+</tr>
+<tr>
+<td><a href="https://www.npmjs.com/package/decimal.js">decimal.js</a> 10.3.1 with float division</td>
+<td>785 ms</td>
+<td>0.16x</td>
+</tr>
+<tr>
+<td>----------------------------</td>
+<td>--------</td>
+<td>--------</td>
+</tr>
+<tr>
+<td><strong>gmp-wasm</strong> <code>Float(1).atan().mul(4)</code></td>
+<td>0.6 ms</td>
+<td>215x</td>
+</tr>
+<tr>
+<td><strong>gmp-wasm</strong> <code>Float(&#39;0.5&#39;).asin().mul(6)</code></td>
+<td>17 ms</td>
+<td>7.59x</td>
+</tr>
+</tbody></table>
+<p>* These measurements were made with <code>Node.js v16.14</code> on an Intel Kaby Lake desktop CPU. Source code is <a href="https://github.com/Daninet/gmp-wasm/blob/master/benchmark/calcpi.js">here</a>.</p>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-enum"><a href="enums/DivMode.html" class="tsd-kind-icon">Div<wbr/>Mode</a></li><li class="tsd-kind-enum"><a href="enums/FloatRoundingMode.html" class="tsd-kind-icon">Float<wbr/>Rounding<wbr/>Mode</a></li><li class="tsd-kind-enum"><a href="enums/mpfr_flags.html" class="tsd-kind-icon">mpfr_<wbr/>flags</a></li><li class="tsd-kind-enum"><a href="enums/mpfr_free_cache_t.html" class="tsd-kind-icon">mpfr_<wbr/>free_<wbr/>cache_<wbr/>t</a></li><li class="tsd-kind-enum"><a href="enums/mpfr_rnd_t.html" class="tsd-kind-icon">mpfr_<wbr/>rnd_<wbr/>t</a></li><li class="tsd-kind-interface"><a href="interfaces/CalculateOptions.html" class="tsd-kind-icon">Calculate<wbr/>Options</a></li><li class="tsd-kind-interface"><a href="interfaces/CalculateType.html" class="tsd-kind-icon">Calculate<wbr/>Type</a></li><li class="tsd-kind-interface"><a href="interfaces/CalculateTypeWithDestroy.html" class="tsd-kind-icon">Calculate<wbr/>Type<wbr/>With<wbr/>Destroy</a></li><li class="tsd-kind-interface"><a href="interfaces/FloatOptions.html" class="tsd-kind-icon">Float<wbr/>Options</a></li><li class="tsd-kind-interface"><a href="interfaces/FloatType.html" class="tsd-kind-icon">Float<wbr/>Type</a></li><li class="tsd-kind-interface"><a href="interfaces/GMPFunctions.html" class="tsd-kind-icon">GMPFunctions</a></li><li class="tsd-kind-interface"><a href="interfaces/GMPLib.html" class="tsd-kind-icon">GMPLib</a></li><li class="tsd-kind-interface"><a href="interfaces/IntegerType.html" class="tsd-kind-icon">Integer<wbr/>Type</a></li><li class="tsd-kind-interface"><a href="interfaces/RationalType.html" class="tsd-kind-icon">Rational<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#__gmp_randstate_struct_ptr" class="tsd-kind-icon">__gmp_<wbr/>randstate_<wbr/>struct_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_double" class="tsd-kind-icon">c_<wbr/>double</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_int" class="tsd-kind-icon">c_<wbr/>int</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_int_ptr" class="tsd-kind-icon">c_<wbr/>int_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_long_ptr" class="tsd-kind-icon">c_<wbr/>long_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_signed_long_int" class="tsd-kind-icon">c_<wbr/>signed_<wbr/>long_<wbr/>int</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_signed_long_int_ptr" class="tsd-kind-icon">c_<wbr/>signed_<wbr/>long_<wbr/>int_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_size_t" class="tsd-kind-icon">c_<wbr/>size_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_size_t_ptr" class="tsd-kind-icon">c_<wbr/>size_<wbr/>t_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_str_ptr" class="tsd-kind-icon">c_<wbr/>str_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_str_ptr_ptr" class="tsd-kind-icon">c_<wbr/>str_<wbr/>ptr_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_unsigned_long_int" class="tsd-kind-icon">c_<wbr/>unsigned_<wbr/>long_<wbr/>int</a></li><li class="tsd-kind-type-alias"><a href="modules.html#c_void_ptr" class="tsd-kind-icon">c_<wbr/>void_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#gmp_randstate_t" class="tsd-kind-icon">gmp_<wbr/>randstate_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mp_bitcnt_t" class="tsd-kind-icon">mp_<wbr/>bitcnt_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mp_limb_t" class="tsd-kind-icon">mp_<wbr/>limb_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mp_ptr" class="tsd-kind-icon">mp_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mp_size_t" class="tsd-kind-icon">mp_<wbr/>size_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mp_srcptr" class="tsd-kind-icon">mp_<wbr/>srcptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_exp_t" class="tsd-kind-icon">mpfr_<wbr/>exp_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_exp_t_ptr" class="tsd-kind-icon">mpfr_<wbr/>exp_<wbr/>t_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_flags_t" class="tsd-kind-icon">mpfr_<wbr/>flags_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_prec_t" class="tsd-kind-icon">mpfr_<wbr/>prec_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_prec_t_ptr" class="tsd-kind-icon">mpfr_<wbr/>prec_<wbr/>t_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_ptr" class="tsd-kind-icon">mpfr_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_ptr_ptr" class="tsd-kind-icon">mpfr_<wbr/>ptr_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_srcptr" class="tsd-kind-icon">mpfr_<wbr/>srcptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpfr_t" class="tsd-kind-icon">mpfr_<wbr/>t</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpq_ptr" class="tsd-kind-icon">mpq_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpq_srcptr" class="tsd-kind-icon">mpq_<wbr/>srcptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpz_ptr" class="tsd-kind-icon">mpz_<wbr/>ptr</a></li><li class="tsd-kind-type-alias"><a href="modules.html#mpz_srcptr" class="tsd-kind-icon">mpz_<wbr/>srcptr</a></li><li class="tsd-kind-function"><a href="modules.html#init" class="tsd-kind-icon">init</a></li><li class="tsd-kind-function"><a href="modules.html#precisionToBits" class="tsd-kind-icon">precision<wbr/>To<wbr/>Bits</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
